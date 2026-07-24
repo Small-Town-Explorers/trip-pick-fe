@@ -27,6 +27,39 @@
     "plugins": [
       "expo-router",
       [
+        "expo-font",
+        {
+          "android": {
+            "fonts": [
+              {
+                "fontFamily": "Pretendard",
+                "fontDefinitions": [
+                  {
+                    "path": "../../packages/app/assets/fonts/native/Pretendard-Regular.otf",
+                    "weight": 400
+                  },
+                  {
+                    "path": "../../packages/app/assets/fonts/native/Pretendard-Medium.otf",
+                    "weight": 500
+                  },
+                  {
+                    "path": "../../packages/app/assets/fonts/native/Pretendard-SemiBold.otf",
+                    "weight": 600
+                  }
+                ]
+              }
+            ]
+          },
+          "ios": {
+            "fonts": [
+              "../../packages/app/assets/fonts/native/Pretendard-Regular.otf",
+              "../../packages/app/assets/fonts/native/Pretendard-Medium.otf",
+              "../../packages/app/assets/fonts/native/Pretendard-SemiBold.otf"
+            ]
+          }
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#208AEF",

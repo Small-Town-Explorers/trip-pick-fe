@@ -10,3 +10,13 @@ export {
   type SemanticColorToken,
   type SubColorToken,
 } from './colors';
+export {
+  fontFamilies,
+  fontWeights,
+  typography,
+  typographyMetrics,
+  type FontFamilyToken,
+  type FontWeightToken,
+  type TypographyStyle,
+  type TypographyToken,
+} from './typography';
