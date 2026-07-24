@@ -10,3 +10,12 @@ body,
 #root {
   min-height: 100vh;
 }
+
+body {
+  font-family:
+    Pretendard,
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    sans-serif;
+}
