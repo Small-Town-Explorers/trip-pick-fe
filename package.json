@@ -9,12 +9,16 @@
   "scripts": {
     "web": "npm run dev --workspace @trip-pick/web",
     "mobile": "npm run start --workspace @trip-pick/mobile",
+    "mobile:dev": "npm run dev --workspace @trip-pick/mobile",
+    "mobile:dev:usb": "npm run dev:usb --workspace @trip-pick/mobile",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "build:web": "npm run build --workspace @trip-pick/web"
+    "build:web": "npm run build --workspace @trip-pick/web",
+    "build:mobile:development": "npm run build:android:development --workspace @trip-pick/mobile",
+    "build:mobile:preview": "npm run build:android:preview --workspace @trip-pick/mobile"
   },
   "devDependencies": {
     "eslint": "^9.39.2",
