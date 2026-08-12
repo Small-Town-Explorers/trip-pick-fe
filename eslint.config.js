@@ -12,4 +12,26 @@ module.exports = defineConfig([
   ]),
   expoConfig,
   prettierConfig,
+  {
+    settings: {
+      'import/resolver': {
+        typescript: {
+          project: [
+            './packages/app/tsconfig.json',
+            './apps/web/tsconfig.app.json',
+            './apps/mobile/tsconfig.json',
+          ],
+        },
+      },
+    },
+    rules: {
+      'import/no-unresolved': [
+        'error',
+        {
+          // Vite가 처리하는 웹 SVG 컴포넌트 import
+          ignore: ['\\.svg\\?react$', '\\.png'],
+        },
+      ],
+    },
+  },
 ]);

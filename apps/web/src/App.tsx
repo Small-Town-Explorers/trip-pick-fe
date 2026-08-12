@@ -1,5 +1,6 @@
 import {
   ColorSystemScreen,
+  ComponentSystemScreen,
   HomeScreen,
   NavigationProvider,
   TestOneScreen,
@@ -23,6 +24,7 @@ function App() {
         <Route path="/" element={<HomeScreen />} />
         <Route path="/design-system/colors" element={<ColorSystemScreen />} />
         <Route path="/design-system/typography" element={<TypographySystemScreen />} />
+        <Route path="/design-system/components" element={<ComponentSystemScreen />} />
         <Route path="/test-one" element={<TestOneScreen />} />
         <Route path="/test-two" element={<TestTwoScreen />} />
         <Route path="*" element={<Navigate to="/" replace />} />

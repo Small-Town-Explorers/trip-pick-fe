@@ -1,1 +1,0 @@
-export { TypographySystemScreen } from './TypographySystemScreen';

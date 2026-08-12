@@ -4,7 +4,13 @@
     "strict": true,
     "paths": {
       "@/*": ["./src/*"],
-      "@/assets/*": ["./assets/*"]
+      "@/assets/*": ["./assets/*"],
+      "@assets/*": ["../../packages/app/assets/*"],
+      "@icons/*": ["../../packages/app/assets/icons/*"],
+      "@styles": ["../../packages/app/src/styles/index.ts"],
+      "@styles/*": ["../../packages/app/src/styles/*"],
+      "@components": ["../../packages/app/src/components/index.ts"],
+      "@components/*": ["../../packages/app/src/components/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
