@@ -1,6 +1,12 @@
 import { createContext, type PropsWithChildren, useContext } from 'react';
 
-export type AppRoute = '/' | '/test-one' | '/test-two';
+export type AppRoute =
+  | '/'
+  | '/design-system/colors'
+  | '/design-system/typography'
+  | '/design-system/components'
+  | '/test-one'
+  | '/test-two';
 
 type Navigation = {
   navigate: (route: AppRoute) => void;

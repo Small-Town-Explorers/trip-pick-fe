@@ -1,14 +1,13 @@
 html,
-body,
-#root {
+body {
   width: 100%;
   min-height: 100%;
   margin: 0;
 }
 
-body,
-#root {
+body {
   min-height: 100vh;
+  background: #333333;
 }
 
 body {
@@ -18,4 +17,12 @@ body {
     BlinkMacSystemFont,
     system-ui,
     sans-serif;
+}
+
+#root {
+  width: 100%;
+  max-width: 393px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: #ffffff;
 }
