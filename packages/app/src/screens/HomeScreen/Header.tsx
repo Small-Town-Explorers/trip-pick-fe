@@ -6,34 +6,34 @@ import type { ImageSourcePropType } from 'react-native';
 
 export function HomeHeader() {
   return (
-    <Header>
-      <LogoContainer>
+    <Bar>
+      <Brand>
         <Logo
           source={logoImage as ImageSourcePropType}
           resizeMode="contain"
           accessibilityLabel="Trip Pick 로고"
         />
-        <LogoText>소도시로</LogoText>
-      </LogoContainer>
-      <HeaderMenu>
-        <HeaderMenuItem>
-          <HeaderMenuItemIcon>
+        <BrandText>소도시로</BrandText>
+      </Brand>
+      <Menu>
+        <MenuItem>
+          <MenuIcon>
             <IconComponent name="folder" color={colors.primary[700]} />
-          </HeaderMenuItemIcon>
-          <HeaderMenuItemText>내 여행</HeaderMenuItemText>
-        </HeaderMenuItem>
-        <HeaderMenuItem>
-          <HeaderMenuItemIcon>
+          </MenuIcon>
+          <MenuText>내 여행</MenuText>
+        </MenuItem>
+        <MenuItem>
+          <MenuIcon>
             <IconComponent name="profile" color={colors.primary[700]} />
-          </HeaderMenuItemIcon>
-          <HeaderMenuItemText>MY</HeaderMenuItemText>
-        </HeaderMenuItem>
-      </HeaderMenu>
-    </Header>
+          </MenuIcon>
+          <MenuText>MY</MenuText>
+        </MenuItem>
+      </Menu>
+    </Bar>
   );
 }
 
-const Header = styled.View({
+const Bar = styled.View({
   width: '100%',
   display: 'flex',
   flexDirection: 'row',
@@ -45,7 +45,7 @@ const Header = styled.View({
   borderBottomColor: colors.gray[100],
 });
 
-const LogoContainer = styled.View({
+const Brand = styled.View({
   display: 'flex',
   flexDirection: 'row',
   alignItems: 'center',
@@ -57,26 +57,26 @@ const Logo = styled.Image({
   height: 36,
 });
 
-const LogoText = styled.Text({
+const BrandText = styled.Text({
   fontSize: 24,
   fontWeight: '500',
   color: '#000000',
 });
 
-const HeaderMenu = styled.View({
+const Menu = styled.View({
   display: 'flex',
   flexDirection: 'row',
   alignItems: 'center',
   gap: 12,
 });
 
-const HeaderMenuItem = styled.Pressable({
+const MenuItem = styled.Pressable({
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
 });
 
-const HeaderMenuItemIcon = styled.View({
+const MenuIcon = styled.View({
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
@@ -85,7 +85,7 @@ const HeaderMenuItemIcon = styled.View({
   gap: 4,
 });
 
-const HeaderMenuItemText = styled.Text({
+const MenuText = styled.Text({
   ...typography.caption3.regular,
   color: colors.gray[500],
 });

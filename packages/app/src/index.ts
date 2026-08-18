@@ -18,12 +18,13 @@ export {
   type TypographyStyle,
   type TypographyToken,
 } from './styles';
-export { NavigationProvider, useAppNavigation, type AppRoute } from './navigation';
+export { appRoutes, NavigationProvider, useAppNavigation, type AppRoute } from './navigation';
 export {
   ColorSystemScreen,
   ComponentSystemScreen,
   TypographySystemScreen,
 } from './screens/DesignSystems';
 export { HomeScreen } from './screens/HomeScreen';
+export { TripDetailScreen } from './screens/TripDetailScreen';
 export { TestOneScreen } from './screens/TestOneScreen';
 export { TestTwoScreen } from './screens/TestTwoScreen';

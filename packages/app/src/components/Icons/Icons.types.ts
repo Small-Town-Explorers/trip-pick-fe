@@ -5,7 +5,13 @@ import {
   TreeIcon_24,
   FolderIcon_28,
   ProfileIcon_28,
+  CarouselLeftIcon_24,
   CarouselRightIcon_24,
+  ShareIcon_24,
+  PencilIcon_24,
+  EditIcon_24,
+  RetryIcon_24,
+  CheckCircleIcon_24,
 } from './Icons.registry';
 
 type IconComponent = React.ComponentType<{
@@ -17,7 +23,19 @@ type IconComponent = React.ComponentType<{
 type IconSizes = Record<number, IconComponent>;
 
 export type IconName =
-  'ai' | 'plus' | 'mountain' | 'tree' | 'folder' | 'profile' | 'carousel_right';
+  | 'ai'
+  | 'plus'
+  | 'mountain'
+  | 'tree'
+  | 'folder'
+  | 'profile'
+  | 'carousel_left'
+  | 'carousel_right'
+  | 'share'
+  | 'pencil'
+  | 'edit'
+  | 'retry'
+  | 'check_circle';
 
 export const icons: Record<
   IconName,
@@ -62,10 +80,46 @@ export const icons: Record<
       '28': ProfileIcon_28,
     },
   },
+  carousel_left: {
+    label: 'Carousel Left',
+    sizes: {
+      '24': CarouselLeftIcon_24,
+    },
+  },
   carousel_right: {
     label: 'Carousel Right',
     sizes: {
       '24': CarouselRightIcon_24,
+    },
+  },
+  share: {
+    label: 'Share',
+    sizes: {
+      '24': ShareIcon_24,
+    },
+  },
+  pencil: {
+    label: 'Pencil',
+    sizes: {
+      '24': PencilIcon_24,
+    },
+  },
+  edit: {
+    label: 'Edit',
+    sizes: {
+      '24': EditIcon_24,
+    },
+  },
+  retry: {
+    label: 'Retry',
+    sizes: {
+      '24': RetryIcon_24,
+    },
+  },
+  check_circle: {
+    label: 'Check Circle',
+    sizes: {
+      '24': CheckCircleIcon_24,
     },
   },
 } as const;

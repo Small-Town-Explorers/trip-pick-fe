@@ -5,7 +5,7 @@ import { colors, typography } from '@styles';
 import { Platform } from 'react-native';
 import type { ImageSourcePropType } from 'react-native';
 
-const FirstMock = [
+const recommendations = [
   {
     image: Landscape1Image,
     title: '전남 담양',
@@ -20,80 +20,80 @@ const FirstMock = [
   },
 ];
 
-export const HomeRecommendation = () => {
+export const HomeRecommendations = () => {
   return (
-    <RecommendationSection>
-      <RecommendationHeader>
-        <RecommendationTitle>숨겨진 소도시의 고요한 발견</RecommendationTitle>
-        <RecommendationDescription>
+    <Section>
+      <Header>
+        <Title>숨겨진 소도시의 고요한 발견</Title>
+        <Desc>
           바쁜 일상을 뒤로하고, 자연의 속도에 맞춰 걷는 여행을 제안합니다.
-        </RecommendationDescription>
-      </RecommendationHeader>
-      <RecommendationCarousel
+        </Desc>
+      </Header>
+      <Carousel
         horizontal
         showsHorizontalScrollIndicator={Platform.OS === 'web'}
-        contentContainerStyle={recommendationCarouselContentStyle}
+        contentContainerStyle={carouselStyle}
       >
-        {FirstMock.map((item, index) => (
-          <RecommendationCard key={index}>
-            <RecommendationImage source={item.image as ImageSourcePropType} alt={item.title} />
-            <RecommendationTag>#{item.tag}</RecommendationTag>
-            <RecommendationContent>
-              <RecommendationCardTitle>{item.title}</RecommendationCardTitle>
-              <RecommendationCardDescription>{item.description}</RecommendationCardDescription>
-            </RecommendationContent>
-          </RecommendationCard>
+        {recommendations.map((place) => (
+          <Card key={place.title}>
+            <Image source={place.image as ImageSourcePropType} alt={place.title} />
+            <Tag>#{place.tag}</Tag>
+            <Content>
+              <CardTitle>{place.title}</CardTitle>
+              <CardDesc>{place.description}</CardDesc>
+            </Content>
+          </Card>
         ))}
-      </RecommendationCarousel>
-    </RecommendationSection>
+      </Carousel>
+    </Section>
   );
 };
 
-const RecommendationSection = styled.View({
+const Section = styled.View({
   width: '100%',
   paddingTop: 24,
   paddingBottom: 20,
   gap: 16,
 });
 
-const RecommendationHeader = styled.View({
+const Header = styled.View({
   gap: 12,
   paddingHorizontal: 20,
 });
 
-const RecommendationTitle = styled.Text({
+const Title = styled.Text({
   ...typography.heading1.semibold,
   color: colors.gray[1000],
 });
 
-const RecommendationDescription = styled.Text({
+const Desc = styled.Text({
   ...typography.body2.regular,
   color: colors.gray[700],
 });
 
-const RecommendationCarousel = styled.ScrollView({
+const Carousel = styled.ScrollView({
   width: '100%',
 });
 
-const recommendationCarouselContentStyle = {
+const carouselStyle = {
   gap: 16,
   paddingHorizontal: 20,
 } as const;
 
-const RecommendationCard = styled.Pressable({
+const Card = styled.Pressable({
   width: 200,
   gap: 12,
   paddingBottom: 20,
 });
 
-const RecommendationImage = styled.Image({
+const Image = styled.Image({
   width: '100%',
   aspectRatio: '3 / 4',
   borderRadius: 12,
   resizeMode: 'cover',
 });
 
-const RecommendationTag = styled.Text({
+const Tag = styled.Text({
   position: 'absolute',
   top: 8,
   right: 8,
@@ -105,16 +105,16 @@ const RecommendationTag = styled.Text({
   color: colors.primary[1000],
 });
 
-const RecommendationContent = styled.View({
+const Content = styled.View({
   gap: 8,
 });
 
-const RecommendationCardTitle = styled.Text({
+const CardTitle = styled.Text({
   ...typography.heading4.medium,
   color: colors.gray[1000],
 });
 
-const RecommendationCardDescription = styled.Text({
+const CardDesc = styled.Text({
   ...typography.body2.regular,
   color: colors.gray[600],
 });

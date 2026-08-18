@@ -1,18 +1,18 @@
 import styled from '@emotion/native';
-import { HomeHeader } from './HomeHeader';
-import { HomeRecommendation } from './HomeRecommendation';
-import { HomeTripInfo } from './HomeTripInfo';
+import { HomeHeader } from './Header';
+import { HomeRecommendations } from './Recommendations';
+import { HomeUpcomingTrip } from './UpcomingTrip';
 import { IconButton } from '@components/Buttons/Button';
 
 export function HomeScreen() {
   return (
     <Screen>
       <HomeHeader />
-      <HomeRecommendation />
-      <HomeTripInfo />
-      <ButtonContainer>
+      <HomeRecommendations />
+      <HomeUpcomingTrip />
+      <Action>
         <IconButton icon="ai">AI로 여행 코스 만들기</IconButton>
-      </ButtonContainer>
+      </Action>
     </Screen>
   );
 }
@@ -24,7 +24,7 @@ const Screen = styled.View({
   backgroundColor: '#FFFFFF',
 });
 
-const ButtonContainer = styled.View({
+const Action = styled.View({
   width: '100%',
   paddingHorizontal: 20,
   paddingVertical: 24,

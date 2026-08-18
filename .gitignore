@@ -8,3 +8,4 @@ expo-env.d.ts
 .env*.local
 apps/mobile/ios/
 apps/mobile/android/
+.agents
