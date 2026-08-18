@@ -26,3 +26,8 @@ body {
   margin: 0 auto;
   background: #ffffff;
 }
+
+* {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}

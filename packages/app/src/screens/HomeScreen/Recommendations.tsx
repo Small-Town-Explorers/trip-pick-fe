@@ -4,6 +4,7 @@ import Landscape2Image from '@assets/images/mock/landscape/landscape2.png';
 import { colors, typography } from '@styles';
 import { Platform } from 'react-native';
 import type { ImageSourcePropType } from 'react-native';
+import { appRoutes, useAppNavigation } from '../../navigation';
 
 const recommendations = [
   {
@@ -21,13 +22,13 @@ const recommendations = [
 ];
 
 export const HomeRecommendations = () => {
+  const { navigate } = useAppNavigation();
+
   return (
     <Section>
       <Header>
         <Title>숨겨진 소도시의 고요한 발견</Title>
-        <Desc>
-          바쁜 일상을 뒤로하고, 자연의 속도에 맞춰 걷는 여행을 제안합니다.
-        </Desc>
+        <Desc>바쁜 일상을 뒤로하고, 자연의 속도에 맞춰 걷는 여행을 제안합니다.</Desc>
       </Header>
       <Carousel
         horizontal
@@ -35,7 +36,7 @@ export const HomeRecommendations = () => {
         contentContainerStyle={carouselStyle}
       >
         {recommendations.map((place) => (
-          <Card key={place.title}>
+          <Card key={place.title} onPress={() => navigate(appRoutes.placeDetail('test'))}>
             <Image source={place.image as ImageSourcePropType} alt={place.title} />
             <Tag>#{place.tag}</Tag>
             <Content>

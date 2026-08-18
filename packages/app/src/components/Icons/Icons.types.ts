@@ -12,6 +12,7 @@ import {
   EditIcon_24,
   RetryIcon_24,
   CheckCircleIcon_24,
+  TravelIcon_20,
 } from './Icons.registry';
 
 type IconComponent = React.ComponentType<{
@@ -35,7 +36,8 @@ export type IconName =
   | 'pencil'
   | 'edit'
   | 'retry'
-  | 'check_circle';
+  | 'check_circle'
+  | 'travel';
 
 export const icons: Record<
   IconName,
@@ -120,6 +122,12 @@ export const icons: Record<
     label: 'Check Circle',
     sizes: {
       '24': CheckCircleIcon_24,
+    },
+  },
+  travel: {
+    label: 'Travel',
+    sizes: {
+      '20': TravelIcon_20,
     },
   },
 } as const;

@@ -11,3 +11,4 @@ export { default as PencilIcon_24 } from '@icons/pencil_24x24.svg?react';
 export { default as EditIcon_24 } from '@icons/edit_24x24.svg?react';
 export { default as RetryIcon_24 } from '@icons/retry_24x24.svg?react';
 export { default as CheckCircleIcon_24 } from '@icons/check_circle_24x24.svg?react';
+export { default as TravelIcon_20 } from '@icons/travel_20x20.svg?react';

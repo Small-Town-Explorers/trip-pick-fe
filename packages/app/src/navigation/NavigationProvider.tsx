@@ -7,12 +7,14 @@ export type AppRoute =
   | '/design-system/components'
   | '/test-one'
   | '/test-two'
-  | `/trip-detail/${string}`;
+  | `/trip-detail/${string}`
+  | `/place-detail/${string}`;
 
 export const appRoutes = {
   home: '/' as const,
   designSystemColors: '/design-system/colors' as const,
   tripDetail: (id: string) => `/trip-detail/${encodeURIComponent(id)}` as const,
+  placeDetail: (id: string) => `/place-detail/${encodeURIComponent(id)}` as const,
 };
 
 type Navigation = {

@@ -3,6 +3,7 @@ import {
   ComponentSystemScreen,
   HomeScreen,
   NavigationProvider,
+  PlaceDetailScreen,
   TestOneScreen,
   TestTwoScreen,
   TripDetailScreen,
@@ -19,6 +20,16 @@ function TripDetailRoute() {
   }
 
   return <TripDetailScreen tripId={id} />;
+}
+
+function PlaceDetailRoute() {
+  const { id } = useParams<{ id: string }>();
+
+  if (!id) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <PlaceDetailScreen placeId={id} />;
 }
 
 function App() {
@@ -39,6 +50,7 @@ function App() {
         <Route path="/test-one" element={<TestOneScreen />} />
         <Route path="/test-two" element={<TestTwoScreen />} />
         <Route path="/trip-detail/:id" element={<TripDetailRoute />} />
+        <Route path="/place-detail/:id" element={<PlaceDetailRoute />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </NavigationProvider>

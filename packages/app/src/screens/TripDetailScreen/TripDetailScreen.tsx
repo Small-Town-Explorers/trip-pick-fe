@@ -14,6 +14,7 @@ export function TripDetailScreen({ tripId }: Props) {
       <Scroll>
         <TripDetailHeader />
         <Map />
+        {/* 카카오 맵 추가 예정 */}
         <TripDetailRoutine />
       </Scroll>
       <TripDetailActions />

@@ -25,6 +25,7 @@ export {
   TypographySystemScreen,
 } from './screens/DesignSystems';
 export { HomeScreen } from './screens/HomeScreen';
+export { PlaceDetailScreen } from './screens/PlaceDetailScreen/PlaceDetailScreen';
 export { TripDetailScreen } from './screens/TripDetailScreen';
 export { TestOneScreen } from './screens/TestOneScreen';
 export { TestTwoScreen } from './screens/TestTwoScreen';
