@@ -3,8 +3,7 @@ import { IconComponent } from '@components/Icons';
 import { appRoutes, type MyPageSectionRoute, useAppNavigation } from '../../navigation';
 import { useState } from 'react';
 import styled from '@emotion/native';
-import { colors, typography, withAlpha } from '@styles';
-import { Platform } from 'react-native';
+import { colors, createShadow, typography, withAlpha } from '@styles';
 
 const menus: {
   type: string;
@@ -92,9 +91,7 @@ const MenuInner = styled.View({
   gap: 1,
   overflow: 'hidden',
 
-  ...Platform.select({
-    web: { boxShadow: `0 0 20px ${withAlpha(colors.gray[1000], 0.05)}` },
-  }),
+  ...createShadow(0, 0, 20, 0, withAlpha(colors.gray[1000], 0.05)),
 });
 
 const MenuItem = styled.Pressable({

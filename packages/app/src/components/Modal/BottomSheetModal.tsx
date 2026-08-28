@@ -1,6 +1,6 @@
 import { css, Global, keyframes } from '@emotion/react';
 import styled from '@emotion/native';
-import { colors, MAX_SCREEN_SIZE, typography } from '@styles';
+import { colors, MAX_SCREEN_SIZE, typography, withAlpha } from '@styles';
 import { type ReactNode, useCallback, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -201,11 +201,7 @@ export function BottomSheetModal({
               <Header>
                 <HeaderSpacer />
                 <Title>{title}</Title>
-                <CloseButton
-                  accessibilityRole="button"
-                  accessibilityLabel="닫기"
-                  onPress={close}
-                >
+                <CloseButton accessibilityRole="button" accessibilityLabel="닫기" onPress={close}>
                   <IconComponent name="cross" size={24} color={colors.gray[400]} />
                 </CloseButton>
               </Header>
@@ -221,7 +217,7 @@ export function BottomSheetModal({
 const Backdrop = styled.Pressable<WebDataProps>({
   position: 'absolute',
   inset: 0,
-  backgroundColor: 'rgba(181, 186, 187, 0.3)',
+  backgroundColor: withAlpha(colors.gray[300], 0.3),
 } as never);
 
 const Sheet = styled.View<WebDataProps>({

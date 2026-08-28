@@ -1,7 +1,6 @@
 import { IconComponent } from '@components/Icons';
 import styled from '@emotion/native';
-import { colors, typography } from '@styles';
-import { Platform } from 'react-native';
+import { colors, createShadow, typography, withAlpha } from '@styles';
 import { MyPageSectionLayout } from '../SectionLayout';
 import KakaoIconPNG from '@assets/images/kakao.png';
 
@@ -58,10 +57,7 @@ const Card = styled.View({
   borderBottomWidth: 1,
   borderBottomColor: colors.gray[50],
 
-  ...Platform.select({
-    web: { boxShadow: '0 0 20px rgba(8,25,29,0.05)' },
-    android: { elevation: 3 },
-  }),
+  ...createShadow(0, 0, 20, 0, withAlpha(colors.gray[1000], 0.05)),
 });
 
 const LoginCard = styled(Card)({

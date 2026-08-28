@@ -1,6 +1,6 @@
 import KakaoMapIcon from '@assets/images/kakao_map.png';
 import styled from '@emotion/native';
-import { colors, typography } from '@styles';
+import { colors, shadows, typography } from '@styles';
 import { Linking, Platform, type ImageSourcePropType } from 'react-native';
 
 interface TripSpotCardProps {
@@ -61,21 +61,7 @@ const Card = styled.View({
   backgroundColor: '#FFFFFF',
   borderRadius: 12,
 
-  ...Platform.select({
-    web: {
-      boxShadow: '0 0 40px rgba(8, 25, 29, 0.1)',
-    },
-    ios: {
-      shadowColor: '#08191D',
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.1,
-      shadowRadius: 6,
-    },
-    android: {
-      elevation: 6,
-      shadowColor: '#08191D',
-    },
-  }),
+  ...shadows[2],
 });
 
 const Thumbnail = styled.Image({

@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     left: 0,
-    backgroundColor: 'rgba(181, 186, 187, 0.3)',
+    backgroundColor: withAlpha(colors.gray[300], 0.3),
   },
 });
 

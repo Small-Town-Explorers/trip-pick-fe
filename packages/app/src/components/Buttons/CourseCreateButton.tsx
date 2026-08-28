@@ -1,8 +1,8 @@
 import { IconComponent, type IconName } from '@components/Icons';
 import styled from '@emotion/native';
-import { colors, typography, withAlpha } from '@styles';
+import { colors, shadows, typography } from '@styles';
 import { type PropsWithChildren } from 'react';
-import { Platform, type GestureResponderEvent } from 'react-native';
+import { type GestureResponderEvent } from 'react-native';
 
 interface CourseCreateButtonProps extends PropsWithChildren {
   disabled?: boolean;
@@ -39,21 +39,7 @@ const Button = styled.Pressable({
   backgroundColor: colors.primary[1000],
   borderRadius: 9999,
 
-  ...Platform.select({
-    web: {
-      boxShadow: `0 10px 30px ${withAlpha(colors.gray[1000], 0.15)}`,
-    },
-    ios: {
-      shadowColor: '#08191D',
-      shadowOffset: { width: 0, height: 10 },
-      shadowOpacity: 0.15,
-      shadowRadius: 15,
-    },
-    android: {
-      elevation: 6,
-      shadowColor: '#08191D',
-    },
-  }),
+  ...shadows.shadow1,
 });
 
 const Label = styled.Text({

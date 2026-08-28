@@ -2,7 +2,7 @@ import Landscape2Image from '@assets/images/mock/landscape/landscape2.png';
 import { IconComponent } from '@components/Icons';
 import { BottomSheetModal } from '@components/Modal';
 import styled from '@emotion/native';
-import { colors, typography } from '@styles';
+import { colors, shadows, typography, withAlpha } from '@styles';
 import { useCallback, useEffect, useState } from 'react';
 import { Platform, type ImageSourcePropType } from 'react-native';
 
@@ -180,16 +180,7 @@ const chatSheetStyle = {
   borderTopRightRadius: 20,
 } as const;
 const Content = styled.View({ flex: 1, width: '100%' });
-const Header = styled.View({
-  height: 70,
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  paddingHorizontal: 20,
-});
-const HeaderSpacer = styled.View({ width: 24, height: 24 });
-const Title = styled.Text({ ...typography.heading4.semibold, color: colors.gray[1000] });
-const CloseButton = styled.Pressable({ width: 24, height: 24 });
+
 const ChatScroll = styled.ScrollView({ flex: 1, width: '100%' });
 const chatContentStyle = { paddingHorizontal: 20, paddingBottom: 24, gap: 16 } as const;
 const AiBubble = styled.View({
@@ -251,15 +242,17 @@ const PlaceCard = styled.View({
   backgroundColor: '#FFFFFF',
 });
 const PlaceImage = styled.Image({ width: '100%', height: 160 });
+
 const Rating = styled.View({
   position: 'absolute',
   right: 16,
   top: 16,
   paddingHorizontal: 12,
   paddingVertical: 4,
-  backgroundColor: 'rgba(255,255,255,0.8)',
+  backgroundColor: withAlpha('#FFFFFF', 0.8),
   borderRadius: 9999,
 });
+
 const RatingText = styled.Text({ ...typography.caption1.regular, color: colors.primary[900] });
 const PlaceInfo = styled.View({ padding: 16, gap: 8 });
 const PlaceName = styled.Text({ ...typography.body1.medium, color: colors.gray[1000] });
@@ -282,15 +275,11 @@ const Composer = styled.View({
   paddingLeft: 20,
   paddingRight: 10,
   gap: 8,
-  backgroundColor: 'rgba(255,255,255,0.9)',
+  backgroundColor: withAlpha('#FFFFFF', 0.9),
   borderWidth: 2,
   borderColor: '#FFFFFF',
   borderRadius: 9999,
-  ...Platform.select({
-    web: { boxShadow: '0 0 60px rgba(8,25,29,0.08)' },
-    ios: { shadowColor: '#08191D', shadowOpacity: 0.08, shadowRadius: 20 },
-    android: { elevation: 5 },
-  }),
+  ...shadows[1],
 });
 const Input = styled.TextInput({
   flex: 1,

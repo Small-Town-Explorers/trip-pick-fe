@@ -4,9 +4,9 @@ import { CourseCreateButton } from '@components/Buttons';
 import { IconComponent } from '@components/Icons';
 import { ConfirmModal } from '@components/Modal';
 import styled from '@emotion/native';
-import { colors, typography } from '@styles';
+import { colors, createShadow, shadows, typography, withAlpha } from '@styles';
 import { useState } from 'react';
-import { Platform, type ImageSourcePropType } from 'react-native';
+import { type ImageSourcePropType } from 'react-native';
 import { appRoutes, useAppNavigation } from '../../navigation';
 import { Header } from '@components/Header';
 
@@ -147,10 +147,7 @@ const Course = styled.Pressable<{ active: boolean }>(({ active }) => ({
   zIndex: active ? 20 : 0,
   backgroundColor: '#FFFFFF',
   borderRadius: 12,
-  ...Platform.select({
-    web: { boxShadow: '0 0 40px rgba(8,25,29,0.1)' },
-    android: { elevation: 5 },
-  }),
+  ...shadows[2],
 }));
 const CourseImage = styled.Image({ width: 87, height: 87, borderRadius: 8 });
 const CourseBody = styled.View({ flex: 1, height: 87, gap: 8 });
@@ -188,10 +185,7 @@ const DeleteButton = styled.Pressable({
   gap: 6,
   backgroundColor: '#FFFFFF',
   borderRadius: 10,
-  ...Platform.select({
-    web: { boxShadow: '0 4px 20px rgba(8,25,29,0.12)' },
-    android: { elevation: 8 },
-  }),
+  ...createShadow(0, 0, 20, 0, withAlpha(colors.gray[1000], 0.15)),
 });
 const DeleteText = styled.Text({ ...typography.body2.medium, color: colors.gray[600] });
 const Action = styled.View({

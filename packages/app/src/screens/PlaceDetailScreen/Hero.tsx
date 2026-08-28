@@ -1,7 +1,7 @@
 import HeroImageSource from '@assets/images/mock/landscape/landscape1.png';
 import { LinearGradient } from '@components/LinearGradient';
 import styled from '@emotion/native';
-import { colors, typography } from '@styles';
+import { colors, typography, withAlpha } from '@styles';
 import { Platform, type ImageSourcePropType } from 'react-native';
 
 interface PlaceDetailHeroProps {
@@ -70,7 +70,7 @@ const gradientStyle = {
 const Tag = styled.Text({
   paddingHorizontal: 12,
   paddingVertical: 4,
-  backgroundColor: 'rgba(0, 0, 0, 0.29)',
+  backgroundColor: withAlpha('#000000', 0.29),
   borderRadius: 9999,
 
   ...typography.caption1.regular,
@@ -98,7 +98,7 @@ const Title = styled.Text({
 
 const Subtitle = styled.Text({
   ...typography.heading2.medium,
-  color: 'rgba(255, 255, 255, 0.9)',
+  color: withAlpha('#FFFFFF', 0.9),
 });
 
 const Introduction = styled.View({

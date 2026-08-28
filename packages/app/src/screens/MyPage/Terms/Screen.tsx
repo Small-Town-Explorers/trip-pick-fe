@@ -1,7 +1,6 @@
 import styled from '@emotion/native';
 import { MyPageSectionLayout } from '../SectionLayout';
-import { colors, typography } from '@styles';
-import { Platform } from 'react-native';
+import { colors, createShadow, typography, withAlpha } from '@styles';
 
 const terms = [
   {
@@ -59,10 +58,7 @@ const Card = styled.View({
   borderBottomWidth: 1,
   borderBottomColor: colors.gray[50],
 
-  ...Platform.select({
-    web: { boxShadow: '0 0 20px rgba(8,25,29,0.05)' },
-    android: { elevation: 3 },
-  }),
+  ...createShadow(0, 0, 20, 0, withAlpha(colors.gray[1000], 0.05)),
 });
 
 const Article = styled.View({ width: '100%', gap: 16 });

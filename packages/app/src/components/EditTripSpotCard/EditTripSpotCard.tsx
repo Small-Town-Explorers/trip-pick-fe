@@ -1,6 +1,6 @@
 import { IconComponent } from '@components/Icons';
 import styled from '@emotion/native';
-import { colors, typography, withAlpha } from '@styles';
+import { colors, shadows, typography } from '@styles';
 import {
   type PropsWithChildren,
   useEffect,
@@ -244,23 +244,13 @@ const Card = styled(Animated.View)<{ committing: boolean; dragging: boolean }>(
     zIndex: dragging ? 10 : 0,
     opacity: dragging ? 0.92 : 1,
 
+    ...shadows[2],
     ...Platform.select({
       web: {
-        boxShadow: `0 0 40px ${withAlpha(colors.gray[1000], 0.1)}`,
         transitionDuration: dragging || committing ? '0ms' : `${DROP_DURATION}ms`,
         transitionProperty: 'transform',
         transitionTimingFunction: 'ease-out',
         willChange: 'transform',
-      },
-      ios: {
-        shadowColor: '#08191D',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.1,
-        shadowRadius: 6,
-      },
-      android: {
-        elevation: 6,
-        shadowColor: '#08191D',
       },
     }),
   }),

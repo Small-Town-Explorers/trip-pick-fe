@@ -136,7 +136,6 @@ const SearchInput = styled.TextInput(({ editable }) => ({
       outlineStyle: 'none' as never,
       outlineWidth: 0,
       outlineColor: 'transparent',
-      boxShadow: 'none',
     },
   }),
 }));

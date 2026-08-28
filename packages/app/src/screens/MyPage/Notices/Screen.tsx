@@ -1,5 +1,5 @@
 import { IconComponent } from '@components/Icons';
-import { colors, typography } from '@styles';
+import { colors, typography, withAlpha } from '@styles';
 import { MyPageSectionLayout } from '../SectionLayout';
 import styled from '@emotion/native';
 const notices = [
@@ -39,7 +39,7 @@ const Notice = styled.Pressable({
   paddingHorizontal: 20,
   paddingVertical: 24,
   gap: 12,
-  borderBottomColor: `rgba(8, 25, 29, 0.1)`,
+  borderBottomColor: withAlpha(colors.gray[1000], 0.1),
   borderBottomWidth: 1,
 });
 

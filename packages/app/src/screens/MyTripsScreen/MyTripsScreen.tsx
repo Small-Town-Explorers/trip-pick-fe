@@ -2,9 +2,9 @@ import Landscape1 from '@assets/images/mock/landscape/landscape1.png';
 import Landscape2 from '@assets/images/mock/landscape/landscape2.png';
 import { IconComponent } from '@components/Icons';
 import styled from '@emotion/native';
-import { colors, typography } from '@styles';
+import { colors, createShadow, shadows, typography, withAlpha } from '@styles';
 import { useState } from 'react';
-import { Platform, type ImageSourcePropType } from 'react-native';
+import { type ImageSourcePropType } from 'react-native';
 import { appRoutes, useAppNavigation } from '../../navigation';
 import { ConfirmModal } from '@components/Modal';
 import { Header } from '@components/Header';
@@ -144,9 +144,7 @@ const NewFolder = styled.Pressable({
   gap: 8,
   backgroundColor: 'white',
   borderRadius: 12,
-  ...Platform.select({
-    web: { boxShadow: '0 0 40px rgba(8,25,29,0.1)' },
-  }),
+  ...shadows[2],
 });
 const NewFolderText = styled.Text({ ...typography.body1.medium, color: colors.gray[800] });
 const Folder = styled.Pressable({
@@ -155,9 +153,7 @@ const Folder = styled.Pressable({
   borderRadius: 12,
   borderWidth: 1,
   borderColor: colors.gray[100],
-  ...Platform.select({
-    web: { boxShadow: '0 0 40px rgba(8,25,29,0.1)' },
-  }),
+  ...shadows[2],
 });
 const FolderImage = styled.Image({
   width: '100%',
@@ -185,9 +181,6 @@ const DeleteButton = styled.Pressable({
   gap: 6,
   backgroundColor: '#FFFFFF',
   borderRadius: 10,
-  ...Platform.select({
-    web: { boxShadow: '0 4px 20px rgba(8,25,29,0.12)' },
-    android: { elevation: 8 },
-  }),
+  ...createShadow(0, 4, 20, 0, withAlpha(colors.gray[1000], 0.12)),
 });
 const DeleteText = styled.Text({ ...typography.body2.medium, color: colors.gray[600] });

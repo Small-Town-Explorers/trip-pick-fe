@@ -1,7 +1,7 @@
 import { IconComponent } from '@components/Icons';
 import { BottomSheetModal, ConfirmModal } from '@components/Modal';
 import styled from '@emotion/native';
-import { colors, typography } from '@styles';
+import { colors, typography, withAlpha } from '@styles';
 import { useCallback, useState } from 'react';
 import { Platform } from 'react-native';
 import { type CoursePlaceInput } from './types';
@@ -221,7 +221,7 @@ const BottomAction = styled.View({
   paddingHorizontal: 20,
   paddingTop: 18,
   paddingBottom: Platform.OS === 'web' ? 24 : 34,
-  backgroundColor: 'rgba(255,255,255,0.94)',
+  backgroundColor: withAlpha('#FFFFFF', 0.94),
 });
 const ConfirmButton = styled.Pressable<{ enabled: boolean }>(({ enabled }) => ({
   height: 48,
@@ -265,7 +265,7 @@ const MapPreview = styled.View({
   height: 300,
   overflow: 'hidden',
   borderWidth: 1,
-  borderColor: 'rgba(8,25,29,0.1)',
+  borderColor: withAlpha(colors.gray[1000], 0.1),
   borderRadius: 12,
   backgroundColor: colors.gray[50],
 });

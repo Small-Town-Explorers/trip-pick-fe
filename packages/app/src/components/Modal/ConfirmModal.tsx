@@ -1,5 +1,5 @@
 import styled from '@emotion/native';
-import { colors, typography } from '@styles';
+import { colors, createShadow, typography, withAlpha } from '@styles';
 import { type PropsWithChildren } from 'react';
 import { Modal, Platform } from 'react-native';
 
@@ -34,7 +34,11 @@ export function ConfirmModal({
       visible={visible}
     >
       <Backdrop accessibilityRole="button" accessibilityLabel="모달 닫기" onPress={onClose}>
-        <Dialog width={width} accessibilityRole="alert" onPress={(event) => event.stopPropagation()}>
+        <Dialog
+          width={width}
+          accessibilityRole="alert"
+          onPress={(event) => event.stopPropagation()}
+        >
           <Content>
             <Title>{title}</Title>
             <Body>{children}</Body>
@@ -59,7 +63,7 @@ const Backdrop = styled.Pressable({
   alignItems: 'center',
   justifyContent: 'center',
   paddingHorizontal: 20,
-  backgroundColor: 'rgba(181, 186, 187, 0.30)',
+  backgroundColor: withAlpha(colors.gray[300], 0.3),
 });
 
 const Dialog = styled.Pressable<{ width: number }>(({ width }) => ({
@@ -70,21 +74,7 @@ const Dialog = styled.Pressable<{ width: number }>(({ width }) => ({
   backgroundColor: '#FFFFFF',
   borderRadius: 12,
 
-  ...Platform.select({
-    web: {
-      boxShadow: '0 0 28px rgba(8, 25, 29, 0.1)',
-    },
-    ios: {
-      shadowColor: '#08191D',
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.1,
-      shadowRadius: 14,
-    },
-    android: {
-      elevation: 8,
-      shadowColor: '#08191D',
-    },
-  }),
+  ...createShadow(0, 0, 28, 0, withAlpha(colors.gray[1000], 0.1)),
 }));
 
 const Content = styled.View({

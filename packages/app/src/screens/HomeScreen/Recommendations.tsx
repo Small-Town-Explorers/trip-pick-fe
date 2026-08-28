@@ -1,7 +1,7 @@
 import styled from '@emotion/native';
 import Landscape1Image from '@assets/images/mock/landscape/landscape1.png';
 import Landscape2Image from '@assets/images/mock/landscape/landscape2.png';
-import { colors, typography } from '@styles';
+import { colors, typography, withAlpha } from '@styles';
 import { Platform } from 'react-native';
 import type { ImageSourcePropType } from 'react-native';
 import { appRoutes, useAppNavigation } from '../../navigation';
@@ -98,7 +98,7 @@ const Tag = styled.Text({
   position: 'absolute',
   top: 8,
   right: 8,
-  backgroundColor: 'rgba(255, 255, 255, 0.8)',
+  backgroundColor: withAlpha('#FFFFFF', 0.8),
   paddingHorizontal: 12,
   paddingVertical: 4,
   borderRadius: 9999,

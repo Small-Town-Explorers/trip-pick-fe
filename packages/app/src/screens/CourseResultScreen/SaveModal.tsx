@@ -3,7 +3,7 @@ import Landscape2 from '@assets/images/mock/landscape/landscape2.png';
 import { IconComponent } from '@components/Icons';
 import { BottomSheetModal, ConfirmModal } from '@components/Modal';
 import styled from '@emotion/native';
-import { colors, typography } from '@styles';
+import { colors, shadows, typography } from '@styles';
 import { useState } from 'react';
 import { Platform, type ImageSourcePropType } from 'react-native';
 
@@ -20,11 +20,7 @@ const folders = [
   { id: 'food', name: '맛집 여행', count: 3, image: Landscape2 },
 ];
 
-export function CourseResultSaveModal({
-  visible,
-  onClose,
-  onSave,
-}: CourseResultSaveModalProps) {
+export function CourseResultSaveModal({ visible, onClose, onSave }: CourseResultSaveModalProps) {
   const [isFolderModalVisible, setIsFolderModalVisible] = useState(false);
   const [folderName, setFolderName] = useState('');
 
@@ -121,7 +117,7 @@ const NewFolder = styled.Pressable({
   borderWidth: 1,
   borderColor: colors.gray[50],
   borderRadius: 12,
-  ...Platform.select({ web: { boxShadow: '0 0 40px rgba(8, 25, 29, 0.1)' } }),
+  ...shadows[2],
 });
 const NewFolderLabel = styled.Text({ ...typography.body1.medium, color: colors.gray[800] });
 const FolderCard = styled.Pressable({
@@ -130,22 +126,18 @@ const FolderCard = styled.Pressable({
   overflow: 'hidden',
   backgroundColor: '#FFFFFF',
   borderRadius: 12,
-  ...Platform.select({
-    web: { boxShadow: '0 0 40px rgba(8, 25, 29, 0.1)' },
-    ios: {
-      shadowColor: '#08191D',
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.1,
-      shadowRadius: 10,
-    },
-    android: { elevation: 5, shadowColor: '#08191D' },
-  }),
+  ...shadows[2],
 });
 const FolderImage = styled.Image({ width: '100%', height: 110 });
 const FolderInfo = styled.View({ flex: 1, padding: 12, gap: 2 });
 const FolderName = styled.Text({ ...typography.body2.medium, color: colors.gray[1000] });
 const FolderCount = styled.Text({ ...typography.caption3.regular, color: colors.gray[600] });
-const FolderForm = styled.View({ width: '100%', paddingBottom: 8, gap: 12, alignItems: 'flex-start' });
+const FolderForm = styled.View({
+  width: '100%',
+  paddingBottom: 8,
+  gap: 12,
+  alignItems: 'flex-start',
+});
 const FolderLabel = styled.Text({ ...typography.body2.medium, color: colors.gray[1000] });
 const FolderInput = styled.TextInput({
   width: '100%',

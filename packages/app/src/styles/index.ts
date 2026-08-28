@@ -22,3 +22,4 @@ export {
   type TypographyToken,
 } from './typography';
 export { MAX_SCREEN_SIZE } from './size';
+export { shadows, createShadow } from './shadows';

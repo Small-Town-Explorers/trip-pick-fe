@@ -1,6 +1,6 @@
 import { IconComponent, IconName } from '@components/Icons';
 import styled from '@emotion/native';
-import { colors, typography } from '@styles';
+import { colors, createShadow, typography, withAlpha } from '@styles';
 import { Platform } from 'react-native';
 
 interface CourseResultEditActionsProps {
@@ -46,7 +46,7 @@ const Bar = styled.View({
   width: '100%',
   paddingHorizontal: 20,
   paddingVertical: 18,
-  backgroundColor: 'rgba(255, 255, 255, 0.7)',
+  backgroundColor: withAlpha('#FFFFFF', 0.7),
   borderTopColor: '#FFFFFF',
   borderTopWidth: 2,
   borderStyle: 'solid',
@@ -66,20 +66,10 @@ const Bar = styled.View({
     },
   }),
 
+  ...createShadow(0, 0, 30, 0, withAlpha(colors.gray[1000], 0.07)),
   ...Platform.select({
     web: {
       backdropFilter: 'blur(10px)',
-      boxShadow: '0 0 30px rgba(8, 25, 29, 0.07)',
-    },
-    ios: {
-      shadowColor: '#08191D',
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.07,
-      shadowRadius: 15,
-    },
-    android: {
-      elevation: 8,
-      shadowColor: '#08191D',
     },
   }),
 });
@@ -103,7 +93,7 @@ const QuickButton = styled.Pressable({
   alignItems: 'center',
   paddingVertical: 10,
   gap: 4,
-  backgroundColor: 'rgba(255, 255, 255, 0.85)',
+  backgroundColor: withAlpha('#FFFFFF', 0.85),
   borderWidth: 2,
   borderColor: '#FFFFFF',
   borderRadius: 8,

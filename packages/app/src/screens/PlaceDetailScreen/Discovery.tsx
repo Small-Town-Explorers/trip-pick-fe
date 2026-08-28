@@ -1,7 +1,7 @@
 import DiscoveryImageSource from '@assets/images/mock/landscape/landscape2.png';
 import styled from '@emotion/native';
-import { colors, typography } from '@styles';
-import { Platform, type ImageSourcePropType } from 'react-native';
+import { colors, createShadow, typography, withAlpha } from '@styles';
+import { type ImageSourcePropType } from 'react-native';
 
 export function PlaceDetailDiscovery() {
   return (
@@ -43,21 +43,7 @@ const ImageCard = styled.View({
   backgroundColor: colors.gray[100],
   borderRadius: 16,
 
-  ...Platform.select({
-    web: {
-      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-    },
-    ios: {
-      shadowColor: '#000000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.05,
-      shadowRadius: 1,
-    },
-    android: {
-      elevation: 1,
-      shadowColor: '#000000',
-    },
-  }),
+  ...createShadow(0, 1, 2, 0, withAlpha('#000000', 0.05)),
 });
 
 const Image = styled.Image({

@@ -301,8 +301,6 @@ const ClearButton = styled.Pressable({
   height: 24,
 });
 
-const ClearLabel = styled.Text({ fontSize: 24, lineHeight: 26, color: '#FFFFFF' });
-
 const EditButton = styled.Pressable({
   width: 24,
   height: 24,

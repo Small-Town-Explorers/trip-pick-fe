@@ -1,5 +1,4 @@
 import { Calendar, type CalendarRange } from '@components/Calendar';
-import { IconComponent } from '@components/Icons';
 import { BottomSheetModal } from '@components/Modal';
 import styled from '@emotion/native';
 import { colors, typography } from '@styles';

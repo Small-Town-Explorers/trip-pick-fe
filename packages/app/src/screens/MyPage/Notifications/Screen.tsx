@@ -1,8 +1,7 @@
 import { ToggleButton } from '@components/Buttons';
 import styled from '@emotion/native';
-import { colors, typography } from '@styles';
+import { colors, createShadow, typography, withAlpha } from '@styles';
 import { useState } from 'react';
-import { Platform } from 'react-native';
 import { MyPageSectionLayout } from '../SectionLayout';
 
 export function MyPageNotificationsScreen() {
@@ -68,10 +67,7 @@ const CardList = styled.View({
   overflow: 'hidden',
   backgroundColor: '#FFFFFF',
   borderRadius: 12,
-  ...Platform.select({
-    web: { boxShadow: '0 0 20px rgba(8,25,29,0.05)' },
-    android: { elevation: 3 },
-  }),
+  ...createShadow(0, 0, 20, 0, withAlpha(colors.gray[1000], 0.05)),
 });
 
 const Card = styled.View<{ last?: boolean }>(({ last }) => ({

@@ -3,7 +3,7 @@ import Landscape2Image from '@assets/images/mock/landscape/landscape2.png';
 import KakaoMapIcon from '@assets/images/kakao_map.png';
 import { BottomSheetModal } from '@components/Modal';
 import styled from '@emotion/native';
-import { colors, typography } from '@styles';
+import { colors, createShadow, shadows, typography, withAlpha } from '@styles';
 import { useMemo, useState } from 'react';
 import { Platform, type ImageSourcePropType } from 'react-native';
 import { type CoursePlaceInput } from './types';
@@ -221,11 +221,7 @@ const ResultCard = styled.Pressable<{ selected: boolean }>(
     borderWidth: 2,
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    ...Platform.select({
-      web: {
-        boxShadow: '0 0 40px rgba(8,25,29,0.1)',
-      },
-    }),
+    ...shadows[2],
   },
 );
 
@@ -251,7 +247,7 @@ const Actions = styled.View({
   paddingTop: 18,
   paddingBottom: Platform.OS === 'web' ? 24 : 34,
   gap: 10,
-  backgroundColor: 'rgba(255, 255, 255, 0.7)',
+  backgroundColor: withAlpha('#FFFFFF', 0.7),
   borderTopColor: '#FFFFFF',
   borderTopWidth: 2,
   borderStyle: 'solid',
@@ -271,20 +267,10 @@ const Actions = styled.View({
     },
   }),
 
+  ...createShadow(0, 0, 30, 0, withAlpha(colors.gray[1000], 0.07)),
   ...Platform.select({
     web: {
       backdropFilter: 'blur(10px)',
-      boxShadow: '0 0 30px rgba(8, 25, 29, 0.07)',
-    },
-    ios: {
-      shadowColor: '#08191D',
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.07,
-      shadowRadius: 15,
-    },
-    android: {
-      elevation: 8,
-      shadowColor: '#08191D',
     },
   }),
 });
@@ -307,7 +293,7 @@ const AddButton = styled.Pressable(({ disabled }) => ({
   alignItems: 'center',
   justifyContent: 'center',
   gap: 6,
-  backgroundColor: disabled ? 'rgba(21, 85, 65, 0.1)' : colors.primary[1000],
+  backgroundColor: disabled ? withAlpha(colors.primary[1000], 0.1) : colors.primary[1000],
   borderRadius: 8,
   opacity: 1,
 }));
@@ -321,5 +307,5 @@ const AddLabel = styled.Text(({ disabled }) => ({
 
 const Count = styled.Text(({ disabled }) => ({
   ...typography.body3.regular,
-  color: disabled ? colors.gray[200] : 'rgba(255,255,255,0.7)',
+  color: disabled ? colors.gray[200] : withAlpha('#FFFFFF', 0.7),
 }));
