@@ -44,7 +44,7 @@ const MyTripDeleteModal = ({ visible, name, onCancel, onConfirm }: MyTripDeleteM
 };
 
 export function MyTripsScreen() {
-  const { back, navigate } = useAppNavigation();
+  const { navigate } = useAppNavigation();
   const [folders, setFolders] = useState(initialFolders);
   const [opendMenuId, setOpenedMenuId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState('');

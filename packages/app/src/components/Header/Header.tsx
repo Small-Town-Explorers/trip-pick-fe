@@ -20,7 +20,6 @@ export const Header = ({ title, sub, children }: PropsWithChildren<HeaderProps>)
         <TitleText>{title}</TitleText>
         {sub ? <TitleSub>{sub}</TitleSub> : null}
       </Title>
-
       {children ? children : <HeaderSpacer />}
     </Bar>
   );

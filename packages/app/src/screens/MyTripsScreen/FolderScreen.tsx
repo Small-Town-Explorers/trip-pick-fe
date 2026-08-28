@@ -29,7 +29,7 @@ const initialCourses: CourseItem[] = [
 ];
 
 export function MyTripFolderScreen({ folderId }: MyTripFolderScreenProps) {
-  const { back, navigate } = useAppNavigation();
+  const { navigate } = useAppNavigation();
   const [courses, setCourses] = useState(initialCourses);
   const [menuId, setMenuId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<CourseItem | null>(null);
