@@ -1,6 +1,6 @@
 import { IconComponent, type IconName } from '@components/Icons';
 import styled from '@emotion/native';
-import { colors, typography } from '@styles';
+import { colors, typography, withAlpha } from '@styles';
 import { type PropsWithChildren } from 'react';
 import { Platform, type GestureResponderEvent } from 'react-native';
 
@@ -41,7 +41,7 @@ const Button = styled.Pressable({
 
   ...Platform.select({
     web: {
-      boxShadow: '0 10px 30px rgba(8, 25, 29, 0.15)',
+      boxShadow: `0 10px 30px ${withAlpha(colors.gray[1000], 0.15)}`,
     },
     ios: {
       shadowColor: '#08191D',

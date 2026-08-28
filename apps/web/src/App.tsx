@@ -13,7 +13,7 @@ import {
   TripDetailScreen,
   TypographySystemScreen,
   type AppRoute,
-  type MyPageSection,
+  type MyPageSectionRoute,
 } from '@trip-pick/app';
 import { Navigate, Route, Routes, useNavigate, useParams } from 'react-router-dom';
 
@@ -53,7 +53,7 @@ function MyTripFolderRoute() {
 }
 
 function MyPageSectionRoute() {
-  const { section } = useParams<{ section: MyPageSection }>();
+  const { section } = useParams<{ section: MyPageSectionRoute }>();
   return section ? <MyPageSectionScreen section={section} /> : <Navigate to="/my-page" replace />;
 }
 

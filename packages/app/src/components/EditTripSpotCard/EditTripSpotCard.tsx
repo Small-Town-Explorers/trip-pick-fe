@@ -1,6 +1,6 @@
 import { IconComponent } from '@components/Icons';
 import styled from '@emotion/native';
-import { colors, typography } from '@styles';
+import { colors, typography, withAlpha } from '@styles';
 import {
   type PropsWithChildren,
   useEffect,
@@ -234,35 +234,35 @@ export function EditTripSpotCard({
 
 const Card = styled(Animated.View)<{ committing: boolean; dragging: boolean }>(
   ({ committing, dragging }) => ({
-  flex: 1,
-  minWidth: 0,
-  padding: 16,
-  flexDirection: 'row',
-  gap: 16,
-  backgroundColor: '#FFFFFF',
-  borderRadius: 12,
-  zIndex: dragging ? 10 : 0,
-  opacity: dragging ? 0.92 : 1,
+    flex: 1,
+    minWidth: 0,
+    padding: 16,
+    flexDirection: 'row',
+    gap: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    zIndex: dragging ? 10 : 0,
+    opacity: dragging ? 0.92 : 1,
 
-  ...Platform.select({
-    web: {
-      boxShadow: '0 0 40px rgba(8, 25, 29, 0.1)',
-      transitionDuration: dragging || committing ? '0ms' : `${DROP_DURATION}ms`,
-      transitionProperty: 'transform',
-      transitionTimingFunction: 'ease-out',
-      willChange: 'transform',
-    },
-    ios: {
-      shadowColor: '#08191D',
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.1,
-      shadowRadius: 6,
-    },
-    android: {
-      elevation: 6,
-      shadowColor: '#08191D',
-    },
-  }),
+    ...Platform.select({
+      web: {
+        boxShadow: `0 0 40px ${withAlpha(colors.gray[1000], 0.1)}`,
+        transitionDuration: dragging || committing ? '0ms' : `${DROP_DURATION}ms`,
+        transitionProperty: 'transform',
+        transitionTimingFunction: 'ease-out',
+        willChange: 'transform',
+      },
+      ios: {
+        shadowColor: '#08191D',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 6,
+        shadowColor: '#08191D',
+      },
+    }),
   }),
 );
 

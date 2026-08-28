@@ -1,16 +1,16 @@
 import { ToggleButton } from '@components/Buttons';
 import { IconComponent } from '@components/Icons';
-import { appRoutes, useAppNavigation } from '../../navigation';
+import { appRoutes, type MyPageSectionRoute, useAppNavigation } from '../../navigation';
 import { useState } from 'react';
 import styled from '@emotion/native';
-import { colors, typography } from '@styles';
+import { colors, typography, withAlpha } from '@styles';
 import { Platform } from 'react-native';
 
 const menus: {
   type: string;
   items: {
     label: string;
-    route?: 'account' | 'notifications' | 'notices' | 'faq' | 'terms' | 'privacy' | 'location';
+    route?: MyPageSectionRoute;
   }[];
 }[] = [
   {
@@ -48,6 +48,7 @@ export const MyPageMenus = () => {
               if (item.route === undefined) return;
               navigate(appRoutes.myPageSection(item.route));
             }}
+            disabled={item.route === undefined}
           >
             <MenuItemLabel>{item.label}</MenuItemLabel>
             <MenuItemRight>
@@ -92,7 +93,7 @@ const MenuInner = styled.View({
   overflow: 'hidden',
 
   ...Platform.select({
-    web: { boxShadow: '0 0 20px rgba(8,25,29,0.05)' },
+    web: { boxShadow: `0 0 20px ${withAlpha(colors.gray[1000], 0.05)}` },
   }),
 });
 

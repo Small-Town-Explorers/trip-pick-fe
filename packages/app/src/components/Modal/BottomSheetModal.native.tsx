@@ -1,6 +1,6 @@
 import styled from '@emotion/native';
 import { IconComponent } from '@components/Icons';
-import { colors, typography } from '@styles';
+import { colors, typography, withAlpha } from '@styles';
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Animated,
@@ -179,11 +179,7 @@ export function BottomSheetModal({
               <Header>
                 <HeaderSpacer />
                 <Title>{title}</Title>
-                <CloseButton
-                  accessibilityRole="button"
-                  accessibilityLabel="닫기"
-                  onPress={close}
-                >
+                <CloseButton accessibilityRole="button" accessibilityLabel="닫기" onPress={close}>
                   <IconComponent name="cross" size={24} color={colors.gray[400]} />
                 </CloseButton>
               </Header>

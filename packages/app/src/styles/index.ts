@@ -4,6 +4,7 @@ export {
   primary,
   semantic,
   sub,
+  withAlpha,
   type Colors,
   type GrayColorToken,
   type PrimaryColorToken,
