@@ -4,10 +4,10 @@ import { useCallback, useState } from 'react';
 import { appRoutes, useAppNavigation } from '../../navigation';
 import { PlaceDetailCourseAction } from './CourseAction';
 import { PlaceDetailDiscovery } from './Discovery';
-import { PlaceDetailHeader } from './Header';
 import { PlaceDetailHero } from './Hero';
 import { PlaceDetailLocalSights } from './LocalSights';
 import { PlaceDetailTravelTips } from './TravelTips';
+import { Header } from '@components/Header';
 
 type Props = {
   placeId: string;
@@ -25,7 +25,7 @@ export function PlaceDetailScreen({ placeId }: Props) {
 
   return (
     <Screen testID={`place-detail-${placeId}`}>
-      <PlaceDetailHeader />
+      <Header title="숨겨진 소도시의 고요한 발견" />
       <Scroll>
         <PlaceDetailHero title={title} summary={summary} />
         <PlaceDetailDiscovery />

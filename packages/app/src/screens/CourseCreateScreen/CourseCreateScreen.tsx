@@ -7,10 +7,10 @@ import { useCallback, useState } from 'react';
 import { appRoutes, useAppNavigation } from '../../navigation';
 import { CourseCreateCompanion } from './Companion';
 import { CourseCreateConfirm } from './Confirm';
-import { CourseCreateHeader } from './Header';
 import { CourseCreateRegion } from './Region';
 import { CourseCreateTravelPeriod } from './TravelPeriod';
 import { CourseCreateTravelStyle } from './TravelStyle';
+import { Header } from '@components/Header';
 
 export function CourseCreateScreen() {
   const { replace } = useAppNavigation();
@@ -33,7 +33,7 @@ export function CourseCreateScreen() {
 
   return (
     <Screen>
-      <CourseCreateHeader />
+      <Header title="코스 생성" />
       <Introduction>원하는 조건의 소도시를{`\n`}추천해드려요!</Introduction>
       <CourseCreateRegion value={region} onChange={setRegion} />
       <CourseCreateTravelStyle value={styles} onChange={setStyles} />

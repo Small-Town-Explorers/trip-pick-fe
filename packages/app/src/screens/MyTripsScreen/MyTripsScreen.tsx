@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { Platform, type ImageSourcePropType } from 'react-native';
 import { appRoutes, useAppNavigation } from '../../navigation';
 import { ConfirmModal } from '@components/Modal';
+import { Header } from '@components/Header';
 
 const initialFolders = [
   { id: 'upcoming', name: '다가오는 여행', image: Landscape1, count: 4 },
@@ -58,13 +59,7 @@ export function MyTripsScreen() {
 
   return (
     <Screen>
-      <Header>
-        <Back accessibilityRole="button" onPress={back}>
-          <IconComponent name="carousel_left" color={colors.gray[400]} />
-        </Back>
-        <HeaderTitle>내 여행</HeaderTitle>
-        <Spacer />
-      </Header>
+      <Header title="내 여행" />
       <Scroll contentContainerStyle={contentStyle}>
         <SectionTitle>내 여행 보관함</SectionTitle>
         <Grid>
@@ -137,18 +132,6 @@ export function MyTripsScreen() {
 }
 
 const Screen = styled.View({ flex: 1, width: '100%', backgroundColor: '#FFFFFF' });
-const Header = styled.View({
-  height: 64,
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  paddingHorizontal: 20,
-  borderBottomWidth: 1,
-  borderBottomColor: colors.gray[100],
-});
-const Back = styled.Pressable({ width: 24, height: 24 });
-const Spacer = styled.View({ width: 24, height: 24 });
-const HeaderTitle = styled.Text({ ...typography.heading4.semibold, color: colors.gray[1000] });
 const Scroll = styled.ScrollView({ position: 'relative', flex: 1 });
 const contentStyle = { padding: 20, gap: 20 } as const;
 const SectionTitle = styled.Text({ ...typography.heading2.medium, color: colors.gray[1000] });

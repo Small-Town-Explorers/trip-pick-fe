@@ -4,6 +4,7 @@ import { colors, typography } from '@styles';
 import { appRoutes, useAppNavigation } from '../../navigation';
 import { Platform } from 'react-native';
 import { useState } from 'react';
+import { Header } from '@components/Header';
 
 const indicators = [
   { label: '지난 여정', value: 4 },
@@ -129,7 +130,7 @@ const LogoutButtonText = styled.Text({
 });
 
 export function MyPageScreen() {
-  const { back, navigate } = useAppNavigation();
+  const { navigate } = useAppNavigation();
   const [notificationStatus, setNotoficationStatus] = useState(false);
 
   const [profileName, setProfileName] = useState('김민수');
@@ -148,13 +149,7 @@ export function MyPageScreen() {
 
   return (
     <Screen>
-      <Header>
-        <Back accessibilityRole="button" onPress={back}>
-          <IconComponent name="carousel_left" color={colors.gray[400]} />
-        </Back>
-        <Title>마이페이지</Title>
-        <Spacer />
-      </Header>
+      <Header title="마이페이지" />
       <Content>
         <Profile>
           <ProfileHeader>
@@ -243,20 +238,6 @@ export function MyPageScreen() {
 }
 
 const Screen = styled.View({ flex: 1, backgroundColor: colors.gray[25] });
-const Header = styled.View({
-  height: 64,
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  paddingHorizontal: 20,
-  backgroundColor: '#FFFFFF',
-  borderBottomWidth: 1,
-  borderBottomColor: colors.gray[100],
-});
-
-const Back = styled.Pressable({ width: 24, height: 24 });
-const Spacer = styled.View({ width: 24 });
-const Title = styled.Text({ ...typography.heading4.semibold, color: colors.gray[1000] });
 const Content = styled.ScrollView({ flex: 1 });
 
 const Profile = styled.View({

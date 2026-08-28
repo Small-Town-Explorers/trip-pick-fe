@@ -5,7 +5,6 @@ import { useCallback, useState } from 'react';
 import { useAppNavigation } from '../../navigation';
 import { setCourseSaveNotice } from '../../storage/courseSaveNotice';
 import { TripDetailActions } from '../TripDetailScreen/Bottom';
-import { CourseResultHeader } from './Header';
 import { CourseResultEditActions } from './EditActions';
 import { CourseResultChatModal } from './ChatModal';
 import { CourseResultDirectPlaceModal } from './DirectPlaceModal';
@@ -17,6 +16,9 @@ import { CourseResultShareModal } from './ShareModal';
 import { CourseResultPlaceSearchModal } from './PlaceSearchModal';
 import { CourseResultSaveModal } from './SaveModal';
 import { type CoursePlaceInput } from './types';
+import { Header } from '@components/Header';
+import { IconComponent } from '@components/Icons';
+import { colors } from '@styles';
 
 interface CourseResultScreenProps {
   courseId: string;
@@ -90,11 +92,17 @@ export function CourseResultScreen({ courseId }: CourseResultScreenProps) {
   return (
     <Screen testID={`course-result-${courseId}-${resultVersion}`}>
       <Scroll contentContainerStyle={scrollContentStyle}>
-        <CourseResultHeader
-          editing={isEditing}
-          onBack={isEditing ? () => setIsEditing(false) : undefined}
-          onShare={() => setIsShareVisible(true)}
-        />
+        <Header title={isEditing ? '코스 직접 편집' : '코스 생성 결과'}>
+          {!isEditing ? (
+            <ShareButton
+              accessibilityRole="button"
+              accessibilityLabel="공유하기"
+              onPress={() => setIsShareVisible(true)}
+            >
+              <IconComponent name="share" color={colors.gray[900]} />
+            </ShareButton>
+          ) : null}
+        </Header>
         <CourseResultMap />
         <CourseResultRoutine
           editing={isEditing}
@@ -175,3 +183,12 @@ const Scroll = styled.ScrollView({
 const scrollContentStyle = {
   paddingBottom: 160,
 } as const;
+
+const ShareButton = styled.Pressable({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  width: 24,
+  height: 24,
+  gap: 4,
+});
