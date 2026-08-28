@@ -1,3 +1,4 @@
+import styled from '@emotion/native';
 import { type IconName, icons } from './Icons.types';
 import { colors } from '@styles/colors';
 
@@ -16,5 +17,13 @@ export const IconComponent = ({
   const Icon = sizes[resolvedSize] ?? sizes[defaultSize];
   const resolvedColor = color ?? colors.gray[900];
 
-  return <Icon height={resolvedSize} width={resolvedSize} fill={resolvedColor} />;
+  return (
+    <IconContainer>
+      <Icon height={resolvedSize} width={resolvedSize} fill={resolvedColor} />
+    </IconContainer>
+  );
 };
+
+const IconContainer = styled.View({
+  flexShrink: 0,
+});

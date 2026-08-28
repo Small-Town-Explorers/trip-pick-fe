@@ -1,1 +1,0 @@
-export { TestTwoScreen } from './TestTwoScreen';

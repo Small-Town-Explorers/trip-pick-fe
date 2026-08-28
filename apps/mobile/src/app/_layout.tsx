@@ -8,6 +8,7 @@ export default function RootLayout() {
     <NavigationProvider
       navigation={{
         navigate: (route: AppRoute) => router.push(route),
+        replace: (route: AppRoute) => router.replace(route),
         back: () => router.back(),
       }}
     >

@@ -1,44 +1,39 @@
 import { IconComponent, type IconName } from '@components/Icons';
 import styled from '@emotion/native';
-import { colors, typography } from '@styles';
+import { colors, createShadow, typography, withAlpha } from '@styles';
 import { Platform } from 'react-native';
 
-const quickActions: Array<{ icon: IconName; label: string; onPress: () => void }> = [
-    {
-      icon: 'ai',
-      label: '챗봇 수정',
-      onPress: () => {},
-    },
-    {
-      icon: 'edit',
-      label: '직접 편집',
-      onPress: () => {},
-    },
-    {
-      icon: 'retry',
-      label: '다시 생성',
-      onPress: () => {},
-    },
-];
+interface TripDetailActionsProps {
+  onChatEdit?: () => void;
+  onDirectEdit?: () => void;
+  onRegenerate?: () => void;
+  onSave?: () => void;
+}
 
-export const TripDetailActions = () => {
+export const TripDetailActions = ({
+  onChatEdit,
+  onDirectEdit,
+  onRegenerate,
+  onSave,
+}: TripDetailActionsProps) => {
+  const quickActions: { icon: IconName; label: string; onPress?: () => void }[] = [
+    { icon: 'ai', label: '챗봇 수정', onPress: onChatEdit },
+    { icon: 'edit', label: '직접 편집', onPress: onDirectEdit },
+    { icon: 'retry', label: '다시 생성', onPress: onRegenerate },
+  ];
+
   return (
     <Bar>
       <Actions>
         <QuickRow>
           {quickActions.map((action) => (
-            <QuickButton
-              key={action.label}
-              accessibilityRole="button"
-              onPress={action.onPress}
-            >
+            <QuickButton key={action.label} accessibilityRole="button" onPress={action.onPress}>
               <IconComponent name={action.icon} color={colors.primary[600]} />
               <QuickText numberOfLines={1}>{action.label}</QuickText>
             </QuickButton>
           ))}
         </QuickRow>
-
-        <SaveButton accessibilityRole="button">
+        <SaveButton accessibilityRole="button" onPress={onSave}>
           <IconComponent name="check_circle" color={colors.primary[300]} />
           <SaveText>저장</SaveText>
         </SaveButton>
@@ -54,7 +49,7 @@ const Bar = styled.View({
   width: '100%',
   paddingHorizontal: 20,
   paddingVertical: 18,
-  backgroundColor: 'rgba(255, 255, 255, 0.7)',
+  backgroundColor: withAlpha('#FFFFFF', 0.7),
   borderTopColor: '#FFFFFF',
   borderTopWidth: 2,
   borderStyle: 'solid',
@@ -74,22 +69,7 @@ const Bar = styled.View({
     },
   }),
 
-  ...Platform.select({
-    web: {
-      backdropFilter: 'blur(10px)',
-      boxShadow: '0 0 30px rgba(8, 25, 29, 0.07)',
-    },
-    ios: {
-      shadowColor: '#08191D',
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.07,
-      shadowRadius: 15,
-    },
-    android: {
-      elevation: 8,
-      shadowColor: '#08191D',
-    },
-  }),
+  ...createShadow(0, 0, 30, 0, withAlpha(colors.gray[1000], 0.07)),
 });
 
 const Actions = styled.View({
@@ -111,7 +91,7 @@ const QuickButton = styled.Pressable({
   alignItems: 'center',
   paddingVertical: 10,
   gap: 4,
-  backgroundColor: 'rgba(255, 255, 255, 0.85)',
+  backgroundColor: withAlpha('#FFFFFF', 0.85),
   borderWidth: 2,
   borderColor: '#FFFFFF',
   borderRadius: 8,

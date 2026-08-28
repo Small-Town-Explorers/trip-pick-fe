@@ -18,13 +18,33 @@ export {
   type TypographyStyle,
   type TypographyToken,
 } from './styles';
-export { appRoutes, NavigationProvider, useAppNavigation, type AppRoute } from './navigation';
+export {
+  appRoutes,
+  NavigationProvider,
+  useAppNavigation,
+  type AppRoute,
+  type MyPageSection,
+  type MyPageSectionRoute,
+} from './navigation';
 export {
   ColorSystemScreen,
   ComponentSystemScreen,
   TypographySystemScreen,
 } from './screens/DesignSystems';
+export { CourseCreateScreen } from './screens/CourseCreateScreen/CourseCreateScreen';
+export { CourseResultScreen } from './screens/CourseResultScreen/CourseResultScreen';
 export { HomeScreen } from './screens/HomeScreen';
+export { MyTripsScreen, MyTripFolderScreen } from './screens/MyTripsScreen';
+export {
+  MyPageAccountScreen,
+  MyPageFaqScreen,
+  MyPageLocationScreen,
+  MyPageNoticesScreen,
+  MyPageNotificationsScreen,
+  MyPagePrivacyScreen,
+  MyPageScreen,
+  MyPageSectionScreen,
+  MyPageTermsScreen,
+} from './screens/MyPage';
+export { PlaceDetailScreen } from './screens/PlaceDetailScreen/PlaceDetailScreen';
 export { TripDetailScreen } from './screens/TripDetailScreen';
-export { TestOneScreen } from './screens/TestOneScreen';
-export { TestTwoScreen } from './screens/TestTwoScreen';

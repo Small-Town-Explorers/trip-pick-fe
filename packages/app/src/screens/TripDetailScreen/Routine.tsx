@@ -1,11 +1,11 @@
 import { IconComponent } from '@components/Icons';
+import { TripSpotCard } from '@components/TripSpotCard';
 import styled from '@emotion/native';
 import { colors, typography } from '@styles';
 import { useMemo, useState } from 'react';
 import { mockTripInfoItems } from '../../ts/mock';
-import { Linking, Platform, type ImageSourcePropType } from 'react-native';
+import { type ImageSourcePropType } from 'react-native';
 import Landscape1Image from '@assets/images/mock/landscape/landscape1.png';
-import KakaoMapIcon from '@assets/images/kakao_map.png';
 
 type Place = (typeof mockTripInfoItems)[number] & { order: number };
 type TripDay = { date: string; places: Place[] };
@@ -43,17 +43,6 @@ export const TripDetailRoutine = () => {
     );
   }, []);
 
-  const openMap = async (url: string) => {
-    const supported = await Linking.canOpenURL(url);
-
-    if (!supported) {
-      console.warn(`열 수 없는 지도 주소입니다: ${url}`);
-      return;
-    }
-
-    await Linking.openURL(url);
-  };
-
   return (
     <Section>
       <Heading>
@@ -80,29 +69,15 @@ export const TripDetailRoutine = () => {
               <Distance>{formatDistance(place.distKm)}</Distance>
               {placeIndex !== places.length - 1 && <LowerLine />}
             </Route>
-            <Card>
-              <Thumb
-                source={Landscape1Image as unknown as ImageSourcePropType}
-                alt={place.placeName}
+            <CardSlot>
+              <TripSpotCard
+                image={Landscape1Image as unknown as ImageSourcePropType}
+                type={place.placeType}
+                name={place.placeName}
+                description={place.placeDesc}
+                mapUrl={place.placeMap}
               />
-              <Info>
-                <Meta>
-                  <Type>{place.placeType}</Type>
-                  <MapButton
-                    accessibilityRole="link"
-                    accessibilityLabel={`${place.placeName} 카카오맵 열기`}
-                    onPress={() => openMap(place.placeMap)}
-                  >
-                    <MapIcon
-                      source={KakaoMapIcon as unknown as ImageSourcePropType}
-                      alt="kakao_map"
-                    />
-                  </MapButton>
-                </Meta>
-                <Name>{place.placeName}</Name>
-                <Desc numberOfLines={2}>{place.placeDesc}</Desc>
-              </Info>
-            </Card>
+            </CardSlot>
           </Item>
         ))}
       </List>
@@ -215,86 +190,8 @@ const LowerLine = styled.View({
   borderStyle: 'dotted',
 });
 
-const Card = styled.View({
+const CardSlot = styled.View({
   flex: 1,
   minWidth: 0,
   marginBottom: 16,
-  padding: 16,
-  flexDirection: 'row',
-  gap: 16,
-  backgroundColor: '#FFFFFF',
-  borderRadius: 12,
-
-  ...Platform.select({
-    web: {
-      boxShadow: '0 0px 40px rgba(8, 25, 29, 0.10)',
-    },
-    ios: {
-      shadowColor: '#08191D',
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.1,
-      shadowRadius: 6,
-    },
-    android: {
-      elevation: 6,
-      shadowColor: '#08191D',
-    },
-  }),
-});
-
-const Thumb = styled.Image({
-  width: 87,
-  height: 87,
-  flexShrink: 0,
-  borderRadius: 12,
-  resizeMode: 'cover',
-});
-
-const Info = styled.View({
-  flex: 1,
-  flexShrink: 1,
-  minWidth: 0,
-  gap: 6,
-});
-
-const Meta = styled.View({
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-});
-
-const Type = styled.Text({
-  alignSelf: 'flex-start',
-  paddingHorizontal: 8,
-  paddingVertical: 4,
-  backgroundColor: colors.gray[50],
-  borderRadius: 9999,
-  ...typography.caption2.regular,
-  color: colors.primary[900],
-});
-
-const MapButton = styled.Pressable({
-  width: 22,
-  height: 22,
-  flexShrink: 0,
-  borderRadius: 9999,
-  overflow: 'hidden',
-});
-
-const MapIcon = styled.Image({
-  width: '100%',
-  height: '100%',
-  resizeMode: 'cover',
-});
-
-const Name = styled.Text({
-  ...typography.body2.medium,
-  color: colors.gray[1000],
-});
-
-const Desc = styled.Text({
-  flexShrink: 1,
-  width: '100%',
-  ...typography.caption1.regular,
-  color: colors.gray[700],
 });

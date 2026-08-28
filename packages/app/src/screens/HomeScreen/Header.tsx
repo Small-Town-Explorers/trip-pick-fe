@@ -3,8 +3,11 @@ import logoImage from '@assets/images/logo.png';
 import { IconComponent } from '@components/Icons';
 import { colors, typography } from '@styles';
 import type { ImageSourcePropType } from 'react-native';
+import { appRoutes, useAppNavigation } from '../../navigation';
 
 export function HomeHeader() {
+  const { navigate } = useAppNavigation();
+
   return (
     <Bar>
       <Brand>
@@ -16,13 +19,13 @@ export function HomeHeader() {
         <BrandText>소도시로</BrandText>
       </Brand>
       <Menu>
-        <MenuItem>
+        <MenuItem accessibilityRole="button" onPress={() => navigate(appRoutes.myTrips)}>
           <MenuIcon>
             <IconComponent name="folder" color={colors.primary[700]} />
           </MenuIcon>
           <MenuText>내 여행</MenuText>
         </MenuItem>
-        <MenuItem>
+        <MenuItem accessibilityRole="button" onPress={() => navigate(appRoutes.myPage)}>
           <MenuIcon>
             <IconComponent name="profile" color={colors.primary[700]} />
           </MenuIcon>

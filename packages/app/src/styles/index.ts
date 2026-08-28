@@ -4,6 +4,7 @@ export {
   primary,
   semantic,
   sub,
+  withAlpha,
   type Colors,
   type GrayColorToken,
   type PrimaryColorToken,
@@ -20,3 +21,5 @@ export {
   type TypographyStyle,
   type TypographyToken,
 } from './typography';
+export { MAX_SCREEN_SIZE } from './size';
+export { shadows, createShadow } from './shadows';
