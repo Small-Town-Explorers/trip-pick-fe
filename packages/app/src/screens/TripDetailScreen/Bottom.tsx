@@ -3,42 +3,37 @@ import styled from '@emotion/native';
 import { colors, typography } from '@styles';
 import { Platform } from 'react-native';
 
-const quickActions: Array<{ icon: IconName; label: string; onPress: () => void }> = [
-    {
-      icon: 'ai',
-      label: '챗봇 수정',
-      onPress: () => {},
-    },
-    {
-      icon: 'edit',
-      label: '직접 편집',
-      onPress: () => {},
-    },
-    {
-      icon: 'retry',
-      label: '다시 생성',
-      onPress: () => {},
-    },
-];
+interface TripDetailActionsProps {
+  onChatEdit?: () => void;
+  onDirectEdit?: () => void;
+  onRegenerate?: () => void;
+  onSave?: () => void;
+}
 
-export const TripDetailActions = () => {
+export const TripDetailActions = ({
+  onChatEdit,
+  onDirectEdit,
+  onRegenerate,
+  onSave,
+}: TripDetailActionsProps) => {
+  const quickActions: { icon: IconName; label: string; onPress?: () => void }[] = [
+    { icon: 'ai', label: '챗봇 수정', onPress: onChatEdit },
+    { icon: 'edit', label: '직접 편집', onPress: onDirectEdit },
+    { icon: 'retry', label: '다시 생성', onPress: onRegenerate },
+  ];
+
   return (
     <Bar>
       <Actions>
         <QuickRow>
           {quickActions.map((action) => (
-            <QuickButton
-              key={action.label}
-              accessibilityRole="button"
-              onPress={action.onPress}
-            >
+            <QuickButton key={action.label} accessibilityRole="button" onPress={action.onPress}>
               <IconComponent name={action.icon} color={colors.primary[600]} />
               <QuickText numberOfLines={1}>{action.label}</QuickText>
             </QuickButton>
           ))}
         </QuickRow>
-
-        <SaveButton accessibilityRole="button">
+        <SaveButton accessibilityRole="button" onPress={onSave}>
           <IconComponent name="check_circle" color={colors.primary[300]} />
           <SaveText>저장</SaveText>
         </SaveButton>

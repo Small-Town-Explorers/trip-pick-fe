@@ -20,3 +20,4 @@ export {
   type TypographyStyle,
   type TypographyToken,
 } from './typography';
+export { MAX_SCREEN_SIZE } from './size';

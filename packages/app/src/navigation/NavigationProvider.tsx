@@ -5,20 +5,32 @@ export type AppRoute =
   | '/design-system/colors'
   | '/design-system/typography'
   | '/design-system/components'
-  | '/test-one'
-  | '/test-two'
+  | '/course-create'
   | `/trip-detail/${string}`
-  | `/place-detail/${string}`;
+  | `/place-detail/${string}`
+  | `/course-result/${string}`
+  | '/my-trips'
+  | `/my-trips/${string}`
+  | '/my-page'
+  | `/my-page/${'account' | 'notifications' | 'notices' | 'faq' | 'terms' | 'privacy'}`;
 
 export const appRoutes = {
   home: '/' as const,
   designSystemColors: '/design-system/colors' as const,
   tripDetail: (id: string) => `/trip-detail/${encodeURIComponent(id)}` as const,
   placeDetail: (id: string) => `/place-detail/${encodeURIComponent(id)}` as const,
+  courseCreate: '/course-create' as const,
+  courseResult: (id: string) => `/course-result/${encodeURIComponent(id)}` as const,
+  myTrips: '/my-trips' as const,
+  myTripFolder: (id: string) => `/my-trips/${encodeURIComponent(id)}` as const,
+  myPage: '/my-page' as const,
+  myPageSection: (section: 'account' | 'notifications' | 'notices' | 'faq' | 'terms' | 'privacy') =>
+    `/my-page/${section}` as const,
 };
 
 type Navigation = {
   navigate: (route: AppRoute) => void;
+  replace: (route: AppRoute) => void;
   back: () => void;
 };
 

@@ -24,8 +24,10 @@ export {
   ComponentSystemScreen,
   TypographySystemScreen,
 } from './screens/DesignSystems';
+export { CourseCreateScreen } from './screens/CourseCreateScreen/CourseCreateScreen';
+export { CourseResultScreen } from './screens/CourseResultScreen/CourseResultScreen';
 export { HomeScreen } from './screens/HomeScreen';
+export { MyTripsScreen, MyTripFolderScreen } from './screens/MyTripsScreen';
+export { MyPageScreen, MyPageSectionScreen, type MyPageSection } from './screens/MyPageScreen';
 export { PlaceDetailScreen } from './screens/PlaceDetailScreen/PlaceDetailScreen';
 export { TripDetailScreen } from './screens/TripDetailScreen';
-export { TestOneScreen } from './screens/TestOneScreen';
-export { TestTwoScreen } from './screens/TestTwoScreen';

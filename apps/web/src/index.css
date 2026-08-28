@@ -20,11 +20,14 @@ body {
 }
 
 #root {
+  position: relative;
   width: 100%;
   max-width: 480px;
   min-height: 100vh;
   margin: 0 auto;
   background: #ffffff;
+  display: flex;
+  flex-direction: column;
 }
 
 * {

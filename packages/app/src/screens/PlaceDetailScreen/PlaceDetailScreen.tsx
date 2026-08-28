@@ -1,4 +1,7 @@
+import { CourseLoadingOverlay } from '@components/CourseLoadingOverlay';
 import styled from '@emotion/native';
+import { useCallback, useState } from 'react';
+import { appRoutes, useAppNavigation } from '../../navigation';
 import { PlaceDetailCourseAction } from './CourseAction';
 import { PlaceDetailDiscovery } from './Discovery';
 import { PlaceDetailHeader } from './Header';
@@ -11,16 +14,32 @@ type Props = {
 };
 
 export function PlaceDetailScreen({ placeId }: Props) {
+  const { replace } = useAppNavigation();
+  const [isGenerating, setIsGenerating] = useState(false);
+  const title = '전남 담양';
+  const summary = '대나무 숲의 고요한 숨결';
+  const finishGeneration = useCallback(() => {
+    replace(appRoutes.courseResult('generated'));
+  }, [replace]);
+  const cancelGeneration = useCallback(() => setIsGenerating(false), []);
+
   return (
     <Screen testID={`place-detail-${placeId}`}>
       <PlaceDetailHeader />
       <Scroll>
-        <PlaceDetailHero />
+        <PlaceDetailHero title={title} summary={summary} />
         <PlaceDetailDiscovery />
         <PlaceDetailLocalSights />
         <PlaceDetailTravelTips />
-        <PlaceDetailCourseAction />
+        <PlaceDetailCourseAction onCreate={() => setIsGenerating(true)} />
       </Scroll>
+      <CourseLoadingOverlay
+        visible={isGenerating}
+        mode="generate"
+        destination={`${title} : ${summary}`}
+        onCancel={cancelGeneration}
+        onComplete={finishGeneration}
+      />
     </Screen>
   );
 }

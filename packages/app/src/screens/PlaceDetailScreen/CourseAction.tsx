@@ -1,12 +1,16 @@
-import { IconButton } from '@components/Buttons/Button';
+import { CourseCreateButton } from '@components/Buttons';
 import styled from '@emotion/native';
 import { colors, typography } from '@styles';
 
-export function PlaceDetailCourseAction() {
+interface PlaceDetailCourseActionProps {
+  onCreate: () => void;
+}
+
+export function PlaceDetailCourseAction({ onCreate }: PlaceDetailCourseActionProps) {
   return (
     <Section>
       <Description>당신만의 고요를 찾아서</Description>
-      <IconButton icon="ai">이 코스로 여행 생성하기</IconButton>
+      <CourseCreateButton onPress={onCreate}>이 코스로 여행 생성하기</CourseCreateButton>
     </Section>
   );
 }

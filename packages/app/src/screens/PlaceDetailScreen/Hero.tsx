@@ -4,7 +4,12 @@ import styled from '@emotion/native';
 import { colors, typography } from '@styles';
 import { Platform, type ImageSourcePropType } from 'react-native';
 
-export function PlaceDetailHero() {
+interface PlaceDetailHeroProps {
+  title: string;
+  summary: string;
+}
+
+export function PlaceDetailHero({ title, summary }: PlaceDetailHeroProps) {
   return (
     <Section>
       <ImageBackground
@@ -21,8 +26,8 @@ export function PlaceDetailHero() {
         />
         <Tag>#로컬체험</Tag>
         <Heading>
-          <Title>전남 담양</Title>
-          <Subtitle>대나무 숲의 고요한 숨결</Subtitle>
+          <Title>{title}</Title>
+          <Subtitle>{summary}</Subtitle>
         </Heading>
       </ImageBackground>
 
