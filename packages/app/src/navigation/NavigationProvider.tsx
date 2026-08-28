@@ -12,7 +12,7 @@ export type AppRoute =
   | '/my-trips'
   | `/my-trips/${string}`
   | '/my-page'
-  | `/my-page/${'account' | 'notifications' | 'notices' | 'faq' | 'terms' | 'privacy'}`;
+  | `/my-page/${'account' | 'notifications' | 'notices' | 'faq' | 'terms' | 'privacy' | 'location'}`;
 
 export const appRoutes = {
   home: '/' as const,
@@ -24,8 +24,9 @@ export const appRoutes = {
   myTrips: '/my-trips' as const,
   myTripFolder: (id: string) => `/my-trips/${encodeURIComponent(id)}` as const,
   myPage: '/my-page' as const,
-  myPageSection: (section: 'account' | 'notifications' | 'notices' | 'faq' | 'terms' | 'privacy') =>
-    `/my-page/${section}` as const,
+  myPageSection: (
+    section: 'account' | 'notifications' | 'notices' | 'faq' | 'terms' | 'privacy' | 'location',
+  ) => `/my-page/${section}` as const,
 };
 
 type Navigation = {
