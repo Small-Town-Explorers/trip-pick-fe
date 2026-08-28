@@ -1,4 +1,4 @@
-import { IconComponent, IconName } from '@components/Icons';
+import { IconComponent, type IconName } from '@components/Icons';
 import styled from '@emotion/native';
 import { colors, createShadow, typography, withAlpha } from '@styles';
 import { Platform } from 'react-native';

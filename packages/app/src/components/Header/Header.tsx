@@ -2,7 +2,7 @@ import { IconComponent } from '@components/Icons';
 import styled from '@emotion/native';
 import { colors, typography } from '@styles';
 import { useAppNavigation } from '../../navigation';
-import { PropsWithChildren } from 'react';
+import { type PropsWithChildren } from 'react';
 
 interface HeaderProps {
   title: string;

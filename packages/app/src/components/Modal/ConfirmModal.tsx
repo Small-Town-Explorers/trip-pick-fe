@@ -1,7 +1,7 @@
 import styled from '@emotion/native';
 import { colors, createShadow, typography, withAlpha } from '@styles';
 import { type PropsWithChildren } from 'react';
-import { Modal, Platform } from 'react-native';
+import { Modal } from 'react-native';
 
 type ConfirmModalProps = PropsWithChildren<{
   visible: boolean;

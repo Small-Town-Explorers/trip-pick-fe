@@ -1,7 +1,7 @@
 import KakaoMapIcon from '@assets/images/kakao_map.png';
 import styled from '@emotion/native';
 import { colors, createShadow, typography, withAlpha } from '@styles';
-import { Linking, Modal, Platform, Share, type ImageSourcePropType } from 'react-native';
+import { Linking, Modal, Share, type ImageSourcePropType } from 'react-native';
 
 interface CourseResultShareModalProps {
   visible: boolean;

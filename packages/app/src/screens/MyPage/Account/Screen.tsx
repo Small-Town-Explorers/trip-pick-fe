@@ -3,6 +3,7 @@ import styled from '@emotion/native';
 import { colors, createShadow, typography, withAlpha } from '@styles';
 import { MyPageSectionLayout } from '../SectionLayout';
 import KakaoIconPNG from '@assets/images/kakao.png';
+import { type ImageSourcePropType } from 'react-native';
 
 export function MyPageAccountScreen() {
   return (
@@ -11,7 +12,7 @@ export function MyPageAccountScreen() {
         <SectionLabel>로그인 방식</SectionLabel>
 
         <LoginCard>
-          <KakaoIcon source={KakaoIconPNG} />
+          <KakaoIcon source={KakaoIconPNG as ImageSourcePropType} />
           <LoginText>카카오 로그인됨</LoginText>
         </LoginCard>
 

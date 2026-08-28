@@ -1,7 +1,7 @@
 import KakaoMapIcon from '@assets/images/kakao_map.png';
 import styled from '@emotion/native';
 import { colors, shadows, typography } from '@styles';
-import { Linking, Platform, type ImageSourcePropType } from 'react-native';
+import { Linking, type ImageSourcePropType } from 'react-native';
 
 interface TripSpotCardProps {
   image: ImageSourcePropType;

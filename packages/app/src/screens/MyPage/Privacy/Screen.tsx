@@ -69,27 +69,27 @@ const Card = styled.View({
 
 const Article = styled.View({ width: '100%', gap: 16 });
 
-export const ArticleTitle = styled.Text({
+const ArticleTitle = styled.Text({
   ...typography.heading2.semibold,
   color: colors.gray[1000],
 });
 
-export const ArticleHeading = styled.Text({
+const ArticleHeading = styled.Text({
   ...typography.body1.semibold,
   color: colors.gray[1000],
 });
 
-export const ArticleText = styled.Text({
+const ArticleText = styled.Text({
   ...typography.body3.regular,
   color: colors.gray[800],
 });
 
-export const ArticleDate = styled.Text({
+const ArticleDate = styled.Text({
   ...typography.body3.regular,
   color: colors.gray[500],
 });
 
-export const ArticleStrong = styled.Text({
+const ArticleStrong = styled.Text({
   ...typography.body3.semibold,
   color: colors.gray[800],
 });

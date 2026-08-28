@@ -63,12 +63,12 @@ const Card = styled.View({
 
 const Article = styled.View({ width: '100%', gap: 16 });
 
-export const ArticleHeading = styled.Text({
+const ArticleHeading = styled.Text({
   ...typography.body1.semibold,
   color: colors.gray[1000],
 });
 
-export const ArticleText = styled.Text({
+const ArticleText = styled.Text({
   ...typography.body3.regular,
   color: colors.gray[800],
 });
