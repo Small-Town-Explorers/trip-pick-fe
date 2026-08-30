@@ -2,47 +2,105 @@ import { IconComponent } from '@components/Icons';
 import styled from '@emotion/native';
 import { colors, typography } from '@styles';
 import { useState } from 'react';
-import { Platform } from 'react-native';
-
-const indicators = [
-  { label: '지난 여정', value: 4 },
-  { label: '저장한 코스', value: 12 },
-  { label: '방문한 지역', value: 3 },
-];
+import { ActivityIndicator, Platform } from 'react-native';
+import { ApiError } from '../../controllers';
+import { useMyPageSummaryQuery, useUpdateNicknameMutation } from '../../queries';
 
 export const MyPageProfile = () => {
-  const [profileName, setProfileName] = useState('김민수');
-  const [editingName, setEditingName] = useState(profileName);
+  const { data: summary, error, isPending, refetch } = useMyPageSummaryQuery();
+  const updateNickname = useUpdateNicknameMutation();
+  const [editingName, setEditingName] = useState('');
   const [isNameEdit, setIsNameEdit] = useState(false);
+  const [nameError, setNameError] = useState('');
 
   const handleStartNameEdit = () => {
-    setEditingName(profileName);
+    if (!summary) return;
+    setEditingName(summary.nickname);
+    setNameError('');
     setIsNameEdit(true);
   };
 
-  const handleCancelNameEdit = () => {
-    setProfileName(editingName);
-    setIsNameEdit(false);
+  const handleSaveName = async () => {
+    const nickname = editingName.trim();
+    if (updateNickname.isPending) return;
+    if (!nickname) {
+      setNameError('닉네임을 입력해 주세요.');
+      return;
+    }
+    if (nickname === summary?.nickname) {
+      setEditingName('');
+      setNameError('');
+      setIsNameEdit(false);
+      return;
+    }
+
+    setNameError('');
+    try {
+      await updateNickname.mutateAsync(nickname);
+      setEditingName('');
+      setIsNameEdit(false);
+    } catch (mutationError) {
+      setNameError(
+        mutationError instanceof ApiError ? mutationError.message : '닉네임을 변경하지 못했어요.',
+      );
+    }
   };
+
+  if (isPending) {
+    return (
+      <Profile>
+        <ProfileStatus accessibilityLiveRegion="polite">
+          <ActivityIndicator color={colors.primary[700]} />
+          <ProfileStatusText>내 정보를 불러오고 있어요.</ProfileStatusText>
+        </ProfileStatus>
+      </Profile>
+    );
+  }
+
+  if (error || !summary) {
+    return (
+      <Profile>
+        <ProfileStatus>
+          <ProfileStatusText>
+            {error instanceof Error ? error.message : '내 정보를 불러오지 못했어요.'}
+          </ProfileStatusText>
+          <RetryButton accessibilityRole="button" onPress={() => refetch()}>
+            <RetryText>다시 시도</RetryText>
+          </RetryButton>
+        </ProfileStatus>
+      </Profile>
+    );
+  }
+
+  const indicators = [
+    { label: '지난 여정', value: summary.pastTripCount },
+    { label: '저장한 코스', value: summary.savedCourseCount },
+    { label: '방문한 지역', value: summary.discoveredRegionCount },
+  ];
 
   return (
     <Profile>
       <ProfileHeader>
         <ProfileName>
           {!isNameEdit ? (
-            <ProfileNameValue>{profileName}</ProfileNameValue>
+            <ProfileNameValue>{summary.nickname}</ProfileNameValue>
           ) : (
             <ProfileNameEdit>
               <ProfileNameEditInput
+                maxLength={15}
                 value={editingName}
                 onChangeText={setEditingName}
                 autoFocus
                 returnKeyType="done"
+                onSubmitEditing={handleSaveName}
               />
-
-              <ProfileNameEditCancelButton onPress={handleCancelNameEdit}>
+              <ProfileNameEditAction
+                accessibilityLabel="닉네임 편집 완료"
+                disabled={updateNickname.isPending}
+                onPress={handleSaveName}
+              >
                 <IconComponent name="cancel" size={24} color={colors.gray[200]} />
-              </ProfileNameEditCancelButton>
+              </ProfileNameEditAction>
             </ProfileNameEdit>
           )}
           <ProfileNameSub>님</ProfileNameSub>
@@ -53,8 +111,10 @@ export const MyPageProfile = () => {
           ) : null}
         </ProfileName>
         <ProfileStreakText>
-          소도시 발굴을 시작한 지 <ProfileStreakHighlight>20일</ProfileStreakHighlight>째
+          소도시 발굴을 시작한 지{' '}
+          <ProfileStreakHighlight>{summary.daysSinceJoined}일</ProfileStreakHighlight>째
         </ProfileStreakText>
+        {nameError ? <NameError>{nameError}</NameError> : null}
       </ProfileHeader>
       <ProfileIndicators>
         {indicators.map((item, index) => (
@@ -108,7 +168,7 @@ const ProfileNameEditInput = styled.TextInput({
   ...Platform.select({ web: { outlineStyle: 'none' as never } }),
 });
 
-const ProfileNameEditCancelButton = styled.Pressable({});
+const ProfileNameEditAction = styled.Pressable({});
 
 const ProfileNameSub = styled.Text({
   ...typography.heading2.semibold,
@@ -155,3 +215,23 @@ const ProfileIndicatorItemValue = styled.Text({
   ...typography.heading4.semibold,
   color: colors.primary[1000],
 });
+
+const ProfileStatus = styled.View({
+  minHeight: 120,
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 12,
+});
+const ProfileStatusText = styled.Text({
+  ...typography.body3.regular,
+  color: colors.gray[600],
+  textAlign: 'center',
+});
+const RetryButton = styled.Pressable({
+  paddingHorizontal: 14,
+  paddingVertical: 8,
+  borderRadius: 9999,
+  backgroundColor: colors.primary[50],
+});
+const RetryText = styled.Text({ ...typography.body3.medium, color: colors.primary[800] });
+const NameError = styled.Text({ ...typography.caption1.regular, color: colors.semantic.warning });

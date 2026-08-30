@@ -45,3 +45,15 @@ export {
   type RegionFeatureContent,
   type SmallCity,
 } from './regions';
+export {
+  getAccountInfo,
+  getMyPageSummary,
+  getNotificationSettings,
+  updateNickname,
+  updateNotificationSettings,
+  type AccountInfo,
+  type MyPageSummary,
+  type NicknameResponse,
+  type NotificationSettings,
+  type UpdateNotificationSettingsRequest,
+} from './users';
