@@ -109,18 +109,32 @@ export const recalculateCoursePlaces = (days: CoursePlaces): CoursePlaces => {
     places.map((place, index) => ({
       ...place,
       order: ++order,
-      distanceMeters: index === 0 ? null : calculateDistanceMeters(places[index - 1], place),
+      distanceMeters: calculateDistanceMeters(places, index),
     })),
   );
 };
 
-const calculateDistanceMeters = (from: CoursePlace, to: CoursePlace) => {
-  if (from.lat === null || from.lng === null || to.lat === null || to.lng === null) return null;
+const calculateDistanceMeters = (places: CoursePlace[], currentIndex: number) => {
+  const to = places[currentIndex];
+  if (!to || to.lat === null || to.lng === null) return null;
+
+  let fromLat: number | undefined;
+  let fromLng: number | undefined;
+  for (let index = currentIndex - 1; index >= 0; index -= 1) {
+    const candidate = places[index];
+    if (candidate.lat !== null && candidate.lng !== null) {
+      fromLat = candidate.lat;
+      fromLng = candidate.lng;
+      break;
+    }
+  }
+
+  if (fromLat === undefined || fromLng === undefined) return null;
 
   const earthRadiusMeters = 6_371_000;
-  const latitudeDelta = toRadians(to.lat - from.lat);
-  const longitudeDelta = toRadians(to.lng - from.lng);
-  const fromLatitude = toRadians(from.lat);
+  const latitudeDelta = toRadians(to.lat - fromLat);
+  const longitudeDelta = toRadians(to.lng - fromLng);
+  const fromLatitude = toRadians(fromLat);
   const toLatitude = toRadians(to.lat);
   const haversine =
     Math.sin(latitudeDelta / 2) ** 2 +

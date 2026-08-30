@@ -6,8 +6,11 @@ export {
   type ApiErrorResponse,
 } from './apiClient';
 export {
+  addCourseItem,
   generateCourse,
   generateCourseByName,
+  type AddCourseItemRequest,
+  type AddCourseItemResponse,
   type GenerateCourseByNameRequest,
   type GenerateCourseRequest,
   type GeneratedCourseItem,

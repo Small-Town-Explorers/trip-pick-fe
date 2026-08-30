@@ -1,4 +1,5 @@
 import { apiRequest } from './apiClient';
+import type { PlaceSearchItem } from './places';
 
 export type GenerateCourseRequest = {
   regionId?: string;
@@ -58,6 +59,17 @@ export type GeneratedCourseResponse = {
   warnings: string[];
 };
 
+export type AddCourseItemRequest = {
+  course: GeneratedCourseResponse;
+  place: PlaceSearchItem;
+  day: number;
+};
+
+export type AddCourseItemResponse = {
+  course: GeneratedCourseResponse;
+  warnings: string[];
+};
+
 export function generateCourse(request: GenerateCourseRequest) {
   return apiRequest<GeneratedCourseResponse>('/api/v1/courses/generate', {
     method: 'POST',
@@ -68,6 +80,14 @@ export function generateCourse(request: GenerateCourseRequest) {
 
 export function generateCourseByName(request: GenerateCourseByNameRequest) {
   return apiRequest<GeneratedCourseResponse>('/api/v1/courses/generate-by-name', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+}
+
+export function addCourseItem(request: AddCourseItemRequest) {
+  return apiRequest<AddCourseItemResponse>('/api/v1/courses/items', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(request),

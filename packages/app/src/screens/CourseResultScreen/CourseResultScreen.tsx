@@ -10,25 +10,25 @@ import { CourseResultChatModal } from './ChatModal';
 import { CourseResultDirectPlaceModal } from './DirectPlaceModal';
 import { CourseResultMap } from './Map';
 import { CourseResultRegenerateModal } from './RegenerateModal';
-import {
-  CourseResultRoutine,
-  createCoursePlacesFromResponse,
-  recalculateCoursePlaces,
-  type CoursePlaces,
-} from './Routine';
+import { CourseResultRoutine, createCoursePlacesFromResponse, type CoursePlaces } from './Routine';
 import { CourseResultScheduleModal } from './ScheduleModal';
 import { CourseResultShareModal } from './ShareModal';
 import { CourseResultPlaceSearchModal } from './PlaceSearchModal';
 import { CourseResultSaveModal } from './SaveModal';
-import { type CoursePlaceInput } from './types';
 import { Header } from '@components/Header';
 import { IconComponent } from '@components/Icons';
 import { colors } from '@styles';
 import { useQueryClient } from '@tanstack/react-query';
-import type { GeneratedCourseResponse } from '../../controllers';
+import {
+  ApiError,
+  type GeneratedCourseItem,
+  type GeneratedCourseResponse,
+  type PlaceSearchItem,
+} from '../../controllers';
 import {
   generatedCourseQueryKey,
   storeGeneratedCourse,
+  useAddCourseItemMutation,
   useGenerateCourseByNameMutation,
 } from '../../queries';
 import { getPersistedGeneratedCourse } from '../../storage/generatedCourse';
@@ -74,6 +74,41 @@ const getPeriodDays = ({ startDate, endDate }: CalendarRange) => {
   return Math.max(1, Math.round((end - start) / 86_400_000) + 1);
 };
 
+const getGeneratedItemId = (day: number, item: GeneratedCourseItem) => {
+  const isKakao = item.contentId?.startsWith('kakao:') ?? false;
+  const externalId = item.contentId
+    ? isKakao
+      ? item.contentId.slice('kakao:'.length)
+      : item.contentId
+    : null;
+  const id = item.contentId
+    ? `${isKakao ? 'KAKAO' : 'TOUR'}:${externalId}`
+    : `FREE_TIME:${day}:${item.order}`;
+
+  return `${day}:${item.order}:${id}`;
+};
+
+const applyEditedPlacesToCourse = (
+  course: GeneratedCourseResponse,
+  places: CoursePlaces,
+  period: CalendarRange,
+): GeneratedCourseResponse => ({
+  ...course,
+  startDate: period.startDate ?? course.startDate,
+  endDate: period.endDate ?? course.endDate,
+  plan: course.plan.map((dayPlan, dayIndex) => {
+    const itemsByUid = new Map(
+      dayPlan.items.map((item) => [getGeneratedItemId(dayPlan.day, item), item]),
+    );
+    const items = (places[dayIndex] ?? []).flatMap((place, index) => {
+      const item = itemsByUid.get(place.uid);
+      return item ? [{ ...item, order: index + 1 }] : [];
+    });
+
+    return { ...dayPlan, items };
+  }),
+});
+
 export function CourseResultScreen({ courseId }: CourseResultScreenProps) {
   const { back } = useAppNavigation();
   const queryClient = useQueryClient();
@@ -82,6 +117,7 @@ export function CourseResultScreen({ courseId }: CourseResultScreenProps) {
     getPersistedGeneratedCourse(courseId);
   const [course, setCourse] = useState(initialGeneratedCourse);
   const regenerateMutation = useGenerateCourseByNameMutation();
+  const addCourseItemMutation = useAddCourseItemMutation();
   const regenerationSequence = useRef(0);
   const [title, setTitle] = useState(() =>
     initialGeneratedCourse
@@ -102,6 +138,8 @@ export function CourseResultScreen({ courseId }: CourseResultScreenProps) {
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [isRegenerationComplete, setIsRegenerationComplete] = useState(false);
   const [regenerationError, setRegenerationError] = useState('');
+  const [isAddingPlace, setIsAddingPlace] = useState(false);
+  const [placeAddError, setPlaceAddError] = useState('');
   const [resultVersion, setResultVersion] = useState(0);
   const [places, setPlaces] = useState<CoursePlaces>(() =>
     initialGeneratedCourse ? createCoursePlacesFromResponse(initialGeneratedCourse) : [],
@@ -117,25 +155,48 @@ export function CourseResultScreen({ courseId }: CourseResultScreenProps) {
     setIsSaveVisible(false);
   };
 
-  const addPlaces = (newPlaces: CoursePlaceInput[]) => {
-    setPlaces((days) => {
-      const orderStart = days.flat().length;
-      const addedAt = Date.now();
-      const lastDate =
-        days.at(-1)?.[0]?.date ?? new Date(period.endDate ?? period.startDate ?? '2026-09-05');
-      const additions = newPlaces.map((place, index) => ({
-        ...place,
-        date: lastDate,
-        distanceMeters: null,
-        uid: `added-${addedAt}-${index}`,
-        order: orderStart + index + 1,
-      }));
-      if (days.length === 0) return recalculateCoursePlaces([additions]);
+  const addPlaces = async (newPlaces: PlaceSearchItem[]) => {
+    setPlaceAddError('');
 
-      return recalculateCoursePlaces(
-        days.map((day, index) => (index === days.length - 1 ? [...day, ...additions] : day)),
+    if (!course) {
+      setPlaceAddError('기존 코스 정보를 찾을 수 없어 장소를 추가할 수 없어요.');
+      return false;
+    }
+    if (newPlaces.length === 0) return false;
+
+    setIsAddingPlace(true);
+    try {
+      let nextCourse = applyEditedPlacesToCourse(course, places, period);
+      const lastDay = Math.max(1, ...nextCourse.plan.map(({ day }) => day));
+
+      for (const place of newPlaces) {
+        const response = await addCourseItemMutation.mutateAsync({
+          course: nextCourse,
+          place,
+          day: lastDay,
+        });
+        nextCourse = response.course;
+      }
+
+      nextCourse = {
+        ...nextCourse,
+        startDate: period.startDate ?? nextCourse.startDate,
+        endDate: period.endDate ?? nextCourse.endDate,
+      };
+      storeGeneratedCourse(queryClient, courseId, nextCourse);
+      setCourse(nextCourse);
+      setPlaces(createCoursePlacesFromResponse(nextCourse));
+      return true;
+    } catch (error) {
+      setPlaceAddError(
+        error instanceof ApiError
+          ? error.message
+          : '장소를 코스에 추가하지 못했어요. 잠시 후 다시 시도해 주세요.',
       );
-    });
+      return false;
+    } finally {
+      setIsAddingPlace(false);
+    }
   };
 
   const regenerateCourse = async () => {
@@ -218,8 +279,14 @@ export function CourseResultScreen({ courseId }: CourseResultScreenProps) {
       </Scroll>
       {isEditing ? (
         <CourseResultEditActions
-          onDirectAdd={() => setIsDirectPlaceVisible(true)}
-          onPlaceSearch={() => setIsPlaceSearchVisible(true)}
+          onDirectAdd={() => {
+            setPlaceAddError('');
+            setIsDirectPlaceVisible(true);
+          }}
+          onPlaceSearch={() => {
+            setPlaceAddError('');
+            setIsPlaceSearchVisible(true);
+          }}
           onSave={() => setIsEditing(false)}
         />
       ) : (
@@ -233,11 +300,15 @@ export function CourseResultScreen({ courseId }: CourseResultScreenProps) {
       <CourseResultChatModal visible={isChatVisible} onClose={closeModals} />
       <CourseResultPlaceSearchModal
         visible={isPlaceSearchVisible}
+        isAdding={isAddingPlace}
+        addError={placeAddError}
         onAdd={addPlaces}
         onClose={closeModals}
       />
       <CourseResultDirectPlaceModal
         visible={isDirectPlaceVisible}
+        isAdding={isAddingPlace}
+        addError={placeAddError}
         onAdd={(place) => addPlaces([place])}
         onClose={closeModals}
       />

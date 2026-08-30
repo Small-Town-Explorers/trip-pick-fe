@@ -5,6 +5,7 @@ export type PlaceSearchSource = 'TOUR' | 'KAKAO';
 export type PlaceSearchItem = {
   source: PlaceSearchSource;
   externalId: string;
+  contentTypeId: number | null;
   name: string;
   address: string;
   lat: number;

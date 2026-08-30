@@ -4,19 +4,22 @@ import styled from '@emotion/native';
 import { colors, createShadow, shadows, typography, withAlpha } from '@styles';
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Platform, type ImageSourcePropType } from 'react-native';
-import { type CoursePlaceInput } from './types';
 import { IconComponent } from '@components/Icons';
 import { ApiError, type PlaceSearchItem, type PlaceSearchSource } from '../../controllers';
 import { useInfinitePlaceSearchQuery } from '../../queries';
 
 interface CourseResultPlaceSearchModalProps {
   visible: boolean;
-  onAdd: (places: CoursePlaceInput[]) => void;
+  isAdding: boolean;
+  addError?: string;
+  onAdd: (places: PlaceSearchItem[]) => Promise<boolean>;
   onClose: () => void;
 }
 
 export function CourseResultPlaceSearchModal({
   visible,
+  isAdding,
+  addError,
   onAdd,
   onClose,
 }: CourseResultPlaceSearchModalProps) {
@@ -171,33 +174,28 @@ export function CourseResultPlaceSearchModal({
             </CancelButton>
             <AddButton
               accessibilityRole="button"
-              disabled={selectedResults.length === 0}
-              onPress={() => {
-                onAdd(
-                  selectedResults.map((place) => ({
-                    id: `${place.source}:${place.externalId}`,
-                    externalId: place.externalId,
-                    name: place.name,
-                    tag: '관광 명소',
-                    summary: place.address,
-                    image: place.imageUrl,
-                    lat: place.lat,
-                    lng: place.lng,
-                  })),
-                );
-                close();
+              disabled={selectedResults.length === 0 || isAdding}
+              onPress={async () => {
+                if (await onAdd(selectedResults)) close();
               }}
             >
-              <AddIcon>
-                <IconComponent
-                  name="add_location"
-                  color={selectedResults.length === 0 ? colors.gray[200] : colors.primary[300]}
-                />
-              </AddIcon>
-              <AddLabel disabled={selectedResults.length === 0}>선택 장소 추가</AddLabel>
-              <Count disabled={selectedResults.length === 0}>({selectedResults.length})</Count>
+              {isAdding ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <>
+                  <AddIcon>
+                    <IconComponent
+                      name="add_location"
+                      color={selectedResults.length === 0 ? colors.gray[200] : colors.primary[300]}
+                    />
+                  </AddIcon>
+                  <AddLabel disabled={selectedResults.length === 0}>선택 장소 추가</AddLabel>
+                  <Count disabled={selectedResults.length === 0}>({selectedResults.length})</Count>
+                </>
+              )}
             </AddButton>
           </Actions>
+          {addError ? <AddError accessibilityLiveRegion="polite">{addError}</AddError> : null}
         </Content>
       )}
     </BottomSheetModal>
@@ -416,3 +414,17 @@ const Count = styled.Text(({ disabled }) => ({
   ...typography.body3.regular,
   color: disabled ? colors.gray[200] : withAlpha('#FFFFFF', 0.7),
 }));
+
+const AddError = styled.Text({
+  position: 'absolute',
+  right: 20,
+  bottom: Platform.OS === 'web' ? 82 : 92,
+  left: 20,
+  zIndex: 101,
+  padding: 10,
+  borderRadius: 8,
+  backgroundColor: colors.semantic.warningDisabled,
+  ...typography.caption1.regular,
+  color: colors.semantic.warning,
+  textAlign: 'center',
+});
