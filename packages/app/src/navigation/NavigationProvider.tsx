@@ -1,4 +1,5 @@
 import { createContext, type PropsWithChildren, useContext } from 'react';
+import { QueryProvider } from '../providers/QueryProvider';
 
 export type MyPageSection =
   'account' | 'notifications' | 'notices' | 'faq' | 'terms' | 'privacy' | 'location';
@@ -10,6 +11,7 @@ export type AppRoute =
   | '/design-system/typography'
   | '/design-system/components'
   | '/course-create'
+  | '/login'
   | `/trip-detail/${string}`
   | `/place-detail/${string}`
   | `/course-result/${string}`
@@ -24,6 +26,7 @@ export const appRoutes = {
   tripDetail: (id: string) => `/trip-detail/${encodeURIComponent(id)}` as const,
   placeDetail: (id: string) => `/place-detail/${encodeURIComponent(id)}` as const,
   courseCreate: '/course-create' as const,
+  login: '/login' as const,
   courseResult: (id: string) => `/course-result/${encodeURIComponent(id)}` as const,
   myTrips: '/my-trips' as const,
   myTripFolder: (id: string) => `/my-trips/${encodeURIComponent(id)}` as const,
@@ -44,7 +47,11 @@ type NavigationProviderProps = PropsWithChildren<{
 const NavigationContext = createContext<Navigation | null>(null);
 
 export function NavigationProvider({ children, navigation }: NavigationProviderProps) {
-  return <NavigationContext.Provider value={navigation}>{children}</NavigationContext.Provider>;
+  return (
+    <QueryProvider>
+      <NavigationContext.Provider value={navigation}>{children}</NavigationContext.Provider>
+    </QueryProvider>
+  );
 }
 
 export function useAppNavigation() {

@@ -57,18 +57,18 @@ export function CourseResultScreen({ courseId }: CourseResultScreenProps) {
     setPlaces((days) => {
       const orderStart = days.flat().length;
       const addedAt = Date.now();
+      const lastDate =
+        days.at(-1)?.[0]?.date ?? new Date(period.endDate ?? period.startDate ?? '2026-09-05');
       const additions = newPlaces.map((place, index) => ({
-        placeId: `added-${addedAt}-${index}`,
-        placeName: place.name,
-        placeType: place.type,
-        placeDesc: place.description,
-        placeMap: place.mapUrl ?? '',
-        date: new Date(period.startDate ?? '2026-09-05'),
-        distKm: 0,
+        ...place,
+        date: lastDate,
+        distanceMeters: 0,
         uid: `added-${addedAt}-${index}`,
         order: orderStart + index + 1,
       }));
-      return [[...(days[0] ?? []), ...additions], ...days.slice(1)];
+      if (days.length === 0) return [additions];
+
+      return days.map((day, index) => (index === days.length - 1 ? [...day, ...additions] : day));
     });
   };
 

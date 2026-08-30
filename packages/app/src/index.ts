@@ -19,6 +19,21 @@ export {
   type TypographyToken,
 } from './styles';
 export {
+  ApiError,
+  apiRequest,
+  configureApiAccessToken,
+  configureApiBaseUrl,
+  getSmallCities,
+  searchPlaces,
+  type ApiErrorResponse,
+  type PlaceSearchItem,
+  type PlaceSearchResponse,
+  type PlaceSearchSource,
+  type SearchPlacesParams,
+  type SmallCity,
+} from './controllers';
+export { smallCitiesQueryKey, useInfinitePlaceSearchQuery, useSmallCitiesQuery } from './queries';
+export {
   appRoutes,
   NavigationProvider,
   useAppNavigation,
@@ -34,6 +49,7 @@ export {
 export { CourseCreateScreen } from './screens/CourseCreateScreen/CourseCreateScreen';
 export { CourseResultScreen } from './screens/CourseResultScreen/CourseResultScreen';
 export { HomeScreen } from './screens/HomeScreen';
+export { LoginScreen } from './screens/LoginScreen';
 export { MyTripsScreen, MyTripFolderScreen } from './screens/MyTripsScreen';
 export {
   MyPageAccountScreen,

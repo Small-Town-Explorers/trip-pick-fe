@@ -66,16 +66,24 @@ export const TripDetailRoutine = () => {
                 <Number>{place.order}</Number>
               </Marker>
               <UpperLine />
-              <Distance>{formatDistance(place.distKm)}</Distance>
+              <Distance>{formatDistance(0)}</Distance>
               {placeIndex !== places.length - 1 && <LowerLine />}
             </Route>
             <CardSlot>
               <TripSpotCard
-                image={Landscape1Image as unknown as ImageSourcePropType}
-                type={place.placeType}
+                image={
+                  place.placeImage
+                    ? { uri: place.placeImage }
+                    : (Landscape1Image as unknown as ImageSourcePropType)
+                }
+                type={place.placeTag}
                 name={place.placeName}
-                description={place.placeDesc}
-                mapUrl={place.placeMap}
+                description={place.placeSummary}
+                mapUrl={
+                  place.placeSource === 'KAKAO'
+                    ? `https://place.map.kakao.com/${place.placeId}`
+                    : `https://map.kakao.com/link/map/${encodeURIComponent(place.placeName)},${place.placeLocation.lat},${place.placeLocation.lng}`
+                }
               />
             </CardSlot>
           </Item>

@@ -1,13 +1,13 @@
-import Landscape1Image from '@assets/images/mock/landscape/landscape1.png';
-import Landscape2Image from '@assets/images/mock/landscape/landscape2.png';
 import KakaoMapIcon from '@assets/images/kakao_map.png';
 import { BottomSheetModal } from '@components/Modal';
 import styled from '@emotion/native';
 import { colors, createShadow, shadows, typography, withAlpha } from '@styles';
-import { useMemo, useState } from 'react';
-import { Platform, type ImageSourcePropType } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, FlatList, Platform, type ImageSourcePropType } from 'react-native';
 import { type CoursePlaceInput } from './types';
 import { IconComponent } from '@components/Icons';
+import { ApiError, type PlaceSearchItem, type PlaceSearchSource } from '../../controllers';
+import { useInfinitePlaceSearchQuery } from '../../queries';
 
 interface CourseResultPlaceSearchModalProps {
   visible: boolean;
@@ -15,42 +15,60 @@ interface CourseResultPlaceSearchModalProps {
   onClose: () => void;
 }
 
-const results = [
-  { name: '오션뷰 부곡 카페', image: Landscape1Image },
-  { name: '만덕사', image: Landscape2Image },
-  { name: '부곡 횟집', image: Landscape1Image },
-  { name: '오션뷰 부곡 카페', image: Landscape2Image },
-  { name: '만덕사', image: Landscape1Image },
-  { name: '부곡 횟집', image: Landscape2Image },
-].map((place, index) => ({
-  ...place,
-  id: `search-${index}`,
-  address: '전라남도 강진군 강진읍 만덕로 123',
-}));
-
 export function CourseResultPlaceSearchModal({
   visible,
   onAdd,
   onClose,
 }: CourseResultPlaceSearchModalProps) {
-  const [query, setQuery] = useState('부곡 해수욕장');
-  const [source, setSource] = useState<'tour' | 'kakao'>('kakao');
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const selectedResults = useMemo(
-    () => results.filter((place) => selectedIds.includes(place.id)),
-    [selectedIds],
-  );
+  const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [source, setSource] = useState<PlaceSearchSource>('KAKAO');
+  const [selectedPlaces, setSelectedPlaces] = useState<Record<string, PlaceSearchItem>>({});
 
-  const togglePlace = (id: string) => {
-    setSelectedIds((ids) =>
-      ids.includes(id) ? ids.filter((selectedId) => selectedId !== id) : [...ids, id],
-    );
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(query.trim()), 100);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  const { data, error, isPending, isFetchingNextPage, hasNextPage, fetchNextPage, refetch } =
+    useInfinitePlaceSearchQuery({
+      keyword: debouncedQuery,
+      source,
+      enabled: visible,
+    });
+  const results = useMemo(() => data?.pages.flatMap((page) => page.items) ?? [], [data]);
+  const selectedResults = Object.values(selectedPlaces);
+
+  const placeKey = (place: PlaceSearchItem) => `${place.source}:${place.externalId}`;
+  const togglePlace = (place: PlaceSearchItem) => {
+    const key = placeKey(place);
+    setSelectedPlaces((places) => {
+      if (!(key in places)) return { ...places, [key]: place };
+      const nextPlaces = { ...places };
+      delete nextPlaces[key];
+      return nextPlaces;
+    });
+  };
+
+  const changeQuery = (text: string) => {
+    setQuery(text);
+    setSelectedPlaces({});
+  };
+
+  const changeSource = (nextSource: PlaceSearchSource) => {
+    setSource(nextSource);
+    setSelectedPlaces({});
   };
 
   const reset = () => {
-    setSelectedIds([]);
+    setSelectedPlaces({});
     onClose();
   };
+
+  const errorMessage =
+    error instanceof ApiError && error.code === 'AUTH_REQUIRED'
+      ? '로그인이 만료되었어요. 다시 로그인해 주세요.'
+      : '검색 결과를 불러오지 못했어요.';
 
   return (
     <BottomSheetModal
@@ -64,49 +82,88 @@ export function CourseResultPlaceSearchModal({
           <SearchArea>
             <SearchBox>
               <SearchIcon>⌕</SearchIcon>
-              <SearchInput accessibilityLabel="여행지 검색" value={query} onChangeText={setQuery} />
+              <SearchInput
+                accessibilityLabel="여행지 검색"
+                placeholder="장소명 또는 키워드 검색"
+                placeholderTextColor={colors.gray[300]}
+                returnKeyType="search"
+                value={query}
+                onChangeText={changeQuery}
+              />
             </SearchBox>
             <Sources>
-              <SourceButton active={source === 'tour'} onPress={() => setSource('tour')}>
-                <SourceLabel active={source === 'tour'}>관광 API</SourceLabel>
+              <SourceButton active={source === 'TOUR'} onPress={() => changeSource('TOUR')}>
+                <SourceLabel active={source === 'TOUR'}>관광 API</SourceLabel>
               </SourceButton>
-              <SourceButton active={source === 'kakao'} onPress={() => setSource('kakao')}>
-                <SourceLabel active={source === 'kakao'}>카카오맵</SourceLabel>
+              <SourceButton active={source === 'KAKAO'} onPress={() => changeSource('KAKAO')}>
+                <SourceLabel active={source === 'KAKAO'}>카카오맵</SourceLabel>
               </SourceButton>
             </Sources>
           </SearchArea>
 
-          <Results contentContainerStyle={resultsContentStyle}>
-            {results.map((place) => {
-              const selected = selectedIds.includes(place.id);
-              return (
-                <ResultCard
-                  key={place.id}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected }}
-                  selected={selected}
-                  onPress={() => togglePlace(place.id)}
-                >
-                  <Thumbnail
-                    accessibilityLabel={place.name}
-                    resizeMode="cover"
-                    source={place.image as unknown as ImageSourcePropType}
-                  />
-                  <ResultInfo>
-                    <ResultHeading>
-                      <ResultName numberOfLines={1}>{place.name}</ResultName>
-                      <MapIcon
-                        accessibilityLabel="카카오맵"
-                        resizeMode="cover"
-                        source={KakaoMapIcon as unknown as ImageSourcePropType}
-                      />
-                    </ResultHeading>
-                    <Address numberOfLines={1}>{place.address}</Address>
-                  </ResultInfo>
-                </ResultCard>
-              );
-            })}
-          </Results>
+          {debouncedQuery.length === 0 ? (
+            <EmptyState>검색어를 입력해 주세요.</EmptyState>
+          ) : isPending ? (
+            <LoadingState accessibilityLiveRegion="polite">
+              <ActivityIndicator color={colors.primary[700]} />
+              <StateText>여행지를 검색하고 있어요.</StateText>
+            </LoadingState>
+          ) : error ? (
+            <LoadingState>
+              <StateText>{errorMessage}</StateText>
+              <RetryButton accessibilityRole="button" onPress={() => refetch()}>
+                <RetryText>다시 시도</RetryText>
+              </RetryButton>
+            </LoadingState>
+          ) : (
+            <FlatList
+              style={resultsStyle}
+              contentContainerStyle={resultsContentStyle}
+              data={results}
+              keyExtractor={placeKey}
+              onEndReachedThreshold={0.4}
+              onEndReached={() => {
+                if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+              }}
+              ListEmptyComponent={<EmptyState>검색 결과가 없어요.</EmptyState>}
+              ListFooterComponent={
+                isFetchingNextPage ? (
+                  <PageLoading accessibilityLabel="다음 검색 결과 불러오는 중">
+                    <ActivityIndicator color={colors.primary[700]} />
+                  </PageLoading>
+                ) : null
+              }
+              renderItem={({ item: place }) => {
+                const key = placeKey(place);
+                const selected = key in selectedPlaces;
+                return (
+                  <ResultCard
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                    selected={selected}
+                    onPress={() => togglePlace(place)}
+                  >
+                    <Thumbnail
+                      accessibilityLabel={place.name}
+                      resizeMode="cover"
+                      source={place.imageUrl ? { uri: place.imageUrl } : undefined}
+                    />
+                    <ResultInfo>
+                      <ResultHeading>
+                        <ResultName numberOfLines={1}>{place.name}</ResultName>
+                        <MapIcon
+                          accessibilityLabel="카카오맵"
+                          resizeMode="cover"
+                          source={KakaoMapIcon as unknown as ImageSourcePropType}
+                        />
+                      </ResultHeading>
+                      <Address numberOfLines={1}>{place.address}</Address>
+                    </ResultInfo>
+                  </ResultCard>
+                );
+              }}
+            />
+          )}
 
           <Actions>
             <CancelButton accessibilityRole="button" onPress={close}>
@@ -118,10 +175,14 @@ export function CourseResultPlaceSearchModal({
               onPress={() => {
                 onAdd(
                   selectedResults.map((place) => ({
+                    id: `${place.source}:${place.externalId}`,
+                    externalId: place.externalId,
                     name: place.name,
-                    description: place.address,
-                    type: source === 'kakao' ? '카카오맵 장소' : '관광 명소',
-                    mapUrl: 'https://map.kakao.com',
+                    tag: '관광 명소',
+                    summary: place.address,
+                    image: place.imageUrl,
+                    lat: place.lat,
+                    lng: place.lng,
                   })),
                 );
                 close();
@@ -198,10 +259,10 @@ const SourceLabel = styled.Text<{ active: boolean }>(({ active }) => ({
   color: active ? '#FFFFFF' : colors.gray[700],
 }));
 
-const Results = styled.ScrollView({
+const resultsStyle = {
   flex: 1,
   width: '100%',
-});
+} as const;
 
 const resultsContentStyle = {
   paddingTop: 16,
@@ -225,7 +286,12 @@ const ResultCard = styled.Pressable<{ selected: boolean }>(
   },
 );
 
-const Thumbnail = styled.Image({ width: 46, height: 46, borderRadius: 8 });
+const Thumbnail = styled.Image({
+  width: 46,
+  height: 46,
+  borderRadius: 8,
+  backgroundColor: colors.gray[100],
+});
 
 const ResultInfo = styled.View({ flex: 1, minWidth: 0, gap: 8 });
 
@@ -236,6 +302,47 @@ const ResultName = styled.Text({ flex: 1, ...typography.body2.medium, color: col
 const MapIcon = styled.Image({ width: 22, height: 22, borderRadius: 9999 });
 
 const Address = styled.Text({ ...typography.caption1.regular, color: colors.gray[700] });
+
+const EmptyState = styled.Text({
+  flex: 1,
+  paddingHorizontal: 20,
+  paddingVertical: 48,
+  ...typography.body3.regular,
+  color: colors.gray[500],
+  textAlign: 'center',
+});
+
+const LoadingState = styled.View({
+  flex: 1,
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingHorizontal: 20,
+  gap: 12,
+});
+
+const StateText = styled.Text({
+  ...typography.body3.regular,
+  color: colors.gray[600],
+  textAlign: 'center',
+});
+
+const RetryButton = styled.Pressable({
+  paddingHorizontal: 14,
+  paddingVertical: 8,
+  borderRadius: 9999,
+  backgroundColor: colors.primary[50],
+});
+
+const RetryText = styled.Text({
+  ...typography.body3.medium,
+  color: colors.primary[800],
+});
+
+const PageLoading = styled.View({
+  height: 52,
+  alignItems: 'center',
+  justifyContent: 'center',
+});
 
 const Actions = styled.View({
   left: 0,

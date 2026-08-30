@@ -22,6 +22,7 @@
   "dependencies": {
     "@emotion/native": "^11.11.0",
     "@emotion/react": "^11.14.0",
+    "@tanstack/react-query": "^5.102.8",
     "react-native-svg": "^15.15.5"
   }
 }

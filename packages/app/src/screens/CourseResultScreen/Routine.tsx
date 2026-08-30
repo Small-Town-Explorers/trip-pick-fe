@@ -1,5 +1,3 @@
-import Landscape1Image from '@assets/images/mock/landscape/landscape1.png';
-import Landscape2Image from '@assets/images/mock/landscape/landscape2.png';
 import { type CalendarRange } from '@components/Calendar';
 import { IconComponent } from '@components/Icons';
 import { ConfirmModal } from '@components/Modal';
@@ -7,9 +5,10 @@ import { TripSpotCard } from '@components/TripSpotCard';
 import styled from '@emotion/native';
 import { colors, typography } from '@styles';
 import { useLayoutEffect, useState } from 'react';
-import { Platform, type ImageSourcePropType } from 'react-native';
+import { Platform } from 'react-native';
 import { mockTripInfoItems } from '../../ts/mock';
 import { EditTripSpotCard } from '@components/EditTripSpotCard';
+import type { CoursePlaceInput } from './types';
 
 const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -23,7 +22,12 @@ const formatDistance = (meters: number) => `${(meters / 1000).toFixed(1)}\nkm`;
 
 const dates = ['2026-09-05', '2026-09-06'];
 
-export type CoursePlace = (typeof mockTripInfoItems)[number] & { uid: string; order: number };
+export type CoursePlace = CoursePlaceInput & {
+  uid: string;
+  order: number;
+  date: Date;
+  distanceMeters: number;
+};
 export type CoursePlaces = CoursePlace[][];
 
 export const createInitialCoursePlaces = (): CoursePlaces =>
@@ -31,12 +35,30 @@ export const createInitialCoursePlaces = (): CoursePlaces =>
     mockTripInfoItems
       .filter((place) => place.date.toISOString().startsWith(date))
       .slice(0, dayIndex === 0 ? 5 : 2)
-      .map((place, placeIndex) => ({
-        ...place,
+      .map((place, placeIndex): CoursePlace => ({
+        id: `${place.placeSource}:${place.placeId}`,
+        externalId: place.placeId,
+        name: place.placeName,
+        tag: place.placeTag,
+        summary: place.placeSummary,
+        image: place.placeImage,
+        lat: place.placeLocation.lat,
+        lng: place.placeLocation.lng,
+        date: place.date,
+        distanceMeters: 0,
         uid: `${date}-${placeIndex}`,
         order: (dayIndex === 0 ? 0 : 5) + placeIndex + 1,
       })),
   );
+
+const getPlaceMapUrl = (place: CoursePlace) => {
+  if (place.id.startsWith('KAKAO:') && place.externalId) {
+    return `https://place.map.kakao.com/${encodeURIComponent(place.externalId)}`;
+  }
+
+  if (place.lat === null || place.lng === null) return undefined;
+  return `https://map.kakao.com/link/map/${encodeURIComponent(place.name)},${place.lat},${place.lng}`;
+};
 
 const normalizeOrders = (days: CoursePlaces) => {
   let order = 0;
@@ -158,13 +180,9 @@ export function CourseResultRoutine({
                 {editing ? (
                   <CardSlot>
                     <EditTripSpotCard
-                      image={
-                        (place.order % 2 === 0
-                          ? Landscape2Image
-                          : Landscape1Image) as unknown as ImageSourcePropType
-                      }
-                      name={place.placeName}
-                      description={place.placeDesc}
+                      image={place.image}
+                      name={place.name}
+                      description={place.summary}
                       maxDown={dayPlaceList.length - placeIndex - 1}
                       maxUp={placeIndex}
                       committing={dragCommitting}
@@ -185,9 +203,9 @@ export function CourseResultRoutine({
                         setPendingDelete({
                           dayIndex: dayIndex,
                           uid: place.uid,
-                          name: place.placeName,
+                          name: place.name,
                         });
-                        setPendingDeleteName(place.placeName);
+                        setPendingDeleteName(place.name);
                       }}
                       onDrag={(offset) =>
                         setDragPreview({
@@ -219,22 +237,18 @@ export function CourseResultRoutine({
                       {placeIndex !== dayPlaceList.length - 1 ? (
                         <>
                           <UpperLine />
-                          <Distance>{formatDistance(place.distKm)}</Distance>
+                          <Distance>{formatDistance(place.distanceMeters)}</Distance>
                           <LowerLine />
                         </>
                       ) : null}
                     </Route>
                     <CardSlot>
                       <TripSpotCard
-                        image={
-                          (place.order % 2 === 0
-                            ? Landscape2Image
-                            : Landscape1Image) as unknown as ImageSourcePropType
-                        }
-                        type={place.placeType}
-                        name={place.placeName}
-                        description={place.placeDesc}
-                        mapUrl={editing ? undefined : place.placeMap}
+                        image={place.image}
+                        type={place.tag}
+                        name={place.name}
+                        description={place.summary}
+                        mapUrl={editing ? undefined : getPlaceMapUrl(place)}
                       />
                     </CardSlot>
                   </>

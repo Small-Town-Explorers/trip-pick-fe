@@ -1,9 +1,12 @@
 import {
   ColorSystemScreen,
   ComponentSystemScreen,
+  configureApiAccessToken,
+  configureApiBaseUrl,
   CourseCreateScreen,
   CourseResultScreen,
   HomeScreen,
+  LoginScreen,
   MyPageScreen,
   MyPageSectionScreen,
   MyTripFolderScreen,
@@ -13,9 +16,64 @@ import {
   TripDetailScreen,
   TypographySystemScreen,
   type AppRoute,
-  type MyPageSectionRoute,
+  type MyPageSectionRoute as MyPageSectionRouteName,
 } from '@trip-pick/app';
-import { Navigate, Route, Routes, useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Navigate, Route, Routes, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { ApiError, createKakaoAuthorizeUrl, getAccessToken, loginWithKakaoCode } from './auth';
+
+configureApiBaseUrl(import.meta.env.VITE_API_BASE_URL ?? 'https://trippick.kro.kr');
+configureApiAccessToken(getAccessToken);
+
+function LoginRoute() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | undefined>(() =>
+    searchParams.get('error') ? '카카오 로그인이 취소되었어요. 다시 시도해 주세요.' : undefined,
+  );
+  const exchangedCode = useRef<string | null>(null);
+  const redirectUri = import.meta.env.VITE_KAKAO_REDIRECT_URI ?? `${window.location.origin}/login`;
+
+  useEffect(() => {
+    const code = searchParams.get('code');
+
+    if (!code || exchangedCode.current === code) return;
+    exchangedCode.current = code;
+    setIsLoading(true);
+
+    loginWithKakaoCode(code, redirectUri)
+      .then(() => navigate('/', { replace: true }))
+      .catch((error: unknown) => {
+        setIsLoading(false);
+
+        if (error instanceof ApiError && error.code === 'KAKAO_UNAVAILABLE') {
+          setErrorMessage('카카오 연결이 원활하지 않아요. 잠시 후 다시 시도해 주세요.');
+        } else if (error instanceof ApiError && error.code === 'KAKAO_AUTH_FAILED') {
+          setErrorMessage('인증 시간이 지났거나 유효하지 않아요. 다시 로그인해 주세요.');
+        } else {
+          setErrorMessage(error instanceof Error ? error.message : '로그인을 완료하지 못했어요.');
+        }
+      });
+  }, [navigate, redirectUri, searchParams]);
+
+  const startKakaoLogin = () => {
+    const authorizeUrl = createKakaoAuthorizeUrl();
+
+    if (!authorizeUrl) {
+      setErrorMessage(
+        '카카오 앱 키가 아직 설정되지 않았어요. VITE_KAKAO_REST_API_KEY를 확인해 주세요.',
+      );
+      return;
+    }
+
+    window.location.assign(authorizeUrl);
+  };
+
+  return (
+    <LoginScreen isLoading={isLoading} errorMessage={errorMessage} onKakaoLogin={startKakaoLogin} />
+  );
+}
 
 function TripDetailRoute() {
   const { id } = useParams<{ id: string }>();
@@ -53,7 +111,7 @@ function MyTripFolderRoute() {
 }
 
 function MyPageSectionRoute() {
-  const { section } = useParams<{ section: MyPageSectionRoute }>();
+  const { section } = useParams<{ section: MyPageSectionRouteName }>();
   return section ? <MyPageSectionScreen section={section} /> : <Navigate to="/my-page" replace />;
 }
 
@@ -70,6 +128,7 @@ function App() {
     >
       <Routes>
         <Route path="/" element={<HomeScreen />} />
+        <Route path="/login" element={<LoginRoute />} />
         <Route path="/design-system/colors" element={<ColorSystemScreen />} />
         <Route path="/design-system/typography" element={<TypographySystemScreen />} />
         <Route path="/design-system/components" element={<ComponentSystemScreen />} />

@@ -11,6 +11,7 @@ import { CourseCreateRegion } from './Region';
 import { CourseCreateTravelPeriod } from './TravelPeriod';
 import { CourseCreateTravelStyle } from './TravelStyle';
 import { Header } from '@components/Header';
+import { useSmallCitiesQuery } from '../../queries';
 
 export function CourseCreateScreen() {
   const { replace } = useAppNavigation();
@@ -20,6 +21,11 @@ export function CourseCreateScreen() {
   const [styles, setStyles] = useState<string[]>([]);
   const [companion, setCompanion] = useState('');
   const [period, setPeriod] = useState<CalendarRange>({});
+  const {
+    data: smallCities = [],
+    isPending: isLoadingRegions,
+    isError: isRegionError,
+  } = useSmallCitiesQuery();
 
   const createCourse = () => {
     setIsConfirmModalVisible(false);
@@ -35,7 +41,13 @@ export function CourseCreateScreen() {
     <Screen>
       <Header title="코스 생성" />
       <Introduction>원하는 조건의 소도시를{`\n`}추천해드려요!</Introduction>
-      <CourseCreateRegion value={region} onChange={setRegion} />
+      <CourseCreateRegion
+        value={region}
+        cities={smallCities}
+        isLoading={isLoadingRegions}
+        errorMessage={isRegionError ? '지역 목록을 불러오지 못했어요.' : ''}
+        onChange={setRegion}
+      />
       <CourseCreateTravelStyle value={styles} onChange={setStyles} />
       <CourseCreateCompanion value={companion} onChange={setCompanion} />
       <CourseCreateTravelPeriod value={period} onChange={setPeriod} />

@@ -9,10 +9,10 @@ import {
   useRef,
   useState,
 } from 'react';
-import { Animated, PanResponder, Platform, type ImageSourcePropType } from 'react-native';
+import { Animated, PanResponder, Platform } from 'react-native';
 
 interface EditTripSpotCardProps {
-  image: ImageSourcePropType;
+  image?: string | null;
   name: string;
   description: string;
   maxDown: number;
@@ -214,7 +214,11 @@ export function EditTripSpotCard({
       onDragCancel={onDragCancel}
       onDrop={onDrop}
     >
-      <Thumbnail source={image} accessibilityLabel={name} resizeMode="cover" />
+      <Thumbnail
+        source={image ? { uri: image } : undefined}
+        accessibilityLabel={name}
+        resizeMode="cover"
+      />
       <Info>
         <Header>
           <Name numberOfLines={1}>{name}</Name>
@@ -269,6 +273,7 @@ const Thumbnail = styled.Image({
   height: 61,
   flexShrink: 0,
   borderRadius: 8,
+  backgroundColor: colors.gray[100],
 });
 
 const Info = styled.View({

@@ -98,10 +98,14 @@ export function CourseResultDirectPlaceModal({
                 enabled={Boolean(name.trim())}
                 onPress={() => {
                   onAdd({
+                    id: `direct:${Date.now()}`,
+                    externalId: null,
                     name: name.trim(),
-                    description: memo.trim() || '직접 추가한 여행지',
-                    type: '직접 추가',
-                    mapUrl: location ? 'https://map.kakao.com' : undefined,
+                    tag: '직접 추가',
+                    summary: memo.trim() || '직접 추가한 여행지',
+                    image: null,
+                    lat: null,
+                    lng: null,
                   });
                   close();
                 }}
