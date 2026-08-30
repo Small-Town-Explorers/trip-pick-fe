@@ -31,7 +31,15 @@ export function configureApiAccessToken(getAccessToken: () => string | null) {
   accessTokenGetter = getAccessToken;
 }
 
-export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
+type ApiRequestOptions = {
+  allowEmptyResponse?: boolean;
+};
+
+export async function apiRequest<T>(
+  path: string,
+  init?: RequestInit,
+  options?: ApiRequestOptions,
+): Promise<T> {
   const accessToken = accessTokenGetter?.();
   const response = await fetch(`${apiBaseUrl}${path}`, {
     ...init,
@@ -54,6 +62,7 @@ export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T
   }
 
   if (body === null) {
+    if (options?.allowEmptyResponse) return undefined as T;
     throw new ApiError(response.status, {
       code: 'INVALID_RESPONSE',
       message: '서버 응답 형식을 확인해 주세요.',

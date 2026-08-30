@@ -21,6 +21,15 @@ export {
   type GeneratedCourseResponse,
 } from './courses';
 export {
+  createFolder,
+  deleteFolder,
+  getFolders,
+  renameFolder,
+  type Folder,
+  type FolderNameRequest,
+  type RenameFolderRequest,
+} from './folders';
+export {
   searchPlaces,
   type PlaceSearchItem,
   type PlaceSearchResponse,

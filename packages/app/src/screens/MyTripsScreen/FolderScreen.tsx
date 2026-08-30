@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { type ImageSourcePropType } from 'react-native';
 import { appRoutes, useAppNavigation } from '../../navigation';
 import { Header } from '@components/Header';
+import { useFoldersQuery } from '../../queries';
 
 interface MyTripFolderScreenProps {
   folderId: string;
@@ -30,6 +31,8 @@ const initialCourses: CourseItem[] = [
 
 export function MyTripFolderScreen({ folderId }: MyTripFolderScreenProps) {
   const { navigate } = useAppNavigation();
+  const { data: folders = [] } = useFoldersQuery();
+  const folder = folders.find(({ id }) => id === folderId);
   const [courses, setCourses] = useState(initialCourses);
   const [menuId, setMenuId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<CourseItem | null>(null);
@@ -96,7 +99,7 @@ export function MyTripFolderScreen({ folderId }: MyTripFolderScreenProps) {
 
   return (
     <Screen testID={`my-trip-folder-${folderId}`}>
-      <Header title="폴더명" sub={`(${courses.length})`} />
+      <Header title={folder?.name ?? '보관함'} sub={`(${courses.length})`} />
       <Scroll contentContainerStyle={contentStyle}>
         {upcomingCourses.length > 0 && (
           <Section>
