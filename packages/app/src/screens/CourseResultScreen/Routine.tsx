@@ -1,5 +1,3 @@
-import Landscape1Image from '@assets/images/mock/landscape/landscape1.png';
-import Landscape2Image from '@assets/images/mock/landscape/landscape2.png';
 import { type CalendarRange } from '@components/Calendar';
 import { IconComponent } from '@components/Icons';
 import { ConfirmModal } from '@components/Modal';
@@ -7,9 +5,10 @@ import { TripSpotCard } from '@components/TripSpotCard';
 import styled from '@emotion/native';
 import { colors, typography } from '@styles';
 import { useLayoutEffect, useState } from 'react';
-import { Platform, type ImageSourcePropType } from 'react-native';
-import { mockTripInfoItems } from '../../ts/mock';
+import { Platform } from 'react-native';
 import { EditTripSpotCard } from '@components/EditTripSpotCard';
+import type { CoursePlaceInput } from './types';
+import type { GeneratedCourseResponse } from '../../controllers';
 
 const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -21,27 +20,130 @@ const formatDate = (dateString: string) => {
 
 const formatDistance = (meters: number) => `${(meters / 1000).toFixed(1)}\nkm`;
 
-const dates = ['2026-09-05', '2026-09-06'];
-
-export type CoursePlace = (typeof mockTripInfoItems)[number] & { uid: string; order: number };
+export type CoursePlace = CoursePlaceInput & {
+  uid: string;
+  order: number;
+  date: Date;
+  distanceMeters: number | null;
+};
 export type CoursePlaces = CoursePlace[][];
 
-export const createInitialCoursePlaces = (): CoursePlaces =>
-  dates.map((date, dayIndex) =>
-    mockTripInfoItems
-      .filter((place) => place.date.toISOString().startsWith(date))
-      .slice(0, dayIndex === 0 ? 5 : 2)
-      .map((place, placeIndex) => ({
-        ...place,
-        uid: `${date}-${placeIndex}`,
-        order: (dayIndex === 0 ? 0 : 5) + placeIndex + 1,
-      })),
-  );
+export const createCoursePlacesFromResponse = (course: GeneratedCourseResponse): CoursePlaces => {
+  let globalOrder = 0;
+  const startDate = course.startDate ?? new Date().toISOString().slice(0, 10);
 
-const normalizeOrders = (days: CoursePlaces) => {
-  let order = 0;
-  return days.map((places) => places.map((place) => ({ ...place, order: ++order })));
+  const places = course.plan.map(({ day, items }) => {
+    const date = addDays(startDate, day - 1);
+
+    return items.map((item): CoursePlace => {
+      const isKakao = item.contentId?.startsWith('kakao:') ?? false;
+      const externalId = item.contentId
+        ? isKakao
+          ? item.contentId.slice('kakao:'.length)
+          : item.contentId
+        : null;
+      const id = item.contentId
+        ? `${isKakao ? 'KAKAO' : 'TOUR'}:${externalId}`
+        : `FREE_TIME:${day}:${item.order}`;
+
+      return {
+        id,
+        externalId,
+        name: item.title,
+        tag: item.slot,
+        summary: item.reason ?? item.address ?? item.title,
+        image: item.imageUrl,
+        lat: item.lat,
+        lng: item.lng,
+        date,
+        distanceMeters: null,
+        uid: `${day}:${item.order}:${id}`,
+        order: ++globalOrder,
+      };
+    });
+  });
+
+  return recalculateCoursePlaces(places);
 };
+
+const addDays = (dateString: string, days: number) => {
+  const date = new Date(`${dateString}T00:00:00`);
+  date.setDate(date.getDate() + days);
+  return date;
+};
+
+const getScheduleDates = ({ startDate, endDate }: CalendarRange) => {
+  if (!startDate) return [];
+  if (!endDate) return [startDate];
+
+  const dates: string[] = [];
+  const current = new Date(`${startDate}T00:00:00`);
+  const last = new Date(`${endDate}T00:00:00`);
+
+  while (current <= last) {
+    const year = current.getFullYear();
+    const month = String(current.getMonth() + 1).padStart(2, '0');
+    const date = String(current.getDate()).padStart(2, '0');
+    dates.push(`${year}-${month}-${date}`);
+    current.setDate(current.getDate() + 1);
+  }
+
+  return dates;
+};
+
+const getPlaceMapUrl = (place: CoursePlace) => {
+  if (place.id.startsWith('KAKAO:') && place.externalId) {
+    return `https://map.kakao.com/link/map/${encodeURIComponent(place.externalId)}`;
+  }
+
+  if (place.id.startsWith('TOUR:')) {
+    return `https://map.kakao.com/link/search/${encodeURIComponent(place.name)}`;
+  }
+
+  return undefined;
+};
+
+export const recalculateCoursePlaces = (days: CoursePlaces): CoursePlaces => {
+  let order = 0;
+  return days.map((places) =>
+    places.map((place, index) => ({
+      ...place,
+      order: ++order,
+      distanceMeters: calculateDistanceMeters(places, index),
+    })),
+  );
+};
+
+const calculateDistanceMeters = (places: CoursePlace[], currentIndex: number) => {
+  const to = places[currentIndex];
+  if (!to || to.lat === null || to.lng === null) return null;
+
+  let fromLat: number | undefined;
+  let fromLng: number | undefined;
+  for (let index = currentIndex - 1; index >= 0; index -= 1) {
+    const candidate = places[index];
+    if (candidate.lat !== null && candidate.lng !== null) {
+      fromLat = candidate.lat;
+      fromLng = candidate.lng;
+      break;
+    }
+  }
+
+  if (fromLat === undefined || fromLng === undefined) return null;
+
+  const earthRadiusMeters = 6_371_000;
+  const latitudeDelta = toRadians(to.lat - fromLat);
+  const longitudeDelta = toRadians(to.lng - fromLng);
+  const fromLatitude = toRadians(fromLat);
+  const toLatitude = toRadians(to.lat);
+  const haversine =
+    Math.sin(latitudeDelta / 2) ** 2 +
+    Math.cos(fromLatitude) * Math.cos(toLatitude) * Math.sin(longitudeDelta / 2) ** 2;
+
+  return earthRadiusMeters * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+};
+
+const toRadians = (degrees: number) => (degrees * Math.PI) / 180;
 
 interface CourseResultRoutineProps {
   editing?: boolean;
@@ -76,9 +178,7 @@ export function CourseResultRoutine({
     toIndex: number;
   } | null>(null);
   const [dragCommitting, setDragCommitting] = useState(false);
-  const scheduleDates = [period.startDate, period.endDate].filter((date): date is string =>
-    Boolean(date),
-  );
+  const scheduleDates = getScheduleDates(period);
 
   useLayoutEffect(() => {
     if (!dragCommitting || Platform.OS !== 'web') return;
@@ -94,7 +194,7 @@ export function CourseResultRoutine({
     if (targetIndex === fromIndex) return;
     const [movedPlace] = nextDays[dayIndex].splice(fromIndex, 1);
     nextDays[dayIndex].splice(targetIndex, 0, movedPlace);
-    onPlacesChange(normalizeOrders(nextDays));
+    onPlacesChange(recalculateCoursePlaces(nextDays));
   };
 
   const deletePlace = () => {
@@ -104,7 +204,7 @@ export function CourseResultRoutine({
         ? day.filter((place) => place.uid !== pendingDelete.uid)
         : [...day],
     );
-    onPlacesChange(normalizeOrders(nextDays));
+    onPlacesChange(recalculateCoursePlaces(nextDays));
     setPendingDelete(null);
   };
 
@@ -158,13 +258,9 @@ export function CourseResultRoutine({
                 {editing ? (
                   <CardSlot>
                     <EditTripSpotCard
-                      image={
-                        (place.order % 2 === 0
-                          ? Landscape2Image
-                          : Landscape1Image) as unknown as ImageSourcePropType
-                      }
-                      name={place.placeName}
-                      description={place.placeDesc}
+                      image={place.image}
+                      name={place.name}
+                      description={place.summary}
                       maxDown={dayPlaceList.length - placeIndex - 1}
                       maxUp={placeIndex}
                       committing={dragCommitting}
@@ -185,9 +281,9 @@ export function CourseResultRoutine({
                         setPendingDelete({
                           dayIndex: dayIndex,
                           uid: place.uid,
-                          name: place.placeName,
+                          name: place.name,
                         });
-                        setPendingDeleteName(place.placeName);
+                        setPendingDeleteName(place.name);
                       }}
                       onDrag={(offset) =>
                         setDragPreview({
@@ -219,22 +315,22 @@ export function CourseResultRoutine({
                       {placeIndex !== dayPlaceList.length - 1 ? (
                         <>
                           <UpperLine />
-                          <Distance>{formatDistance(place.distKm)}</Distance>
+                          {dayPlaceList[placeIndex + 1].distanceMeters !== null ? (
+                            <Distance>
+                              {formatDistance(dayPlaceList[placeIndex + 1].distanceMeters!)}
+                            </Distance>
+                          ) : null}
                           <LowerLine />
                         </>
                       ) : null}
                     </Route>
                     <CardSlot>
                       <TripSpotCard
-                        image={
-                          (place.order % 2 === 0
-                            ? Landscape2Image
-                            : Landscape1Image) as unknown as ImageSourcePropType
-                        }
-                        type={place.placeType}
-                        name={place.placeName}
-                        description={place.placeDesc}
-                        mapUrl={editing ? undefined : place.placeMap}
+                        image={place.image}
+                        type={place.tag}
+                        name={place.name}
+                        description={place.summary}
+                        mapUrl={editing ? undefined : getPlaceMapUrl(place)}
                       />
                     </CardSlot>
                   </>

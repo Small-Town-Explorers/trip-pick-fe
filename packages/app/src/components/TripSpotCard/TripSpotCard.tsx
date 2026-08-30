@@ -4,7 +4,7 @@ import { colors, shadows, typography } from '@styles';
 import { Linking, type ImageSourcePropType } from 'react-native';
 
 interface TripSpotCardProps {
-  image: ImageSourcePropType;
+  image?: string | null;
   type: string;
   name: string;
   description: string;
@@ -26,7 +26,11 @@ export function TripSpotCard({ image, type, name, description, mapUrl }: TripSpo
 
   return (
     <Card>
-      <Thumbnail source={image} accessibilityLabel={name} resizeMode="cover" />
+      <Thumbnail
+        source={image ? { uri: image } : undefined}
+        accessibilityLabel={name}
+        resizeMode="cover"
+      />
       <Info>
         <Meta>
           <Type>{type}</Type>
@@ -69,6 +73,7 @@ const Thumbnail = styled.Image({
   height: 87,
   flexShrink: 0,
   borderRadius: 8,
+  backgroundColor: colors.gray[100],
 });
 
 const Info = styled.View({

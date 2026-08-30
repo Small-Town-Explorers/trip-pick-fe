@@ -1,9 +1,13 @@
 import { ToggleButton } from '@components/Buttons';
 import { IconComponent } from '@components/Icons';
 import { appRoutes, type MyPageSectionRoute, useAppNavigation } from '../../navigation';
-import { useState } from 'react';
 import styled from '@emotion/native';
 import { colors, createShadow, typography, withAlpha } from '@styles';
+import {
+  useAccountInfoQuery,
+  useNotificationSettingsQuery,
+  useUpdateNotificationSettingsMutation,
+} from '../../queries';
 
 const menus: {
   type: string;
@@ -34,7 +38,10 @@ const menus: {
 
 export const MyPageMenus = () => {
   const { navigate } = useAppNavigation();
-  const [notificationStatus, setNotoficationStatus] = useState(false);
+  const { data: account } = useAccountInfoQuery();
+  const { data: notificationSettings } = useNotificationSettingsQuery();
+  const updateNotifications = useUpdateNotificationSettingsMutation();
+  const providerLabel = account?.provider === 'KAKAO' ? '카카오 로그인됨' : '로그인 정보 확인 중';
 
   return menus.map((menu, menuIdx) => (
     <Menu key={menuIdx}>
@@ -52,12 +59,15 @@ export const MyPageMenus = () => {
             <MenuItemLabel>{item.label}</MenuItemLabel>
             <MenuItemRight>
               {item.route === 'account' ? (
-                <MenuItemAccountSub>카카오 로그인됨</MenuItemAccountSub>
+                <MenuItemAccountSub>{providerLabel}</MenuItemAccountSub>
               ) : item.route === 'notifications' ? (
                 <ToggleButton
-                  value={notificationStatus}
+                  value={notificationSettings?.pushEnabled ?? false}
                   onToggle={() => {
-                    setNotoficationStatus((prev) => !prev);
+                    if (!notificationSettings || updateNotifications.isPending) return;
+                    updateNotifications.mutate({
+                      pushEnabled: !notificationSettings.pushEnabled,
+                    });
                   }}
                 />
               ) : null}

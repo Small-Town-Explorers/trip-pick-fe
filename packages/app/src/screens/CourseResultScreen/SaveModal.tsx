@@ -5,7 +5,9 @@ import { BottomSheetModal, ConfirmModal } from '@components/Modal';
 import styled from '@emotion/native';
 import { colors, shadows, typography } from '@styles';
 import { useState } from 'react';
-import { Platform, type ImageSourcePropType } from 'react-native';
+import { ActivityIndicator, Platform, type ImageSourcePropType } from 'react-native';
+import { ApiError } from '../../controllers';
+import { useCreateFolderMutation, useFoldersQuery } from '../../queries';
 
 interface CourseResultSaveModalProps {
   visible: boolean;
@@ -13,28 +15,39 @@ interface CourseResultSaveModalProps {
   onSave: (folderName: string) => void;
 }
 
-const folders = [
-  { id: 'saved', name: '저장한 코스', count: 12, image: Landscape1 },
-  { id: 'healing', name: '힐링 여행', count: 3, image: Landscape2 },
-  { id: 'small-city', name: '소도시 여행', count: 3, image: Landscape1 },
-  { id: 'food', name: '맛집 여행', count: 3, image: Landscape2 },
-];
+const folderImages = [Landscape1, Landscape2];
 
 export function CourseResultSaveModal({ visible, onClose, onSave }: CourseResultSaveModalProps) {
+  const { data: folders = [], error, isPending, refetch } = useFoldersQuery(visible);
+  const createFolderMutation = useCreateFolderMutation();
   const [isFolderModalVisible, setIsFolderModalVisible] = useState(false);
   const [folderName, setFolderName] = useState('');
+  const [folderError, setFolderError] = useState('');
 
   const closeFolderModal = () => {
     setIsFolderModalVisible(false);
     setFolderName('');
+    setFolderError('');
   };
 
-  const saveNewFolder = () => {
+  const saveNewFolder = async () => {
     const nextFolderName = folderName.trim();
-    if (!nextFolderName) return;
+    if (!nextFolderName || createFolderMutation.isPending) return;
 
-    closeFolderModal();
-    onSave(nextFolderName);
+    setFolderError('');
+    try {
+      const folder = await createFolderMutation.mutateAsync({ name: nextFolderName });
+      closeFolderModal();
+      onSave(folder.name);
+    } catch (mutationError) {
+      setFolderError(
+        mutationError instanceof ApiError && mutationError.code === 'FOLDER_DUPLICATE_NAME'
+          ? '이미 사용 중인 보관함 이름이에요.'
+          : mutationError instanceof ApiError
+            ? mutationError.message
+            : '보관함을 만들지 못했어요.',
+      );
+    }
   };
 
   return (
@@ -56,7 +69,20 @@ export function CourseResultSaveModal({ visible, onClose, onSave }: CourseResult
                 <IconComponent name="plus" size={40} color={colors.primary[600]} />
                 <NewFolderLabel>새 보관함</NewFolderLabel>
               </NewFolder>
-              {folders.map((folder) => (
+              {isPending ? (
+                <FolderLoading>
+                  <ActivityIndicator color={colors.primary[700]} />
+                </FolderLoading>
+              ) : null}
+              {error ? (
+                <FolderLoading>
+                  <FolderStateText>보관함을 불러오지 못했어요.</FolderStateText>
+                  <RetryButton accessibilityRole="button" onPress={() => refetch()}>
+                    <RetryText>다시 시도</RetryText>
+                  </RetryButton>
+                </FolderLoading>
+              ) : null}
+              {folders.map((folder, index) => (
                 <FolderCard
                   key={folder.id}
                   accessibilityRole="button"
@@ -64,12 +90,14 @@ export function CourseResultSaveModal({ visible, onClose, onSave }: CourseResult
                   onPress={() => onSave(folder.name)}
                 >
                   <FolderImage
-                    source={folder.image as unknown as ImageSourcePropType}
+                    source={
+                      folderImages[index % folderImages.length] as unknown as ImageSourcePropType
+                    }
                     resizeMode="cover"
                   />
                   <FolderInfo>
                     <FolderName numberOfLines={1}>{folder.name}</FolderName>
-                    <FolderCount>{folder.count}개의 코스</FolderCount>
+                    <FolderMeta>보관함</FolderMeta>
                   </FolderInfo>
                 </FolderCard>
               ))}
@@ -96,6 +124,7 @@ export function CourseResultSaveModal({ visible, onClose, onSave }: CourseResult
             onChangeText={setFolderName}
             onSubmitEditing={saveNewFolder}
           />
+          {folderError ? <FolderError>{folderError}</FolderError> : null}
         </FolderForm>
       </ConfirmModal>
     </>
@@ -131,7 +160,26 @@ const FolderCard = styled.Pressable({
 const FolderImage = styled.Image({ width: '100%', height: 110 });
 const FolderInfo = styled.View({ flex: 1, padding: 12, gap: 2 });
 const FolderName = styled.Text({ ...typography.body2.medium, color: colors.gray[1000] });
-const FolderCount = styled.Text({ ...typography.caption3.regular, color: colors.gray[600] });
+const FolderMeta = styled.Text({ ...typography.caption3.regular, color: colors.gray[600] });
+const FolderLoading = styled.View({
+  width: '47.5%',
+  height: 170,
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 10,
+});
+const FolderStateText = styled.Text({
+  ...typography.caption1.regular,
+  color: colors.gray[600],
+  textAlign: 'center',
+});
+const RetryButton = styled.Pressable({
+  paddingHorizontal: 12,
+  paddingVertical: 7,
+  borderRadius: 9999,
+  backgroundColor: colors.primary[50],
+});
+const RetryText = styled.Text({ ...typography.caption1.medium, color: colors.primary[800] });
 const FolderForm = styled.View({
   width: '100%',
   paddingBottom: 8,
@@ -150,4 +198,10 @@ const FolderInput = styled.TextInput({
   borderColor: colors.gray[100],
   borderRadius: 12,
   ...Platform.select({ web: { outlineStyle: 'none' as never, outlineWidth: 0 } }),
+});
+const FolderError = styled.Text({
+  width: '100%',
+  ...typography.caption1.regular,
+  color: colors.semantic.warning,
+  textAlign: 'center',
 });

@@ -1,146 +1,165 @@
+import KakaoMapIcon from '@assets/images/kakao_map.png';
 import { IconComponent } from '@components/Icons';
-import { BottomSheetModal, ConfirmModal } from '@components/Modal';
+import { BottomSheetModal } from '@components/Modal';
 import styled from '@emotion/native';
-import { colors, typography, withAlpha } from '@styles';
-import { useCallback, useState } from 'react';
-import { Platform } from 'react-native';
-import { type CoursePlaceInput } from './types';
+import { colors, shadows, typography, withAlpha } from '@styles';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, FlatList, Platform, type ImageSourcePropType } from 'react-native';
+import { ApiError, type PlaceSearchItem } from '../../controllers';
+import { useInfinitePlaceSearchQuery } from '../../queries';
 
 interface CourseResultDirectPlaceModalProps {
   visible: boolean;
-  onAdd: (place: CoursePlaceInput) => void;
+  isAdding: boolean;
+  addError?: string;
+  onAdd: (place: PlaceSearchItem) => Promise<boolean>;
   onClose: () => void;
 }
 
-const locationAddress = '전라남도 강진군 강진읍 만덕로 123';
-
 export function CourseResultDirectPlaceModal({
   visible,
+  isAdding,
+  addError,
   onAdd,
   onClose,
 }: CourseResultDirectPlaceModalProps) {
-  const [name, setName] = useState('');
-  const [memo, setMemo] = useState('');
-  const [location, setLocation] = useState('');
-  const [isMapVisible, setIsMapVisible] = useState(false);
+  const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [selectedPlace, setSelectedPlace] = useState<PlaceSearchItem>();
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(query.trim()), 150);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  const { data, error, isPending, refetch } = useInfinitePlaceSearchQuery({
+    keyword: debouncedQuery,
+    source: 'KAKAO',
+    enabled: visible,
+  });
+  const results = useMemo(() => data?.pages.flatMap((page) => page.items) ?? [], [data]);
 
   const reset = useCallback(() => {
-    setName('');
-    setMemo('');
-    setLocation('');
-    setIsMapVisible(false);
+    setQuery('');
+    setDebouncedQuery('');
+    setSelectedPlace(undefined);
     onClose();
   }, [onClose]);
 
+  const changeQuery = (text: string) => {
+    setQuery(text);
+    setSelectedPlace(undefined);
+  };
+
+  const searchError =
+    error instanceof ApiError && error.code === 'AUTH_REQUIRED'
+      ? '로그인이 만료되었어요. 다시 로그인해 주세요.'
+      : '장소를 찾지 못했어요. 다시 검색해 주세요.';
+
   return (
-    <>
-      <BottomSheetModal
-        accessibilityLabel="여행지 직접 추가 닫기"
-        avoidKeyboard
-        sheetStyle={directSheetStyle}
-        visible={visible}
-        onClose={reset}
-        title="여행지 직접 추가하기"
-      >
-        {({ close }) => (
-          <Content>
-            <Form>
-              <Field>
-                <Label>장소명</Label>
-                <Input
-                  accessibilityLabel="장소명"
-                  maxLength={15}
-                  placeholder="장소 이름을 입력하세요. (15자 이내)"
-                  placeholderTextColor={colors.gray[200]}
-                  value={name}
-                  onChangeText={setName}
-                />
-              </Field>
-              <Field>
-                <Label>장소 메모</Label>
-                <MemoInput
-                  accessibilityLabel="장소 메모"
-                  maxLength={40}
-                  multiline
-                  placeholder="간단한 설명을 적어주세요. (40자 이내)"
-                  placeholderTextColor={colors.gray[200]}
-                  textAlignVertical="top"
-                  value={memo}
-                  onChangeText={setMemo}
-                />
-              </Field>
-              <Field>
-                <Label>위치</Label>
-                {location ? (
-                  <AddressBox>
-                    <Address numberOfLines={1}>{location}</Address>
-                    <TrashButton
-                      accessibilityRole="button"
-                      accessibilityLabel="위치 삭제"
-                      onPress={() => setLocation('')}
-                    >
-                      <IconComponent name="delete" color={colors.semantic.warning} />
-                    </TrashButton>
-                  </AddressBox>
-                ) : null}
-                <MapButton accessibilityRole="button" onPress={() => setIsMapVisible(true)}>
-                  <IconComponent name="map" color={colors.primary[700]} />
-                  <MapLabel>{location ? '지도 정보 수정' : '지도 정보 찾기'}</MapLabel>
-                </MapButton>
-                <Helper>미입력시 거리 계산 불가</Helper>
-              </Field>
-            </Form>
+    <BottomSheetModal
+      accessibilityLabel="여행지 직접 추가 닫기"
+      avoidKeyboard
+      sheetStyle={directSheetStyle}
+      visible={visible}
+      onClose={reset}
+      title="여행지 직접 추가하기"
+    >
+      {({ close }) => (
+        <Content>
+          <SearchArea>
+            <Description>
+              장소명을 입력하고 실제 위치를 선택해 주세요. 선택한 위치를 기준으로 이동 경로가 다시
+              계산됩니다.
+            </Description>
+            <SearchBox>
+              <IconComponent name="search" color={colors.primary[600]} />
+              <SearchInput
+                accessibilityLabel="직접 추가할 장소 검색"
+                autoFocus
+                placeholder="장소 이름을 입력하세요."
+                placeholderTextColor={colors.gray[300]}
+                returnKeyType="search"
+                value={query}
+                onChangeText={changeQuery}
+              />
+            </SearchBox>
+          </SearchArea>
 
-            <BottomAction>
-              <ConfirmButton
-                accessibilityRole="button"
-                disabled={!name.trim()}
-                enabled={Boolean(name.trim())}
-                onPress={() => {
-                  onAdd({
-                    name: name.trim(),
-                    description: memo.trim() || '직접 추가한 여행지',
-                    type: '직접 추가',
-                    mapUrl: location ? 'https://map.kakao.com' : undefined,
-                  });
-                  close();
-                }}
-              >
-                <IconComponent name="check_circle" size={24} color={colors.primary[300]} />
-                <ConfirmLabel>확인</ConfirmLabel>
-              </ConfirmButton>
-            </BottomAction>
-          </Content>
-        )}
-      </BottomSheetModal>
+          {debouncedQuery.length === 0 ? (
+            <EmptyState>추가할 장소를 검색해 주세요.</EmptyState>
+          ) : isPending ? (
+            <State>
+              <ActivityIndicator color={colors.primary[700]} />
+              <StateText>카카오맵에서 장소를 찾고 있어요.</StateText>
+            </State>
+          ) : error ? (
+            <State>
+              <StateText>{searchError}</StateText>
+              <RetryButton accessibilityRole="button" onPress={() => refetch()}>
+                <RetryLabel>다시 시도</RetryLabel>
+              </RetryButton>
+            </State>
+          ) : (
+            <FlatList
+              style={resultsStyle}
+              contentContainerStyle={resultsContentStyle}
+              data={results}
+              keyExtractor={(place) => `${place.source}:${place.externalId}`}
+              ListEmptyComponent={<EmptyState>검색 결과가 없어요.</EmptyState>}
+              renderItem={({ item: place }) => {
+                const selected = selectedPlace?.externalId === place.externalId;
+                return (
+                  <ResultCard
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                    selected={selected}
+                    onPress={() => setSelectedPlace(place)}
+                  >
+                    <MapIcon
+                      accessibilityLabel="카카오맵"
+                      resizeMode="cover"
+                      source={KakaoMapIcon as unknown as ImageSourcePropType}
+                    />
+                    <ResultInfo>
+                      <ResultName numberOfLines={1}>{place.name}</ResultName>
+                      <Address numberOfLines={1}>{place.address}</Address>
+                    </ResultInfo>
+                    {selected ? (
+                      <IconComponent name="check_circle" color={colors.primary[700]} />
+                    ) : null}
+                  </ResultCard>
+                );
+              }}
+            />
+          )}
 
-      <ConfirmModal
-        cancelText="취소"
-        confirmText="위치 추가"
-        title="지도 정보 입력"
-        visible={isMapVisible}
-        width={340}
-        onCancel={() => setIsMapVisible(false)}
-        onConfirm={() => {
-          setLocation(locationAddress);
-          setIsMapVisible(false);
-        }}
-      >
-        <MapInfo>
-          <MapDescription>
-            직접 추가할 여행지의 주소를 입력해주세요.{`\n`}핀으로도 이동 가능합니다.
-          </MapDescription>
-          <MapSearch>
-            <IconComponent name="search" color={colors.primary[600]} />
-            <MapQuery />
-          </MapSearch>
-          <MapPreview>
-            <MapPlaceholder>지도 API 연동 예정</MapPlaceholder>
-          </MapPreview>
-          <MapAddress>{locationAddress}</MapAddress>
-        </MapInfo>
-      </ConfirmModal>
-    </>
+          {addError ? <AddError accessibilityLiveRegion="polite">{addError}</AddError> : null}
+          <BottomAction>
+            <CancelButton accessibilityRole="button" disabled={isAdding} onPress={close}>
+              <CancelLabel>취소</CancelLabel>
+            </CancelButton>
+            <ConfirmButton
+              accessibilityRole="button"
+              disabled={!selectedPlace || isAdding}
+              enabled={Boolean(selectedPlace) && !isAdding}
+              onPress={async () => {
+                if (selectedPlace && (await onAdd(selectedPlace))) close();
+              }}
+            >
+              {isAdding ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <>
+                  <IconComponent name="add_location" size={24} color={colors.primary[300]} />
+                  <ConfirmLabel>선택 장소 추가</ConfirmLabel>
+                </>
+              )}
+            </ConfirmButton>
+          </BottomAction>
+        </Content>
+      )}
+    </BottomSheetModal>
   );
 }
 
@@ -151,79 +170,128 @@ const directSheetStyle = {
   borderTopLeftRadius: 20,
   borderTopRightRadius: 20,
 } as const;
+
 const Content = styled.View({ flex: 1, width: '100%' });
 
-const Form = styled.ScrollView({
-  flex: 1,
-  width: '100%',
+const SearchArea = styled.View({
   paddingHorizontal: 20,
-  paddingTop: 20,
+  paddingTop: 18,
+  paddingBottom: 14,
+  gap: 14,
 });
-const Field = styled.View({ width: '100%', marginBottom: 24, gap: 12 });
-const Label = styled.Text({ ...typography.body2.medium, color: colors.gray[1000] });
-const Input = styled.TextInput({
-  width: '100%',
+
+const Description = styled.Text({
+  ...typography.body3.regular,
+  color: colors.gray[600],
+  lineHeight: 21,
+});
+
+const SearchBox = styled.View({
   height: 50,
+  flexDirection: 'row',
+  alignItems: 'center',
   paddingHorizontal: 16,
-  paddingVertical: 0,
+  gap: 8,
   borderWidth: 1,
-  borderColor: colors.gray[100],
+  borderColor: colors.primary[400],
   borderRadius: 12,
+  backgroundColor: '#FFFFFF',
+});
+
+const SearchInput = styled.TextInput({
+  flex: 1,
+  minWidth: 0,
+  paddingVertical: 0,
   ...typography.body2.regular,
   color: colors.gray[1000],
   ...Platform.select({ web: { outlineStyle: 'none' as never } }),
 });
-const MemoInput = styled.TextInput({
-  width: '100%',
-  height: 72,
-  paddingHorizontal: 16,
-  paddingVertical: 14,
-  borderWidth: 1,
-  borderColor: colors.gray[100],
-  borderRadius: 12,
-  ...typography.body2.regular,
-  color: colors.gray[1000],
-  ...Platform.select({ web: { outlineStyle: 'none' as never, resize: 'none' as never } }),
+
+const resultsStyle = { flex: 1, width: '100%' } as const;
+const resultsContentStyle = {
+  paddingHorizontal: 20,
+  paddingVertical: 10,
+  paddingBottom: 120,
+  gap: 12,
+} as const;
+
+const ResultCard = styled.Pressable<{ selected: boolean }>(
+  ({ selected }) => ({ borderColor: selected ? colors.primary[600] : colors.gray[50] }),
+  {
+    minHeight: 72,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 12,
+    borderWidth: 2,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    ...shadows[1],
+  },
+);
+
+const MapIcon = styled.Image({ width: 36, height: 36, borderRadius: 9999 });
+const ResultInfo = styled.View({ flex: 1, minWidth: 0, gap: 6 });
+const ResultName = styled.Text({ ...typography.body2.medium, color: colors.gray[1000] });
+const Address = styled.Text({ ...typography.caption1.regular, color: colors.gray[600] });
+
+const EmptyState = styled.Text({
+  flex: 1,
+  paddingHorizontal: 20,
+  paddingVertical: 48,
+  ...typography.body3.regular,
+  color: colors.gray[500],
+  textAlign: 'center',
 });
-const AddressBox = styled.View({
-  height: 48,
-  flexDirection: 'row',
-  alignItems: 'center',
-  paddingHorizontal: 16,
-  paddingVertical: 14,
-  gap: 8,
-  backgroundColor: colors.gray[25],
-  borderRadius: 8,
-});
-const Address = styled.Text({ flex: 1, ...typography.body2.regular, color: colors.gray[800] });
-const TrashButton = styled.Pressable({
+
+const State = styled.View({
+  flex: 1,
   alignItems: 'center',
   justifyContent: 'center',
+  paddingHorizontal: 20,
+  gap: 12,
 });
-const MapButton = styled.Pressable({
-  height: 52,
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 6,
-  backgroundColor: colors.primary[50],
-  borderRadius: 8,
-});
-const MapLabel = styled.Text({
-  ...typography.body2.medium,
-  color: colors.primary[800],
-});
-const Helper = styled.Text({
-  ...typography.caption1.regular,
+
+const StateText = styled.Text({
+  ...typography.body3.regular,
   color: colors.gray[600],
+  textAlign: 'center',
 });
+
+const RetryButton = styled.Pressable({
+  paddingHorizontal: 14,
+  paddingVertical: 8,
+  borderRadius: 9999,
+  backgroundColor: colors.primary[50],
+});
+const RetryLabel = styled.Text({ ...typography.body3.medium, color: colors.primary[800] });
+
 const BottomAction = styled.View({
+  position: 'absolute',
+  right: 0,
+  bottom: 0,
+  left: 0,
+  flexDirection: 'row',
   paddingHorizontal: 20,
   paddingTop: 18,
   paddingBottom: Platform.OS === 'web' ? 24 : 34,
+  gap: 10,
   backgroundColor: withAlpha('#FFFFFF', 0.94),
 });
+
+const CancelButton = styled.Pressable({
+  width: 81,
+  height: 48,
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: colors.gray[25],
+  borderRadius: 8,
+});
+const CancelLabel = styled.Text({ ...typography.body2.medium, color: colors.gray[600] });
+
 const ConfirmButton = styled.Pressable<{ enabled: boolean }>(({ enabled }) => ({
+  flex: 1,
   height: 48,
   flexDirection: 'row',
   alignItems: 'center',
@@ -235,45 +303,16 @@ const ConfirmButton = styled.Pressable<{ enabled: boolean }>(({ enabled }) => ({
 }));
 const ConfirmLabel = styled.Text({ ...typography.body2.medium, color: '#FFFFFF' });
 
-const MapInfo = styled.View({ width: '100%', gap: 12 });
-const MapDescription = styled.Text({
-  ...typography.body2.regular,
-  color: colors.gray[600],
+const AddError = styled.Text({
+  position: 'absolute',
+  right: 20,
+  bottom: Platform.OS === 'web' ? 82 : 92,
+  left: 20,
+  zIndex: 1,
+  padding: 10,
+  borderRadius: 8,
+  backgroundColor: colors.semantic.warningDisabled,
+  ...typography.caption1.regular,
+  color: colors.semantic.warning,
   textAlign: 'center',
 });
-const MapSearch = styled.View({
-  width: '100%',
-  height: 48,
-  flexDirection: 'row',
-  alignItems: 'center',
-  paddingHorizontal: 18,
-  gap: 8,
-  borderWidth: 1,
-  borderColor: colors.primary[400],
-  borderRadius: 12,
-});
-const MapQuery = styled.TextInput({
-  width: '100%',
-  height: 50,
-  ...typography.body1.regular,
-  color: colors.gray[1000],
-  ...Platform.select({ web: { outlineStyle: 'none' as never } }),
-});
-const MapPreview = styled.View({
-  position: 'relative',
-  width: '100%',
-  height: 300,
-  overflow: 'hidden',
-  borderWidth: 1,
-  borderColor: withAlpha(colors.gray[1000], 0.1),
-  borderRadius: 12,
-  backgroundColor: colors.gray[50],
-});
-const MapPlaceholder = styled.Text({
-  position: 'absolute',
-  right: 12,
-  bottom: 10,
-  ...typography.caption1.regular,
-  color: colors.gray[500],
-});
-const MapAddress = styled.Text({ ...typography.body3.regular, color: colors.gray[800] });

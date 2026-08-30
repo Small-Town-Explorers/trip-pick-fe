@@ -1,28 +1,14 @@
 import styled from '@emotion/native';
-import Landscape1Image from '@assets/images/mock/landscape/landscape1.png';
-import Landscape2Image from '@assets/images/mock/landscape/landscape2.png';
 import { colors, typography, withAlpha } from '@styles';
 import { Platform } from 'react-native';
-import type { ImageSourcePropType } from 'react-native';
 import { appRoutes, useAppNavigation } from '../../navigation';
+import { useFeaturedRegionsQuery } from '../../queries';
 
-const recommendations = [
-  {
-    image: Landscape1Image,
-    title: '전남 담양',
-    description: '대나무 숲의 고요한 숨결',
-    tag: '로컬체험',
-  },
-  {
-    image: Landscape2Image,
-    title: '경남 하동',
-    description: '녹차 향기 머무는 산자락',
-    tag: '힐링',
-  },
-];
+const getImageUrl = (imageUrl: string) => imageUrl.replace(/^http:/, 'https:');
 
 export const HomeRecommendations = () => {
   const { navigate } = useAppNavigation();
+  const { data: recommendations = [], isPending, isError, refetch } = useFeaturedRegionsQuery();
 
   return (
     <Section>
@@ -30,22 +16,36 @@ export const HomeRecommendations = () => {
         <Title>숨겨진 소도시의 고요한 발견</Title>
         <Desc>바쁜 일상을 뒤로하고, 자연의 속도에 맞춰 걷는 여행을 제안합니다.</Desc>
       </Header>
-      <Carousel
-        horizontal
-        showsHorizontalScrollIndicator={Platform.OS === 'web'}
-        contentContainerStyle={carouselStyle}
-      >
-        {recommendations.map((place) => (
-          <Card key={place.title} onPress={() => navigate(appRoutes.placeDetail('test'))}>
-            <Image source={place.image as ImageSourcePropType} alt={place.title} />
-            <Tag>#{place.tag}</Tag>
-            <Content>
-              <CardTitle>{place.title}</CardTitle>
-              <CardDesc>{place.description}</CardDesc>
-            </Content>
-          </Card>
-        ))}
-      </Carousel>
+      {isPending ? (
+        <Status accessibilityLiveRegion="polite">추천 소도시를 찾고 있어요.</Status>
+      ) : isError ? (
+        <ErrorArea>
+          <Status>추천 소도시를 불러오지 못했어요.</Status>
+          <RetryButton accessibilityRole="button" onPress={() => refetch()}>
+            <RetryText>다시 시도</RetryText>
+          </RetryButton>
+        </ErrorArea>
+      ) : (
+        <Carousel
+          horizontal
+          showsHorizontalScrollIndicator={Platform.OS === 'web'}
+          contentContainerStyle={carouselStyle}
+        >
+          {recommendations.map((city) => (
+            <Card key={city.id} onPress={() => navigate(appRoutes.placeDetail(city.id))}>
+              <Image
+                source={{ uri: getImageUrl(city.imageUrl) }}
+                accessibilityLabel={city.shortName}
+              />
+              <Tag>#{city.tag}</Tag>
+              <Content>
+                <CardTitle>{city.shortName}</CardTitle>
+                <CardDesc>{city.summary}</CardDesc>
+              </Content>
+            </Card>
+          ))}
+        </Carousel>
+      )}
     </Section>
   );
 };
@@ -118,4 +118,28 @@ const CardTitle = styled.Text({
 const CardDesc = styled.Text({
   ...typography.body2.regular,
   color: colors.gray[600],
+});
+
+const Status = styled.Text({
+  paddingHorizontal: 20,
+  paddingVertical: 24,
+  ...typography.body3.regular,
+  color: colors.gray[500],
+});
+
+const ErrorArea = styled.View({
+  alignItems: 'flex-start',
+});
+
+const RetryButton = styled.Pressable({
+  marginLeft: 20,
+  paddingHorizontal: 14,
+  paddingVertical: 8,
+  borderRadius: 9999,
+  backgroundColor: colors.primary[50],
+});
+
+const RetryText = styled.Text({
+  ...typography.body3.medium,
+  color: colors.primary[800],
 });
