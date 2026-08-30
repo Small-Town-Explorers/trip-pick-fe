@@ -70,6 +70,18 @@ export type AddCourseItemResponse = {
   warnings: string[];
 };
 
+export type EditCourseWithChatRequest = {
+  message: string;
+  course: GeneratedCourseResponse;
+};
+
+export type EditCourseWithChatResponse = {
+  reply: string;
+  modified: boolean;
+  course: GeneratedCourseResponse;
+  warnings: string[];
+};
+
 export function generateCourse(request: GenerateCourseRequest) {
   return apiRequest<GeneratedCourseResponse>('/api/v1/courses/generate', {
     method: 'POST',
@@ -88,6 +100,14 @@ export function generateCourseByName(request: GenerateCourseByNameRequest) {
 
 export function addCourseItem(request: AddCourseItemRequest) {
   return apiRequest<AddCourseItemResponse>('/api/v1/courses/items', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+}
+
+export function editCourseWithChat(request: EditCourseWithChatRequest) {
+  return apiRequest<EditCourseWithChatResponse>('/api/v1/courses/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(request),

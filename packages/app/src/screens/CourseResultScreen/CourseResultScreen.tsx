@@ -29,6 +29,7 @@ import {
   generatedCourseQueryKey,
   storeGeneratedCourse,
   useAddCourseItemMutation,
+  useEditCourseWithChatMutation,
   useGenerateCourseByNameMutation,
 } from '../../queries';
 import { getPersistedGeneratedCourse } from '../../storage/generatedCourse';
@@ -118,6 +119,7 @@ export function CourseResultScreen({ courseId }: CourseResultScreenProps) {
   const [course, setCourse] = useState(initialGeneratedCourse);
   const regenerateMutation = useGenerateCourseByNameMutation();
   const addCourseItemMutation = useAddCourseItemMutation();
+  const editCourseWithChatMutation = useEditCourseWithChatMutation();
   const regenerationSequence = useRef(0);
   const [title, setTitle] = useState(() =>
     initialGeneratedCourse
@@ -196,6 +198,38 @@ export function CourseResultScreen({ courseId }: CourseResultScreenProps) {
       return false;
     } finally {
       setIsAddingPlace(false);
+    }
+  };
+
+  const editCourseWithChat = async (message: string) => {
+    if (!course) {
+      throw new Error('기존 코스 정보를 찾을 수 없어 수정할 수 없어요.');
+    }
+
+    try {
+      const response = await editCourseWithChatMutation.mutateAsync({
+        message,
+        course: applyEditedPlacesToCourse(course, places, period),
+      });
+
+      if (response.modified) {
+        const editedCourse = {
+          ...response.course,
+          startDate: period.startDate ?? response.course.startDate,
+          endDate: period.endDate ?? response.course.endDate,
+        };
+        storeGeneratedCourse(queryClient, courseId, editedCourse);
+        setCourse(editedCourse);
+        setPlaces(createCoursePlacesFromResponse(editedCourse));
+      }
+
+      return response.reply;
+    } catch (error) {
+      throw new Error(
+        error instanceof ApiError
+          ? error.message
+          : '코스 수정 요청을 처리하지 못했어요. 잠시 후 다시 시도해 주세요.',
+      );
     }
   };
 
@@ -297,7 +331,14 @@ export function CourseResultScreen({ courseId }: CourseResultScreenProps) {
           onSave={() => setIsSaveVisible(true)}
         />
       )}
-      <CourseResultChatModal visible={isChatVisible} onClose={closeModals} />
+      <CourseResultChatModal
+        key={courseId}
+        courseId={courseId}
+        regionName={course?.region.name ?? ''}
+        visible={isChatVisible}
+        onSend={editCourseWithChat}
+        onClose={closeModals}
+      />
       <CourseResultPlaceSearchModal
         visible={isPlaceSearchVisible}
         isAdding={isAddingPlace}

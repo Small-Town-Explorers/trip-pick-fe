@@ -7,10 +7,13 @@ export {
 } from './apiClient';
 export {
   addCourseItem,
+  editCourseWithChat,
   generateCourse,
   generateCourseByName,
   type AddCourseItemRequest,
   type AddCourseItemResponse,
+  type EditCourseWithChatRequest,
+  type EditCourseWithChatResponse,
   type GenerateCourseByNameRequest,
   type GenerateCourseRequest,
   type GeneratedCourseItem,
