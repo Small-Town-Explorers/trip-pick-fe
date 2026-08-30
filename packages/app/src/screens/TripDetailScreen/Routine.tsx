@@ -4,8 +4,6 @@ import styled from '@emotion/native';
 import { colors, typography } from '@styles';
 import { useMemo, useState } from 'react';
 import { mockTripInfoItems } from '../../ts/mock';
-import { type ImageSourcePropType } from 'react-native';
-import Landscape1Image from '@assets/images/mock/landscape/landscape1.png';
 
 type Place = (typeof mockTripInfoItems)[number] & { order: number };
 type TripDay = { date: string; places: Place[] };
@@ -71,18 +69,14 @@ export const TripDetailRoutine = () => {
             </Route>
             <CardSlot>
               <TripSpotCard
-                image={
-                  place.placeImage
-                    ? { uri: place.placeImage }
-                    : (Landscape1Image as unknown as ImageSourcePropType)
-                }
+                image={place.placeImage}
                 type={place.placeTag}
                 name={place.placeName}
                 description={place.placeSummary}
                 mapUrl={
                   place.placeSource === 'KAKAO'
-                    ? `https://place.map.kakao.com/${place.placeId}`
-                    : `https://map.kakao.com/link/map/${encodeURIComponent(place.placeName)},${place.placeLocation.lat},${place.placeLocation.lng}`
+                    ? `https://map.kakao.com/link/map/${place.placeId}`
+                    : `https://map.kakao.com/link/search/${encodeURIComponent(place.placeName)}`
                 }
               />
             </CardSlot>

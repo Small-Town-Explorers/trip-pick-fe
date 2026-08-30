@@ -23,16 +23,32 @@ export {
   apiRequest,
   configureApiAccessToken,
   configureApiBaseUrl,
+  generateCourse,
+  generateCourseByName,
   getSmallCities,
   searchPlaces,
   type ApiErrorResponse,
+  type GenerateCourseRequest,
+  type GenerateCourseByNameRequest,
+  type GeneratedCourseItem,
+  type GeneratedCourseRegion,
+  type GeneratedCourseResponse,
   type PlaceSearchItem,
   type PlaceSearchResponse,
   type PlaceSearchSource,
   type SearchPlacesParams,
   type SmallCity,
 } from './controllers';
-export { smallCitiesQueryKey, useInfinitePlaceSearchQuery, useSmallCitiesQuery } from './queries';
+export {
+  createGeneratedCourseId,
+  generatedCourseQueryKey,
+  smallCitiesQueryKey,
+  storeGeneratedCourse,
+  useGenerateCourseMutation,
+  useGenerateCourseByNameMutation,
+  useInfinitePlaceSearchQuery,
+  useSmallCitiesQuery,
+} from './queries';
 export {
   appRoutes,
   NavigationProvider,

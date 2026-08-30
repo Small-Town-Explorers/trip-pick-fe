@@ -9,6 +9,8 @@ interface CourseLoadingOverlayProps {
   visible: boolean;
   mode: 'generate' | 'regenerate';
   destination?: string;
+  completed?: boolean;
+  autoCompleteAfterMs?: number;
   onCancel: () => void;
   onComplete: () => void;
 }
@@ -17,6 +19,8 @@ export function CourseLoadingOverlay({
   visible,
   mode,
   destination,
+  completed = false,
+  autoCompleteAfterMs,
   onCancel,
   onComplete,
 }: CourseLoadingOverlayProps) {
@@ -83,13 +87,18 @@ export function CourseLoadingOverlay({
       window.addEventListener('hashchange', handlePop, true);
     }
 
-    const timer = setTimeout(complete, 2000);
+    const timer =
+      autoCompleteAfterMs === undefined ? undefined : setTimeout(complete, autoCompleteAfterMs);
     return () => {
-      clearTimeout(timer);
+      if (timer) clearTimeout(timer);
       pendingLeave.current = null;
       removeHistoryListener();
     };
-  }, [complete, removeHistoryListener, visible]);
+  }, [autoCompleteAfterMs, complete, removeHistoryListener, visible]);
+
+  useEffect(() => {
+    if (visible && completed) complete();
+  }, [complete, completed, visible]);
 
   const isGenerating = mode === 'generate';
   const image = isGenerating ? CourseGeneratingImage : CourseRegeneratingImage;

@@ -6,9 +6,9 @@ import styled from '@emotion/native';
 import { colors, typography } from '@styles';
 import { useLayoutEffect, useState } from 'react';
 import { Platform } from 'react-native';
-import { mockTripInfoItems } from '../../ts/mock';
 import { EditTripSpotCard } from '@components/EditTripSpotCard';
 import type { CoursePlaceInput } from './types';
+import type { GeneratedCourseResponse } from '../../controllers';
 
 const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -20,50 +20,116 @@ const formatDate = (dateString: string) => {
 
 const formatDistance = (meters: number) => `${(meters / 1000).toFixed(1)}\nkm`;
 
-const dates = ['2026-09-05', '2026-09-06'];
-
 export type CoursePlace = CoursePlaceInput & {
   uid: string;
   order: number;
   date: Date;
-  distanceMeters: number;
+  distanceMeters: number | null;
 };
 export type CoursePlaces = CoursePlace[][];
 
-export const createInitialCoursePlaces = (): CoursePlaces =>
-  dates.map((date, dayIndex) =>
-    mockTripInfoItems
-      .filter((place) => place.date.toISOString().startsWith(date))
-      .slice(0, dayIndex === 0 ? 5 : 2)
-      .map((place, placeIndex): CoursePlace => ({
-        id: `${place.placeSource}:${place.placeId}`,
-        externalId: place.placeId,
-        name: place.placeName,
-        tag: place.placeTag,
-        summary: place.placeSummary,
-        image: place.placeImage,
-        lat: place.placeLocation.lat,
-        lng: place.placeLocation.lng,
-        date: place.date,
-        distanceMeters: 0,
-        uid: `${date}-${placeIndex}`,
-        order: (dayIndex === 0 ? 0 : 5) + placeIndex + 1,
-      })),
-  );
+export const createCoursePlacesFromResponse = (course: GeneratedCourseResponse): CoursePlaces => {
+  let globalOrder = 0;
+  const startDate = course.startDate ?? new Date().toISOString().slice(0, 10);
+
+  const places = course.plan.map(({ day, items }) => {
+    const date = addDays(startDate, day - 1);
+
+    return items.map((item): CoursePlace => {
+      const isKakao = item.contentId?.startsWith('kakao:') ?? false;
+      const externalId = item.contentId
+        ? isKakao
+          ? item.contentId.slice('kakao:'.length)
+          : item.contentId
+        : null;
+      const id = item.contentId
+        ? `${isKakao ? 'KAKAO' : 'TOUR'}:${externalId}`
+        : `FREE_TIME:${day}:${item.order}`;
+
+      return {
+        id,
+        externalId,
+        name: item.title,
+        tag: item.slot,
+        summary: item.reason ?? item.address ?? item.title,
+        image: item.imageUrl,
+        lat: item.lat,
+        lng: item.lng,
+        date,
+        distanceMeters: null,
+        uid: `${day}:${item.order}:${id}`,
+        order: ++globalOrder,
+      };
+    });
+  });
+
+  return recalculateCoursePlaces(places);
+};
+
+const addDays = (dateString: string, days: number) => {
+  const date = new Date(`${dateString}T00:00:00`);
+  date.setDate(date.getDate() + days);
+  return date;
+};
+
+const getScheduleDates = ({ startDate, endDate }: CalendarRange) => {
+  if (!startDate) return [];
+  if (!endDate) return [startDate];
+
+  const dates: string[] = [];
+  const current = new Date(`${startDate}T00:00:00`);
+  const last = new Date(`${endDate}T00:00:00`);
+
+  while (current <= last) {
+    const year = current.getFullYear();
+    const month = String(current.getMonth() + 1).padStart(2, '0');
+    const date = String(current.getDate()).padStart(2, '0');
+    dates.push(`${year}-${month}-${date}`);
+    current.setDate(current.getDate() + 1);
+  }
+
+  return dates;
+};
 
 const getPlaceMapUrl = (place: CoursePlace) => {
   if (place.id.startsWith('KAKAO:') && place.externalId) {
-    return `https://place.map.kakao.com/${encodeURIComponent(place.externalId)}`;
+    return `https://map.kakao.com/link/map/${encodeURIComponent(place.externalId)}`;
   }
 
-  if (place.lat === null || place.lng === null) return undefined;
-  return `https://map.kakao.com/link/map/${encodeURIComponent(place.name)},${place.lat},${place.lng}`;
+  if (place.id.startsWith('TOUR:')) {
+    return `https://map.kakao.com/link/search/${encodeURIComponent(place.name)}`;
+  }
+
+  return undefined;
 };
 
-const normalizeOrders = (days: CoursePlaces) => {
+export const recalculateCoursePlaces = (days: CoursePlaces): CoursePlaces => {
   let order = 0;
-  return days.map((places) => places.map((place) => ({ ...place, order: ++order })));
+  return days.map((places) =>
+    places.map((place, index) => ({
+      ...place,
+      order: ++order,
+      distanceMeters: index === 0 ? null : calculateDistanceMeters(places[index - 1], place),
+    })),
+  );
 };
+
+const calculateDistanceMeters = (from: CoursePlace, to: CoursePlace) => {
+  if (from.lat === null || from.lng === null || to.lat === null || to.lng === null) return null;
+
+  const earthRadiusMeters = 6_371_000;
+  const latitudeDelta = toRadians(to.lat - from.lat);
+  const longitudeDelta = toRadians(to.lng - from.lng);
+  const fromLatitude = toRadians(from.lat);
+  const toLatitude = toRadians(to.lat);
+  const haversine =
+    Math.sin(latitudeDelta / 2) ** 2 +
+    Math.cos(fromLatitude) * Math.cos(toLatitude) * Math.sin(longitudeDelta / 2) ** 2;
+
+  return earthRadiusMeters * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+};
+
+const toRadians = (degrees: number) => (degrees * Math.PI) / 180;
 
 interface CourseResultRoutineProps {
   editing?: boolean;
@@ -98,9 +164,7 @@ export function CourseResultRoutine({
     toIndex: number;
   } | null>(null);
   const [dragCommitting, setDragCommitting] = useState(false);
-  const scheduleDates = [period.startDate, period.endDate].filter((date): date is string =>
-    Boolean(date),
-  );
+  const scheduleDates = getScheduleDates(period);
 
   useLayoutEffect(() => {
     if (!dragCommitting || Platform.OS !== 'web') return;
@@ -116,7 +180,7 @@ export function CourseResultRoutine({
     if (targetIndex === fromIndex) return;
     const [movedPlace] = nextDays[dayIndex].splice(fromIndex, 1);
     nextDays[dayIndex].splice(targetIndex, 0, movedPlace);
-    onPlacesChange(normalizeOrders(nextDays));
+    onPlacesChange(recalculateCoursePlaces(nextDays));
   };
 
   const deletePlace = () => {
@@ -126,7 +190,7 @@ export function CourseResultRoutine({
         ? day.filter((place) => place.uid !== pendingDelete.uid)
         : [...day],
     );
-    onPlacesChange(normalizeOrders(nextDays));
+    onPlacesChange(recalculateCoursePlaces(nextDays));
     setPendingDelete(null);
   };
 
@@ -237,7 +301,11 @@ export function CourseResultRoutine({
                       {placeIndex !== dayPlaceList.length - 1 ? (
                         <>
                           <UpperLine />
-                          <Distance>{formatDistance(place.distanceMeters)}</Distance>
+                          {dayPlaceList[placeIndex + 1].distanceMeters !== null ? (
+                            <Distance>
+                              {formatDistance(dayPlaceList[placeIndex + 1].distanceMeters!)}
+                            </Distance>
+                          ) : null}
                           <LowerLine />
                         </>
                       ) : null}

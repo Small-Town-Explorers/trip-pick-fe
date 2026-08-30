@@ -43,6 +43,7 @@ interface CourseCreateRegionProps {
   isLoading?: boolean;
   errorMessage?: string;
   onChange: (region: string) => void;
+  onSelectCity: (city: SmallCity) => void;
 }
 
 export function CourseCreateRegion({
@@ -51,6 +52,7 @@ export function CourseCreateRegion({
   isLoading = false,
   errorMessage,
   onChange,
+  onSelectCity,
 }: CourseCreateRegionProps) {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const isSuggestedRegion = regionOptions.some((option) => option.label === value);
@@ -101,7 +103,7 @@ export function CourseCreateRegion({
                   accessibilityRole="button"
                   onPress={() => {
                     setIsSearchFocused(false);
-                    onChange(city.name);
+                    onSelectCity(city);
                   }}
                 >
                   <ResultName>{city.name}</ResultName>

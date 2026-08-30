@@ -6,6 +6,15 @@ export {
   type ApiErrorResponse,
 } from './apiClient';
 export {
+  generateCourse,
+  generateCourseByName,
+  type GenerateCourseByNameRequest,
+  type GenerateCourseRequest,
+  type GeneratedCourseItem,
+  type GeneratedCourseRegion,
+  type GeneratedCourseResponse,
+} from './courses';
+export {
   searchPlaces,
   type PlaceSearchItem,
   type PlaceSearchResponse,
