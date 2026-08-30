@@ -1,16 +1,14 @@
 import styled from '@emotion/native';
-import Landscape1Image from '@assets/images/mock/landscape/landscape1.png';
-import Landscape2Image from '@assets/images/mock/landscape/landscape2.png';
 import { colors, typography, withAlpha } from '@styles';
 import { Platform } from 'react-native';
-import type { ImageSourcePropType } from 'react-native';
 import { appRoutes, useAppNavigation } from '../../navigation';
-import { useSmallCitiesQuery } from '../../queries';
+import { useFeaturedRegionsQuery } from '../../queries';
+
+const getImageUrl = (imageUrl: string) => imageUrl.replace(/^http:/, 'https:');
 
 export const HomeRecommendations = () => {
   const { navigate } = useAppNavigation();
-  const { data: smallCities = [], isPending, isError, refetch } = useSmallCitiesQuery();
-  const recommendations = smallCities.slice(0, 6);
+  const { data: recommendations = [], isPending, isError, refetch } = useFeaturedRegionsQuery();
 
   return (
     <Section>
@@ -33,20 +31,16 @@ export const HomeRecommendations = () => {
           showsHorizontalScrollIndicator={Platform.OS === 'web'}
           contentContainerStyle={carouselStyle}
         >
-          {recommendations.map((city, index) => (
+          {recommendations.map((city) => (
             <Card key={city.id} onPress={() => navigate(appRoutes.placeDetail(city.id))}>
               <Image
-                source={
-                  (index % 2 === 0 ? Landscape1Image : Landscape2Image) as ImageSourcePropType
-                }
-                accessibilityLabel={`${city.province} ${city.name}`}
+                source={{ uri: getImageUrl(city.imageUrl) }}
+                accessibilityLabel={city.shortName}
               />
-              <Tag>#{city.populationDeclineArea ? '인구감소지역' : '소도시'}</Tag>
+              <Tag>#{city.tag}</Tag>
               <Content>
-                <CardTitle>
-                  {city.province} {city.name}
-                </CardTitle>
-                <CardDesc>인구 {city.population.toLocaleString()}명의 작은 도시</CardDesc>
+                <CardTitle>{city.shortName}</CardTitle>
+                <CardDesc>{city.summary}</CardDesc>
               </Content>
             </Card>
           ))}

@@ -2,13 +2,7 @@ import { IconComponent } from '@components/Icons';
 import styled from '@emotion/native';
 import { colors, typography } from '@styles';
 
-const travelTips = [
-  '스마트폰은 잠시 가방 깊숙이 넣어두세요. 아날로그 책 한 권이 더 좋은 친구가 됩니다.',
-  '새벽 6시의 공기를 마셔보세요. 대나무 숲이 내뿜는 가장 맑은 산소를 만날 수 있습니다.',
-  '편안한 리넨 소재의 옷을 챙기세요. 자연의 질감과 가장 잘 어울리는 선택입니다.',
-];
-
-export function PlaceDetailTravelTips() {
+export function PlaceDetailTravelTips({ tips }: { tips: string[] }) {
   return (
     <Section>
       <Card>
@@ -23,7 +17,7 @@ export function PlaceDetailTravelTips() {
         </GuideHeader>
 
         <TipList>
-          {travelTips.map((tip, tipIndex) => (
+          {tips.map((tip, tipIndex) => (
             <TipItem key={tip}>
               <TipNumber>{String(tipIndex + 1).padStart(2, '0')}</TipNumber>
               <TipDescription>{tip}</TipDescription>

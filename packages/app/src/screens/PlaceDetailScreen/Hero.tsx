@@ -1,21 +1,29 @@
-import HeroImageSource from '@assets/images/mock/landscape/landscape1.png';
 import { LinearGradient } from '@components/LinearGradient';
 import styled from '@emotion/native';
 import { colors, typography, withAlpha } from '@styles';
-import { Platform, type ImageSourcePropType } from 'react-native';
+import { Platform } from 'react-native';
 
 interface PlaceDetailHeroProps {
   title: string;
   summary: string;
+  description: string;
+  tag: string;
+  imageUrl: string;
 }
 
-export function PlaceDetailHero({ title, summary }: PlaceDetailHeroProps) {
+export function PlaceDetailHero({
+  title,
+  summary,
+  description,
+  tag,
+  imageUrl,
+}: PlaceDetailHeroProps) {
   return (
     <Section>
       <ImageBackground
-        source={HeroImageSource as unknown as ImageSourcePropType}
+        source={{ uri: imageUrl.replace(/^http:/, 'https:') }}
         resizeMode="cover"
-        accessibilityLabel="안개가 내려앉은 담양 대나무 숲"
+        accessibilityLabel={`${title} 대표 풍경`}
       >
         <LinearGradient
           colors={['rgba(0, 0, 0, 0)', 'rgba(0, 0, 0, 0.5)']}
@@ -24,7 +32,8 @@ export function PlaceDetailHero({ title, summary }: PlaceDetailHeroProps) {
           end={{ x: 0.5, y: 1 }}
           style={gradientStyle}
         />
-        <Tag>#로컬체험</Tag>
+        <Credit>사진 제공: 한국관광공사</Credit>
+        <Tag>#{tag}</Tag>
         <Heading>
           <Title>{title}</Title>
           <Subtitle>{summary}</Subtitle>
@@ -33,11 +42,7 @@ export function PlaceDetailHero({ title, summary }: PlaceDetailHeroProps) {
 
       <Introduction>
         <Quote>
-          <QuoteText>
-            &quot;바람이 불어오면 숲은 스스로의 목소리를 냅니다. 번잡한 도시의 소음 대신, 대나무
-            잎사귀가 부딪히는 소리에 귀를 기울여 보세요. 이곳은 시간이 느리게 흐르는, 당신만을 위한
-            도피처입니다.&quot;
-          </QuoteText>
+          <QuoteText>&quot;{description}&quot;</QuoteText>
         </Quote>
       </Introduction>
     </Section>
@@ -81,6 +86,18 @@ const Tag = styled.Text({
       backdropFilter: 'blur(6px)',
     },
   }),
+});
+
+const Credit = styled.Text({
+  position: 'absolute',
+  top: 12,
+  right: 12,
+  paddingHorizontal: 8,
+  paddingVertical: 4,
+  backgroundColor: withAlpha('#000000', 0.42),
+  borderRadius: 6,
+  ...typography.caption3.regular,
+  color: '#FFFFFF',
 });
 
 const Heading = styled.View({

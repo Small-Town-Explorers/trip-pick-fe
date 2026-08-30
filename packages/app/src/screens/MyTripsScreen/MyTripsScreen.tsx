@@ -1,12 +1,10 @@
-import Landscape1 from '@assets/images/mock/landscape/landscape1.png';
-import Landscape2 from '@assets/images/mock/landscape/landscape2.png';
 import { Header } from '@components/Header';
 import { IconComponent } from '@components/Icons';
 import { ConfirmModal } from '@components/Modal';
 import styled from '@emotion/native';
 import { colors, createShadow, shadows, typography, withAlpha } from '@styles';
 import { useState } from 'react';
-import { ActivityIndicator, Platform, type ImageSourcePropType } from 'react-native';
+import { ActivityIndicator, Platform } from 'react-native';
 import { ApiError, type Folder as FolderData } from '../../controllers';
 import { appRoutes, useAppNavigation } from '../../navigation';
 import {
@@ -15,8 +13,6 @@ import {
   useFoldersQuery,
   useRenameFolderMutation,
 } from '../../queries';
-
-const folderImages = [Landscape1, Landscape2];
 
 const getFolderErrorMessage = (error: unknown, fallback: string) => {
   if (error instanceof ApiError && error.code === 'FOLDER_DUPLICATE_NAME') {
@@ -118,7 +114,7 @@ export function MyTripsScreen() {
               <ActivityIndicator color={colors.primary[700]} />
             </LoadingCard>
           ) : (
-            folders.map((folder, index) => (
+            folders.map((folder) => (
               <Folder
                 key={folder.id}
                 active={openedMenuId === folder.id}
@@ -131,12 +127,7 @@ export function MyTripsScreen() {
                   navigate(appRoutes.myTripFolder(folder.id));
                 }}
               >
-                <FolderImage
-                  source={
-                    folderImages[index % folderImages.length] as unknown as ImageSourcePropType
-                  }
-                  resizeMode="cover"
-                />
+                <FolderImage source={undefined} resizeMode="cover" />
                 <FolderInfo>
                   <FolderInfoHeader>
                     <FolderName numberOfLines={1}>{folder.name}</FolderName>
@@ -293,6 +284,7 @@ const FolderImage = styled.Image({
   height: 130,
   borderTopLeftRadius: 12,
   borderTopRightRadius: 12,
+  backgroundColor: colors.gray[100],
 });
 const FolderInfo = styled.View({ padding: 12, gap: 4 });
 const FolderInfoHeader = styled.View({ flexDirection: 'row', alignItems: 'center', gap: 8 });

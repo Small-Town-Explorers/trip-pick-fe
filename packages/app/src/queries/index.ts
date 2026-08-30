@@ -1,4 +1,10 @@
 export { smallCitiesQueryKey, useSmallCitiesQuery } from './useSmallCitiesQuery';
+export {
+  featuredRegionsQueryKey,
+  regionDetailQueryKey,
+  useFeaturedRegionsQuery,
+  useRegionDetailQuery,
+} from './useRegionFeaturesQuery';
 export { useInfinitePlaceSearchQuery } from './useInfinitePlaceSearchQuery';
 export { useAddCourseItemMutation } from './useAddCourseItemMutation';
 export { useEditCourseWithChatMutation } from './useEditCourseWithChatMutation';

@@ -36,4 +36,12 @@ export {
   type PlaceSearchSource,
   type SearchPlacesParams,
 } from './places';
-export { getSmallCities, type SmallCity } from './regions';
+export {
+  getFeaturedRegions,
+  getRegionDetail,
+  getSmallCities,
+  type FeaturedRegion,
+  type RegionDetail,
+  type RegionFeatureContent,
+  type SmallCity,
+} from './regions';
