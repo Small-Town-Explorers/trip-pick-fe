@@ -52,11 +52,43 @@ export type GeneratedCourseResponse = {
   region: GeneratedCourseRegion;
   themes: string[];
   terrains: string[];
+  pace?: string | null;
   days: number;
   startDate: string | null;
   endDate: string | null;
   plan: { day: number; items: GeneratedCourseItem[] }[];
   warnings: string[];
+};
+
+export type SaveMyCourseRequest = {
+  title: string;
+  folderId?: string | null;
+  startDate?: string | null;
+  course: GeneratedCourseResponse;
+};
+
+export type MyCourseSummary = {
+  id: string;
+  title: string;
+  folderId: string | null;
+  regionName: string | null;
+  areaCode: string;
+  sigunguCode: string;
+  days: number;
+  itemCount: number;
+  startDate: string | null;
+  endDate: string | null;
+  themes: string[];
+  terrains: string[];
+  createdAt: string;
+};
+
+export type MyCourseDetail = {
+  id: string;
+  title: string;
+  folderId: string | null;
+  createdAt: string;
+  course: GeneratedCourseResponse;
 };
 
 export type AddCourseItemRequest = {
@@ -112,4 +144,21 @@ export function editCourseWithChat(request: EditCourseWithChatRequest) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(request),
   });
+}
+
+export function saveMyCourse(request: SaveMyCourseRequest) {
+  return apiRequest<MyCourseDetail>('/api/v1/my/courses', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+}
+
+export function getMyCourses(folderId?: string) {
+  const query = folderId ? `?folderId=${encodeURIComponent(folderId)}` : '';
+  return apiRequest<MyCourseSummary[]>(`/api/v1/my/courses${query}`);
+}
+
+export function getMyCourseDetail(courseId: string) {
+  return apiRequest<MyCourseDetail>(`/api/v1/my/courses/${encodeURIComponent(courseId)}`);
 }

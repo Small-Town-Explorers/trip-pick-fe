@@ -2,6 +2,7 @@ import { type CalendarRange } from '@components/Calendar';
 import { CourseLoadingOverlay } from '@components/CourseLoadingOverlay';
 import styled from '@emotion/native';
 import { useCallback, useRef, useState } from 'react';
+import { ActivityIndicator } from 'react-native';
 import { useAppNavigation } from '../../navigation';
 import { setCourseSaveNotice } from '../../storage/courseSaveNotice';
 import { TripDetailActions } from '../TripDetailScreen/Bottom';
@@ -17,7 +18,7 @@ import { CourseResultPlaceSearchModal } from './PlaceSearchModal';
 import { CourseResultSaveModal } from './SaveModal';
 import { Header } from '@components/Header';
 import { IconComponent } from '@components/Icons';
-import { colors } from '@styles';
+import { colors, typography } from '@styles';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   ApiError,
@@ -31,11 +32,14 @@ import {
   useAddCourseItemMutation,
   useEditCourseWithChatMutation,
   useGenerateCourseByNameMutation,
+  useMyCourseDetailQuery,
+  useSaveMyCourseMutation,
 } from '../../queries';
 import { getPersistedGeneratedCourse } from '../../storage/generatedCourse';
 
 interface CourseResultScreenProps {
   courseId: string;
+  headerTitle?: '내 여행 상세' | '코스 생성 결과';
 }
 
 const getGeneratedCoursePeriod = (course: GeneratedCourseResponse): CalendarRange => {
@@ -61,11 +65,6 @@ const formatDateInput = (date: Date) => {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
-};
-
-const getDefaultPeriod = (): CalendarRange => {
-  const today = formatDateInput(new Date());
-  return { startDate: today, endDate: today };
 };
 
 const getPeriodDays = ({ startDate, endDate }: CalendarRange) => {
@@ -110,24 +109,87 @@ const applyEditedPlacesToCourse = (
   }),
 });
 
-export function CourseResultScreen({ courseId }: CourseResultScreenProps) {
-  const { back } = useAppNavigation();
+export function CourseResultScreen({
+  courseId,
+  headerTitle = '코스 생성 결과',
+}: CourseResultScreenProps) {
   const queryClient = useQueryClient();
   const initialGeneratedCourse =
     queryClient.getQueryData<GeneratedCourseResponse>(generatedCourseQueryKey(courseId)) ??
     getPersistedGeneratedCourse(courseId);
-  const [course, setCourse] = useState(initialGeneratedCourse);
+  const {
+    data: savedCourse,
+    error: savedCourseError,
+    isPending: isSavedCoursePending,
+    refetch: refetchSavedCourse,
+  } = useMyCourseDetailQuery(courseId, !initialGeneratedCourse);
+  const loadedCourse = initialGeneratedCourse ?? savedCourse?.course;
+
+  if (!loadedCourse) {
+    return (
+      <Screen testID={`course-result-${courseId}`}>
+        <Header title={headerTitle} />
+        <ResultState>
+          {isSavedCoursePending ? (
+            <>
+              <ActivityIndicator color={colors.primary[700]} />
+              <ResultStateText>코스를 불러오고 있어요.</ResultStateText>
+            </>
+          ) : (
+            <>
+              <ResultStateText>
+                {savedCourseError instanceof ApiError
+                  ? savedCourseError.message
+                  : '코스를 불러오지 못했어요.'}
+              </ResultStateText>
+              <ResultRetryButton
+                accessibilityRole="button"
+                onPress={() => void refetchSavedCourse()}
+              >
+                <ResultRetryText>다시 시도</ResultRetryText>
+              </ResultRetryButton>
+            </>
+          )}
+        </ResultState>
+      </Screen>
+    );
+  }
+
+  return (
+    <CourseResultContent
+      courseId={courseId}
+      headerTitle={headerTitle}
+      initialCourse={loadedCourse}
+      initialTitle={savedCourse?.title}
+    />
+  );
+}
+
+interface CourseResultContentProps extends CourseResultScreenProps {
+  headerTitle: '내 여행 상세' | '코스 생성 결과';
+  initialCourse: GeneratedCourseResponse;
+  initialTitle?: string;
+}
+
+function CourseResultContent({
+  courseId,
+  headerTitle,
+  initialCourse,
+  initialTitle,
+}: CourseResultContentProps) {
+  const { back } = useAppNavigation();
+  const queryClient = useQueryClient();
+  const [course, setCourse] = useState(initialCourse);
   const regenerateMutation = useGenerateCourseByNameMutation();
   const addCourseItemMutation = useAddCourseItemMutation();
   const editCourseWithChatMutation = useEditCourseWithChatMutation();
+  const saveMyCourseMutation = useSaveMyCourseMutation();
   const regenerationSequence = useRef(0);
-  const [title, setTitle] = useState(() =>
-    initialGeneratedCourse
-      ? `${initialGeneratedCourse.region.province} ${initialGeneratedCourse.region.name} 여행`
-      : '여행 코스',
+  const [title, setTitle] = useState(
+    () => initialTitle ?? `${initialCourse.region.province} ${initialCourse.region.name} 여행`,
   );
   const [period, setPeriod] = useState<CalendarRange>(() =>
-    initialGeneratedCourse ? getGeneratedCoursePeriod(initialGeneratedCourse) : getDefaultPeriod(),
+    getGeneratedCoursePeriod(initialCourse),
   );
   const [isScheduleVisible, setIsScheduleVisible] = useState(false);
   const [isShareVisible, setIsShareVisible] = useState(false);
@@ -142,9 +204,10 @@ export function CourseResultScreen({ courseId }: CourseResultScreenProps) {
   const [regenerationError, setRegenerationError] = useState('');
   const [isAddingPlace, setIsAddingPlace] = useState(false);
   const [placeAddError, setPlaceAddError] = useState('');
+  const [courseSaveError, setCourseSaveError] = useState('');
   const [resultVersion, setResultVersion] = useState(0);
   const [places, setPlaces] = useState<CoursePlaces>(() =>
-    initialGeneratedCourse ? createCoursePlacesFromResponse(initialGeneratedCourse) : [],
+    createCoursePlacesFromResponse(initialCourse),
   );
 
   const closeModals = () => {
@@ -280,16 +343,39 @@ export function CourseResultScreen({ courseId }: CourseResultScreenProps) {
     setIsRegenerationComplete(false);
   }, []);
 
-  const saveCourse = () => {
-    setCourseSaveNotice({ title });
-    setIsSaveVisible(false);
-    back();
+  const saveCourse = async (folderId: string) => {
+    if (!course || saveMyCourseMutation.isPending) return false;
+
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle) {
+      setCourseSaveError('코스 이름을 입력해 주세요.');
+      return false;
+    }
+
+    setCourseSaveError('');
+    try {
+      const saved = await saveMyCourseMutation.mutateAsync({
+        title: trimmedTitle,
+        folderId,
+        startDate: period.startDate,
+        course: applyEditedPlacesToCourse(course, places, period),
+      });
+      setCourseSaveNotice({ title: saved.title });
+      setIsSaveVisible(false);
+      back();
+      return true;
+    } catch (error) {
+      setCourseSaveError(
+        error instanceof ApiError ? error.message : '코스를 저장하지 못했어요. 다시 시도해 주세요.',
+      );
+      return false;
+    }
   };
 
   return (
     <Screen testID={`course-result-${courseId}-${resultVersion}`}>
       <Scroll contentContainerStyle={scrollContentStyle}>
-        <Header title={isEditing ? '코스 직접 편집' : '코스 생성 결과'}>
+        <Header title={isEditing ? '코스 직접 편집' : headerTitle}>
           {!isEditing ? (
             <ShareButton
               accessibilityRole="button"
@@ -328,7 +414,10 @@ export function CourseResultScreen({ courseId }: CourseResultScreenProps) {
           onChatEdit={() => setIsChatVisible(true)}
           onDirectEdit={() => setIsEditing(true)}
           onRegenerate={() => setIsRegenerateVisible(true)}
-          onSave={() => setIsSaveVisible(true)}
+          onSave={() => {
+            setCourseSaveError('');
+            setIsSaveVisible(true);
+          }}
         />
       )}
       <CourseResultChatModal
@@ -368,7 +457,12 @@ export function CourseResultScreen({ courseId }: CourseResultScreenProps) {
       />
       <CourseResultSaveModal
         visible={isSaveVisible}
-        onClose={() => setIsSaveVisible(false)}
+        isSaving={saveMyCourseMutation.isPending}
+        saveError={courseSaveError}
+        onClose={() => {
+          setCourseSaveError('');
+          setIsSaveVisible(false);
+        }}
         onSave={saveCourse}
       />
       <CourseLoadingOverlay
@@ -420,4 +514,30 @@ const RegenerationError = styled.Text({
   backgroundColor: colors.semantic.warningDisabled,
   color: colors.semantic.warning,
   textAlign: 'center',
+});
+
+const ResultState = styled.View({
+  flex: 1,
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingHorizontal: 24,
+  gap: 12,
+});
+
+const ResultStateText = styled.Text({
+  ...typography.body2.regular,
+  color: colors.gray[600],
+  textAlign: 'center',
+});
+
+const ResultRetryButton = styled.Pressable({
+  paddingHorizontal: 16,
+  paddingVertical: 9,
+  borderRadius: 9999,
+  backgroundColor: colors.primary[50],
+});
+
+const ResultRetryText = styled.Text({
+  ...typography.body2.medium,
+  color: colors.primary[700],
 });
