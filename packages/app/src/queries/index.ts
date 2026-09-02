@@ -15,9 +15,22 @@ export {
   useUpdateNicknameMutation,
   useUpdateNotificationSettingsMutation,
 } from './useMyPageQueries';
+export {
+  noticeDetailQueryKey,
+  noticesQueryKey,
+  useNoticeDetailQuery,
+  useNoticesQuery,
+} from './useNoticesQuery';
 export { useInfinitePlaceSearchQuery } from './useInfinitePlaceSearchQuery';
 export { useAddCourseItemMutation } from './useAddCourseItemMutation';
 export { useEditCourseWithChatMutation } from './useEditCourseWithChatMutation';
+export {
+  myCourseDetailQueryKey,
+  myCoursesQueryKey,
+  useMyCourseDetailQuery,
+  useMyCoursesQuery,
+  useSaveMyCourseMutation,
+} from './useMyCourses';
 export {
   foldersQueryKey,
   useCreateFolderMutation,

@@ -10,6 +10,9 @@ export {
   editCourseWithChat,
   generateCourse,
   generateCourseByName,
+  getMyCourseDetail,
+  getMyCourses,
+  saveMyCourse,
   type AddCourseItemRequest,
   type AddCourseItemResponse,
   type EditCourseWithChatRequest,
@@ -19,6 +22,9 @@ export {
   type GeneratedCourseItem,
   type GeneratedCourseRegion,
   type GeneratedCourseResponse,
+  type MyCourseDetail,
+  type MyCourseSummary,
+  type SaveMyCourseRequest,
 } from './courses';
 export {
   createFolder,
@@ -29,6 +35,13 @@ export {
   type FolderNameRequest,
   type RenameFolderRequest,
 } from './folders';
+export {
+  getNoticeDetail,
+  getNotices,
+  type NoticeCategory,
+  type NoticeDetail,
+  type NoticeSummary,
+} from './notices';
 export {
   searchPlaces,
   type PlaceSearchItem,

@@ -11,13 +11,21 @@ import { useCreateFolderMutation, useFoldersQuery } from '../../queries';
 
 interface CourseResultSaveModalProps {
   visible: boolean;
+  isSaving: boolean;
+  saveError: string;
   onClose: () => void;
-  onSave: (folderName: string) => void;
+  onSave: (folderId: string) => Promise<boolean>;
 }
 
 const folderImages = [Landscape1, Landscape2];
 
-export function CourseResultSaveModal({ visible, onClose, onSave }: CourseResultSaveModalProps) {
+export function CourseResultSaveModal({
+  visible,
+  isSaving,
+  saveError,
+  onClose,
+  onSave,
+}: CourseResultSaveModalProps) {
   const { data: folders = [], error, isPending, refetch } = useFoldersQuery(visible);
   const createFolderMutation = useCreateFolderMutation();
   const [isFolderModalVisible, setIsFolderModalVisible] = useState(false);
@@ -38,7 +46,7 @@ export function CourseResultSaveModal({ visible, onClose, onSave }: CourseResult
     try {
       const folder = await createFolderMutation.mutateAsync({ name: nextFolderName });
       closeFolderModal();
-      onSave(folder.name);
+      await onSave(folder.id);
     } catch (mutationError) {
       setFolderError(
         mutationError instanceof ApiError && mutationError.code === 'FOLDER_DUPLICATE_NAME'
@@ -64,6 +72,7 @@ export function CourseResultSaveModal({ visible, onClose, onSave }: CourseResult
               <NewFolder
                 accessibilityRole="button"
                 accessibilityLabel="새 보관함 만들기"
+                disabled={isSaving}
                 onPress={() => setIsFolderModalVisible(true)}
               >
                 <IconComponent name="plus" size={40} color={colors.primary[600]} />
@@ -87,7 +96,8 @@ export function CourseResultSaveModal({ visible, onClose, onSave }: CourseResult
                   key={folder.id}
                   accessibilityRole="button"
                   accessibilityLabel={`${folder.name}에 저장`}
-                  onPress={() => onSave(folder.name)}
+                  disabled={isSaving}
+                  onPress={() => void onSave(folder.id)}
                 >
                   <FolderImage
                     source={
@@ -102,6 +112,13 @@ export function CourseResultSaveModal({ visible, onClose, onSave }: CourseResult
                 </FolderCard>
               ))}
             </FolderGrid>
+            {isSaving ? (
+              <SaveState>
+                <ActivityIndicator color={colors.primary[700]} />
+                <FolderStateText>코스를 저장하고 있어요.</FolderStateText>
+              </SaveState>
+            ) : null}
+            {saveError ? <FolderError>{saveError}</FolderError> : null}
           </FolderScroll>
         )}
       </BottomSheetModal>
@@ -204,4 +221,10 @@ const FolderError = styled.Text({
   ...typography.caption1.regular,
   color: colors.semantic.warning,
   textAlign: 'center',
+});
+const SaveState = styled.View({
+  width: '100%',
+  paddingVertical: 16,
+  alignItems: 'center',
+  gap: 8,
 });
