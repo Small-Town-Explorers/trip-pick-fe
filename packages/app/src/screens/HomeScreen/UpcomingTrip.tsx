@@ -1,88 +1,116 @@
+import { IconComponent } from '@components/Icons';
 import styled from '@emotion/native';
 import { colors, typography } from '@styles';
-import { IconComponent } from '@components/Icons';
-import { Platform } from 'react-native';
-import { mockTripInfoItems } from '../../ts/mock';
-import { useMemo } from 'react';
+import { ActivityIndicator, Platform } from 'react-native';
+import { ApiError } from '../../controllers';
 import { appRoutes, useAppNavigation } from '../../navigation';
+import { useHomeTripQuery } from '../../queries';
 
-type TripPlace = Pick<(typeof mockTripInfoItems)[number], 'placeId' | 'placeName'> & {
-  order: number;
-};
-type TripDay = { date: string; places: TripPlace[] };
+const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
 
-const formatDate = (value: Date) => {
-  const month = value.getMonth() + 1;
-  const date = value.getDate();
-  const day = ['일', '월', '화', '수', '목', '금', '토'][value.getDay()];
-  return `${month}.${date} ${day}`;
+const formatDate = (dateString: string) => {
+  const [year, month, date] = dateString.split('-').map(Number);
+  const weekday = weekdays[new Date(year, month - 1, date).getDay()];
+  return `${month}.${date} ${weekday}`;
 };
 
 export const HomeUpcomingTrip = () => {
   const { navigate } = useAppNavigation();
+  const { data: trip, error, isPending, refetch } = useHomeTripQuery();
+  const hasTrip = trip?.tripStatus !== 'NONE' && Boolean(trip?.id && trip.title);
+  const sectionTitle = trip?.tripStatus === 'ONGOING' ? '진행 중인 내 여행' : '다가오는 내 여행';
+  const markerCount =
+    trip?.plan.reduce(
+      (count, day) =>
+        count + day.items.filter((item) => item.lat !== null && item.lng !== null).length,
+      0,
+    ) ?? 0;
 
-  const days = useMemo(() => {
-    return Object.values(
-      mockTripInfoItems.reduce<Record<string, TripDay>>(
-        (groupedDays, place, placeIndex) => {
-          const date = formatDate(place.date);
-          groupedDays[date] ??= {
-            date,
-            places: [],
-          };
-          groupedDays[date].places.push({
-            order: placeIndex + 1,
-            placeId: place.placeId,
-            placeName: place.placeName,
-          });
-
-          return groupedDays;
-        },
-        {},
-      ),
-    );
-  }, []);
+  const openTrip = () => {
+    if (trip?.id) navigate(appRoutes.tripDetail(trip.id));
+  };
 
   return (
     <Section>
       <Header>
-        <Title>다가오는 내 여행{/* 진행중인 내 여행 */}</Title>
-        <MoreButton onPress={() => navigate(appRoutes.tripDetail('test'))}>
-          <IconComponent name="carousel_right" color={colors.gray[400]} />
-        </MoreButton>
+        <Title>{sectionTitle}</Title>
+        {hasTrip ? (
+          <MoreButton
+            accessibilityRole="button"
+            accessibilityLabel={`${trip?.title ?? '여행'} 상세 보기`}
+            onPress={openTrip}
+          >
+            <IconComponent name="carousel_right" color={colors.gray[400]} />
+          </MoreButton>
+        ) : null}
       </Header>
-      <Overview>
-        <TripTitle>강진 감성 힐링 투어</TripTitle>
-        <Map>{/* 카카오 맵 */}</Map>
-      </Overview>
 
-      <Carousel
-        horizontal
-        showsHorizontalScrollIndicator={Platform.OS === 'web'}
-        contentContainerStyle={carouselStyle}
-      >
-        {days.map((day, dayIndex) => (
-          <Day key={day.date}>
-            <DayHeader>
-              <DayLabel>Day {dayIndex + 1}</DayLabel>
-              <DayDate>{day.date}</DayDate>
-            </DayHeader>
-            <List>
-              {day.places.map((place, placeIndex) => (
-                <Item key={`${place.placeId}-${place.order}`}>
-                  <Route>
-                    <Marker>
-                      <Number>{place.order}</Number>
-                    </Marker>
-                    {placeIndex !== day.places.length - 1 && <Line />}
-                  </Route>
-                  <Place>{place.placeName}</Place>
-                </Item>
-              ))}
-            </List>
-          </Day>
-        ))}
-      </Carousel>
+      {isPending ? (
+        <State>
+          <ActivityIndicator color={colors.primary[700]} />
+          <StateText>여행 일정을 불러오고 있어요.</StateText>
+        </State>
+      ) : null}
+
+      {error ? (
+        <State>
+          <StateText>
+            {error instanceof ApiError ? error.message : '여행 일정을 불러오지 못했어요.'}
+          </StateText>
+          <RetryButton accessibilityRole="button" onPress={() => void refetch()}>
+            <RetryText>다시 시도</RetryText>
+          </RetryButton>
+        </State>
+      ) : null}
+
+      {!isPending && !error && !hasTrip ? (
+        <State>
+          <StateText>예정된 여행이 없어요.</StateText>
+        </State>
+      ) : null}
+
+      {!isPending && !error && hasTrip ? (
+        <>
+          <Overview>
+            <TripTitle>{trip?.title}</TripTitle>
+            <Map accessibilityLabel={`좌표가 등록된 여행 장소 ${markerCount}곳의 지도`}>
+              <MapLabel>지도 API 연동 예정</MapLabel>
+            </Map>
+          </Overview>
+
+          <Carousel
+            horizontal
+            showsHorizontalScrollIndicator={Platform.OS === 'web'}
+            contentContainerStyle={carouselStyle}
+          >
+            {trip?.plan.map((day) => (
+              <Day key={`${day.day}-${day.date}`}>
+                <DayHeader>
+                  <DayLabel>Day {day.day}</DayLabel>
+                  <DayDate>{formatDate(day.date)}</DayDate>
+                </DayHeader>
+                <List>
+                  {day.items.length > 0 ? (
+                    day.items.map((place, placeIndex) => (
+                      <Item key={`${day.day}-${placeIndex}-${place.title}`}>
+                        <Route>
+                          <Marker>
+                            <MarkerNumber>{placeIndex + 1}</MarkerNumber>
+                          </Marker>
+                          {placeIndex !== day.items.length - 1 ? <Line /> : null}
+                        </Route>
+                        <Place numberOfLines={2}>{place.title}</Place>
+                      </Item>
+                    ))
+                  ) : (
+                    <EmptyDayText>등록된 장소가 없어요.</EmptyDayText>
+                  )}
+                </List>
+              </Day>
+            ))}
+          </Carousel>
+        </>
+      ) : null}
     </Section>
   );
 };
@@ -123,9 +151,16 @@ const TripTitle = styled.Text({
 const Map = styled.View({
   width: '100%',
   height: 200,
+  alignItems: 'center',
+  justifyContent: 'center',
   backgroundColor: colors.gray[100],
   overflow: 'hidden',
   borderRadius: 16,
+});
+
+const MapLabel = styled.Text({
+  ...typography.caption1.medium,
+  color: colors.gray[500],
 });
 
 const Carousel = styled.ScrollView({
@@ -161,6 +196,7 @@ const DayDate = styled.Text({
 const List = styled.View({});
 
 const Item = styled.View({
+  minHeight: 28,
   flexDirection: 'row',
   gap: 16,
 });
@@ -178,19 +214,52 @@ const Marker = styled.View({
   borderRadius: 9999,
 });
 
-const Number = styled.Text({
+const MarkerNumber = styled.Text({
   ...typography.caption3.medium,
   color: colors.primary[700],
 });
 
 const Line = styled.View({
-  height: '100%',
+  flex: 1,
   width: 1,
+  minHeight: 12,
   backgroundColor: colors.primary[100],
 });
 
 const Place = styled.Text({
+  flex: 1,
   ...typography.body3.medium,
   color: colors.gray[700],
   paddingBottom: 12,
+});
+
+const EmptyDayText = styled.Text({
+  ...typography.caption1.regular,
+  color: colors.gray[500],
+});
+
+const State = styled.View({
+  minHeight: 160,
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingHorizontal: 20,
+  gap: 12,
+});
+
+const StateText = styled.Text({
+  ...typography.body2.regular,
+  color: colors.gray[600],
+  textAlign: 'center',
+});
+
+const RetryButton = styled.Pressable({
+  paddingHorizontal: 16,
+  paddingVertical: 9,
+  borderRadius: 9999,
+  backgroundColor: colors.primary[50],
+});
+
+const RetryText = styled.Text({
+  ...typography.body2.medium,
+  color: colors.primary[700],
 });

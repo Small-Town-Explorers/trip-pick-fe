@@ -91,6 +91,27 @@ export type MyCourseDetail = {
   course: GeneratedCourseResponse;
 };
 
+export type HomeTripStatus = 'UPCOMING' | 'ONGOING' | 'NONE';
+
+export type HomeTripItem = {
+  title: string;
+  lat: number | null;
+  lng: number | null;
+};
+
+export type HomeTripDay = {
+  day: number;
+  date: string;
+  items: HomeTripItem[];
+};
+
+export type HomeTrip = {
+  id: string | null;
+  title: string | null;
+  tripStatus: HomeTripStatus;
+  plan: HomeTripDay[];
+};
+
 export type AddCourseItemRequest = {
   course: GeneratedCourseResponse;
   place: PlaceSearchItem;
@@ -161,4 +182,8 @@ export function getMyCourses(folderId?: string) {
 
 export function getMyCourseDetail(courseId: string) {
   return apiRequest<MyCourseDetail>(`/api/v1/my/courses/${encodeURIComponent(courseId)}`);
+}
+
+export function getHomeTrip() {
+  return apiRequest<HomeTrip>('/api/v1/my/courses/home');
 }

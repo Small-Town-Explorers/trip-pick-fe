@@ -19,6 +19,7 @@ import {
   useSmallCitiesQuery,
 } from '../../queries';
 import type { GenerateCourseRequest, SmallCity } from '../../controllers';
+import { CourseCreateDensity } from './Density';
 
 export function CourseCreateScreen() {
   const { replace } = useAppNavigation();
@@ -29,6 +30,7 @@ export function CourseCreateScreen() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [region, setRegion] = useState('');
   const [selectedCity, setSelectedCity] = useState<SmallCity>();
+  const [density, setDensity] = useState('');
   const [styles, setStyles] = useState<string[]>([]);
   const [companion, setCompanion] = useState('');
   const [period, setPeriod] = useState<CalendarRange>({});
@@ -121,11 +123,18 @@ export function CourseCreateScreen() {
           setRegion(city.name);
         }}
       />
+      <CourseCreateDensity value={density} onChange={setDensity} />
       <CourseCreateTravelStyle value={styles} onChange={setStyles} />
-      <CourseCreateCompanion value={companion} onChange={setCompanion} />
+      <CourseCreateCompanion
+        value={companion}
+        onChange={(value) => setCompanion((prev) => (prev === value ? '' : value))}
+      />
       <CourseCreateTravelPeriod value={period} onChange={setPeriod} />
       <Action>
-        <CourseCreateButton onPress={() => setIsConfirmModalVisible(true)}>
+        <CourseCreateButton
+          disabled={!Boolean(selectedCity?.name ?? region)}
+          onPress={() => setIsConfirmModalVisible(true)}
+        >
           위 조건으로 여행 코스 만들기
         </CourseCreateButton>
       </Action>
@@ -133,6 +142,7 @@ export function CourseCreateScreen() {
       <CourseCreateConfirm
         visible={isConfirmModalVisible}
         region={region}
+        density={density}
         styles={styles}
         companion={companion}
         period={period}
