@@ -6,6 +6,7 @@ import { colors, typography } from '@styles';
 interface CourseCreateConfirmProps {
   visible: boolean;
   region: string;
+  density: string;
   styles: string[];
   companion: string;
   period: CalendarRange;
@@ -30,6 +31,7 @@ const formatPeriod = ({ startDate, endDate }: CalendarRange) => {
 export function CourseCreateConfirm({
   visible,
   region,
+  density,
   styles,
   companion,
   period,
@@ -47,15 +49,26 @@ export function CourseCreateConfirm({
         <SummaryLine>
           지역 : <Highlight>{region || '선택 안 함'}</Highlight>
         </SummaryLine>
-        <SummaryLine>
-          여행 스타일 : <Highlight>{styles.join(', ') || '선택 안 함'}</Highlight>
-        </SummaryLine>
-        <SummaryLine>
-          동행 인원 : <Highlight>{companion || '선택 안 함'}</Highlight>
-        </SummaryLine>
-        <SummaryLine>
-          여행 기간 : <Highlight>{formatPeriod(period) || '선택 안 함'}</Highlight>
-        </SummaryLine>
+        {density ? (
+          <SummaryLine>
+            코스 밀도 : <Highlight>{density || '선택 안 함'}</Highlight>
+          </SummaryLine>
+        ) : null}
+        {styles.length > 0 ? (
+          <SummaryLine>
+            여행 스타일 : <Highlight>{styles.join(', ') || '선택 안 함'}</Highlight>
+          </SummaryLine>
+        ) : null}
+        {companion ? (
+          <SummaryLine>
+            동행 인원 : <Highlight>{companion || '선택 안 함'}</Highlight>
+          </SummaryLine>
+        ) : null}
+        {period.startDate ? (
+          <SummaryLine>
+            여행 기간 : <Highlight>{formatPeriod(period) || '선택 안 함'}</Highlight>
+          </SummaryLine>
+        ) : null}
       </Summary>
     </ConfirmModal>
   );

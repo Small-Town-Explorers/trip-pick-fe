@@ -25,10 +25,12 @@ export { useInfinitePlaceSearchQuery } from './useInfinitePlaceSearchQuery';
 export { useAddCourseItemMutation } from './useAddCourseItemMutation';
 export { useEditCourseWithChatMutation } from './useEditCourseWithChatMutation';
 export {
+  homeTripQueryKey,
   myCourseDetailQueryKey,
   myCoursesQueryKey,
   useMyCourseDetailQuery,
   useMyCoursesQuery,
+  useHomeTripQuery,
   useSaveMyCourseMutation,
 } from './useMyCourses';
 export {

@@ -1,7 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getMyCourseDetail, getMyCourses, saveMyCourse, type MyCourseDetail } from '../controllers';
+import {
+  getHomeTrip,
+  getMyCourseDetail,
+  getMyCourses,
+  saveMyCourse,
+  type MyCourseDetail,
+} from '../controllers';
 
 const myCourseListsQueryKey = ['my-courses', 'list'] as const;
+export const homeTripQueryKey = ['my-courses', 'home'] as const;
 
 export const myCoursesQueryKey = (folderId?: string) =>
   [...myCourseListsQueryKey, folderId ?? 'all'] as const;
@@ -24,6 +31,14 @@ export function useMyCourseDetailQuery(courseId: string, enabled = true) {
   });
 }
 
+export function useHomeTripQuery() {
+  return useQuery({
+    queryKey: homeTripQueryKey,
+    queryFn: getHomeTrip,
+    staleTime: 60_000,
+  });
+}
+
 export function useSaveMyCourseMutation() {
   const queryClient = useQueryClient();
 
@@ -32,6 +47,7 @@ export function useSaveMyCourseMutation() {
     onSuccess: (savedCourse) => {
       queryClient.setQueryData<MyCourseDetail>(myCourseDetailQueryKey(savedCourse.id), savedCourse);
       void queryClient.invalidateQueries({ queryKey: myCourseListsQueryKey });
+      void queryClient.invalidateQueries({ queryKey: homeTripQueryKey });
     },
   });
 }

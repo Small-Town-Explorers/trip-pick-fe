@@ -32,7 +32,7 @@ export function CourseCreateTravelPeriod({ value, onChange }: CourseCreateTravel
         <TitleText>여행 기간</TitleText>
         <TitleSub>{periodText}</TitleSub>
       </Title>
-      <Calendar value={value} onChange={onChange} initialMonth={new Date(2026, 8, 1)} />
+      <Calendar value={value} onChange={onChange} />
     </Section>
   );
 }
