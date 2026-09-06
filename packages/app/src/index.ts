@@ -1,3 +1,4 @@
+export { KakaoMap, type KakaoMapCoordinate, type KakaoMapProps } from './components/KakaoMap';
 export {
   colors,
   fontFamilies,

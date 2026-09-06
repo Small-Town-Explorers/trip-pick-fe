@@ -386,7 +386,7 @@ function CourseResultContent({
             </ShareButton>
           ) : null}
         </Header>
-        <CourseResultMap />
+        <CourseResultMap places={places} />
         <CourseResultRoutine
           editing={isEditing}
           title={title}
