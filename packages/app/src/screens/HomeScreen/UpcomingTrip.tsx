@@ -1,4 +1,6 @@
 import { IconComponent } from '@components/Icons';
+import { KakaoMap } from '@components/KakaoMap';
+import { useMemo } from 'react';
 import styled from '@emotion/native';
 import { colors, typography } from '@styles';
 import { ActivityIndicator, Platform } from 'react-native';
@@ -29,6 +31,12 @@ export const HomeUpcomingTrip = () => {
   const openTrip = () => {
     if (trip?.id) navigate(appRoutes.tripDetail(trip.id));
   };
+
+  const days = useMemo(() => [...(trip?.plan ?? [])].sort((a, b) => a.day - b.day), [trip?.plan]);
+  const coordinates = useMemo(
+    () => days.map(({ items }) => items.map(({ lat, lng }) => ({ lat, lng }))),
+    [days],
+  );
 
   return (
     <Section>
@@ -74,7 +82,11 @@ export const HomeUpcomingTrip = () => {
           <Overview>
             <TripTitle>{trip?.title}</TripTitle>
             <Map accessibilityLabel={`좌표가 등록된 여행 장소 ${markerCount}곳의 지도`}>
-              <MapLabel>지도 API 연동 예정</MapLabel>
+              {Platform.OS === 'web' ? (
+                <KakaoMap coordinates={coordinates} height={200} />
+              ) : (
+                <MapLabel>여행 코스 지도</MapLabel>
+              )}
             </Map>
           </Overview>
 
@@ -83,7 +95,7 @@ export const HomeUpcomingTrip = () => {
             showsHorizontalScrollIndicator={Platform.OS === 'web'}
             contentContainerStyle={carouselStyle}
           >
-            {trip?.plan.map((day) => (
+            {days.map((day, dayIndex) => (
               <Day key={`${day.day}-${day.date}`}>
                 <DayHeader>
                   <DayLabel>Day {day.day}</DayLabel>
@@ -95,7 +107,13 @@ export const HomeUpcomingTrip = () => {
                       <Item key={`${day.day}-${placeIndex}-${place.title}`}>
                         <Route>
                           <Marker>
-                            <MarkerNumber>{placeIndex + 1}</MarkerNumber>
+                            <MarkerNumber>
+                              {days
+                                .slice(0, dayIndex)
+                                .reduce((total, previous) => total + previous.items.length, 0) +
+                                placeIndex +
+                                1}
+                            </MarkerNumber>
                           </Marker>
                           {placeIndex !== day.items.length - 1 ? <Line /> : null}
                         </Route>

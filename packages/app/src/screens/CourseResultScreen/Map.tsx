@@ -1,5 +1,9 @@
 import styled from '@emotion/native';
+import { KakaoMap } from '@components/KakaoMap';
+import { useMemo } from 'react';
+import { Platform } from 'react-native';
 import { colors, typography } from '@styles';
+import type { CoursePlaces } from './Routine';
 
 const markers = [
   { number: 1, top: 20, left: 169 },
@@ -11,7 +15,16 @@ const markers = [
   { number: 7, top: 42, left: 316 },
 ];
 
-export function CourseResultMap() {
+export function CourseResultMap({ places }: { places: CoursePlaces }) {
+  const coordinates = useMemo(
+    () => places.map((day) => day.map(({ lat, lng }) => ({ lat, lng }))),
+    [places],
+  );
+
+  if (Platform.OS === 'web') {
+    return <KakaoMap coordinates={coordinates} height={240} />;
+  }
+
   return (
     <Map accessibilityLabel="여행 코스 지도 API 연동 예정">
       <MapLabel>지도 API 연동 예정</MapLabel>
