@@ -11,11 +11,16 @@ interface MapInstance {
   setBounds(bounds: Bounds, top: number, right: number, bottom: number, left: number): void;
   setCenter(point: LatLng): void;
   setLevel(level: number): void;
+  setCopyrightPosition(position: number, reversed?: boolean): void;
 }
 interface Overlay {
   setMap(map: MapInstance | null): void;
 }
 export interface KakaoMaps {
+  CopyrightPosition: {
+    BOTTOMLEFT: number;
+    BOTTOMRIGHT: number;
+  };
   load(callback: () => void): void;
   LatLng: new (lat: number, lng: number) => LatLng;
   LatLngBounds: new () => Bounds;

@@ -59,6 +59,7 @@ export function KakaoMap({ coordinates, height = 240, style }: KakaoMapProps) {
       try {
         const path = locations.map(({ lat, lng }) => new maps.LatLng(lat, lng));
         const map = new maps.Map(container, { center: path[0], level: 3 });
+        map.setCopyrightPosition(maps.CopyrightPosition.BOTTOMRIGHT, true);
         const markers = path.map((position, index) => {
           const place = locations[index];
           const color = getDayColor(place.dayIndex);
