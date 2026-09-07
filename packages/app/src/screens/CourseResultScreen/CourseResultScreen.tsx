@@ -11,6 +11,7 @@ import { CourseResultChatModal } from './ChatModal';
 import { CourseResultDirectPlaceModal } from './DirectPlaceModal';
 import { CourseResultMap } from './Map';
 import { CourseResultRegenerateModal } from './RegenerateModal';
+import { CourseResultEditRoutine } from './EditRoutine';
 import { CourseResultRoutine, createCoursePlacesFromResponse, type CoursePlaces } from './Routine';
 import { CourseResultScheduleModal } from './ScheduleModal';
 import { CourseResultShareModal } from './ShareModal';
@@ -95,22 +96,29 @@ const applyEditedPlacesToCourse = (
   course: GeneratedCourseResponse,
   places: CoursePlaces,
   period: CalendarRange,
-): GeneratedCourseResponse => ({
-  ...course,
-  startDate: period.startDate ?? course.startDate,
-  endDate: period.endDate ?? course.endDate,
-  plan: course.plan.map((dayPlan, dayIndex) => {
-    const itemsByUid = new Map(
-      dayPlan.items.map((item) => [getGeneratedItemId(dayPlan.day, item), item]),
-    );
-    const items = (places[dayIndex] ?? []).flatMap((place, index) => {
-      const item = itemsByUid.get(place.uid);
-      return item ? [{ ...item, order: index + 1 }] : [];
-    });
+): GeneratedCourseResponse => {
+  // UIDs retain the original day when a place moves. Resolve against the entire
+  // source course so cross-day moves keep all original item metadata.
+  const itemsByUid = new Map(
+    course.plan.flatMap((dayPlan) =>
+      dayPlan.items.map((item) => [getGeneratedItemId(dayPlan.day, item), item] as const),
+    ),
+  );
 
-    return { ...dayPlan, items };
-  }),
-});
+  return {
+    ...course,
+    startDate: period.startDate ?? course.startDate,
+    endDate: period.endDate ?? course.endDate,
+    plan: course.plan.map((dayPlan, dayIndex) => {
+      const items = (places[dayIndex] ?? []).flatMap((place, index) => {
+        const item = itemsByUid.get(place.uid);
+        return item ? [{ ...item, order: index + 1 }] : [];
+      });
+
+      return { ...dayPlan, items };
+    }),
+  };
+};
 
 export function CourseResultScreen({
   courseId,
@@ -444,15 +452,24 @@ function CourseResultContent({
           ) : null}
         </Header>
         <CourseResultMap places={places} />
-        <CourseResultRoutine
-          editing={isEditing}
-          title={title}
-          period={period}
-          places={places}
-          onPlacesChange={setPlaces}
-          onTitleChange={setTitle}
-          onSchedulePress={() => setIsScheduleVisible(true)}
-        />
+        {isEditing ? (
+          <CourseResultEditRoutine
+            title={title}
+            period={period}
+            places={places}
+            onPlacesChange={setPlaces}
+            onTitleChange={setTitle}
+            onSchedulePress={() => setIsScheduleVisible(true)}
+          />
+        ) : (
+          <CourseResultRoutine
+            title={title}
+            period={period}
+            places={places}
+            onTitleChange={setTitle}
+            onSchedulePress={() => setIsScheduleVisible(true)}
+          />
+        )}
       </Scroll>
       {isEditing ? (
         <CourseResultEditActions
