@@ -45,8 +45,6 @@ export async function loginWithKakaoCode(
   const body = (await response.json().catch(() => null)) as
     KakaoLoginResponse | ApiErrorBody | null;
 
-  console.log(body);
-
   if (!response.ok) {
     const error = body as ApiErrorBody | null;
     throw new ApiError(
