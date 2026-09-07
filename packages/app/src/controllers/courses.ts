@@ -205,6 +205,14 @@ export function getMyCourseDetail(courseId: string) {
   return apiRequest<MyCourseDetail>(`/api/v1/my/courses/${encodeURIComponent(courseId)}`);
 }
 
+export function deleteMyCourse(courseId: string) {
+  return apiRequest<void>(
+    `/api/v1/my/courses/${encodeURIComponent(courseId)}`,
+    { method: 'DELETE' },
+    { allowEmptyResponse: true },
+  );
+}
+
 export function getHomeTrip() {
   return apiRequest<HomeTrip>('/api/v1/my/courses/home');
 }

@@ -28,7 +28,9 @@ export { useEditCourseWithChatMutation } from './useEditCourseWithChatMutation';
 export {
   homeTripQueryKey,
   myCourseDetailQueryKey,
+  myCourseListsQueryKey,
   myCoursesQueryKey,
+  useDeleteMyCourseMutation,
   useMyCourseDetailQuery,
   useMyCoursesQuery,
   useHomeTripQuery,

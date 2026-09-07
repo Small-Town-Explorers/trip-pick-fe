@@ -8,6 +8,7 @@ export {
 export {
   addCourseItem,
   addManualCourseItem,
+  deleteMyCourse,
   editCourseWithChat,
   generateCourse,
   generateCourseByName,
