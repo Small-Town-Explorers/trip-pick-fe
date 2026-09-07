@@ -71,7 +71,7 @@ export const HomeUpcomingTrip = () => {
         </State>
       ) : null}
 
-      {!isPending && !error && hasTrip ? (
+      {!isPending && !error && !hasTrip ? (
         <NoTrip>
           <IconComponent name="luggage" color={colors.primary[500]} size={28} />
           <NoTripText>예정되거나 진행 중인 여행이 없어요.</NoTripText>

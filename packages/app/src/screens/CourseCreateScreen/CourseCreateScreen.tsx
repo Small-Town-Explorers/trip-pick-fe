@@ -80,6 +80,7 @@ export function CourseCreateScreen() {
       ...(terrains.length ? { terrains } : {}),
       ...(days ? { days } : {}),
       ...(period.startDate ? { startDate: period.startDate } : {}),
+      ...(density ? { pace: density } : {}),
     };
     const sequence = ++requestSequence.current;
     setIsGenerating(true);
