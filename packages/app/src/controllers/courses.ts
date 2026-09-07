@@ -123,6 +123,19 @@ export type AddCourseItemResponse = {
   warnings: string[];
 };
 
+export type ManualCourseItem = {
+  name: string;
+  memo?: string;
+  address?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+};
+
+export type AddManualCourseItemRequest = {
+  course: GeneratedCourseResponse;
+  place: ManualCourseItem;
+};
+
 export type EditCourseWithChatRequest = {
   message: string;
   course: GeneratedCourseResponse;
@@ -153,6 +166,14 @@ export function generateCourseByName(request: GenerateCourseByNameRequest) {
 
 export function addCourseItem(request: AddCourseItemRequest) {
   return apiRequest<AddCourseItemResponse>('/api/v1/courses/items', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+}
+
+export function addManualCourseItem(request: AddManualCourseItemRequest) {
+  return apiRequest<AddCourseItemResponse>('/api/v1/courses/items/manual', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(request),

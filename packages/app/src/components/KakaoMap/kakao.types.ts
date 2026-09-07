@@ -6,7 +6,7 @@ interface LatLng {
 interface Bounds {
   extend(point: LatLng): void;
 }
-interface MapInstance {
+export interface MapInstance {
   relayout(): void;
   setBounds(bounds: Bounds, top: number, right: number, bottom: number, left: number): void;
   setCenter(point: LatLng): void;
@@ -15,6 +15,32 @@ interface MapInstance {
 }
 interface Overlay {
   setMap(map: MapInstance | null): void;
+}
+export interface Marker extends Overlay {
+  setPosition(position: LatLng): void;
+}
+interface MapMouseEvent {
+  latLng: LatLng;
+}
+interface AddressSearchResult {
+  x: string;
+  y: string;
+  address_name: string;
+}
+interface CoordinateAddressResult {
+  address: { address_name: string } | null;
+  road_address: { address_name: string } | null;
+}
+export interface Geocoder {
+  addressSearch(
+    address: string,
+    callback: (result: AddressSearchResult[], status: string) => void,
+  ): void;
+  coord2Address(
+    lng: number,
+    lat: number,
+    callback: (result: CoordinateAddressResult[], status: string) => void,
+  ): void;
 }
 export interface KakaoMaps {
   CopyrightPosition: {
@@ -25,6 +51,7 @@ export interface KakaoMaps {
   LatLng: new (lat: number, lng: number) => LatLng;
   LatLngBounds: new () => Bounds;
   Map: new (container: HTMLElement, options: { center: LatLng; level: number }) => MapInstance;
+  Marker: new (options: { map: MapInstance; position: LatLng }) => Marker;
   CustomOverlay: new (options: {
     map: MapInstance;
     position: LatLng;
@@ -41,4 +68,16 @@ export interface KakaoMaps {
     strokeOpacity: number;
     strokeStyle: string;
   }) => Overlay;
+  event: {
+    addListener(target: MapInstance, type: 'click', handler: (event: MapMouseEvent) => void): void;
+    removeListener(
+      target: MapInstance,
+      type: 'click',
+      handler: (event: MapMouseEvent) => void,
+    ): void;
+  };
+  services: {
+    Status: { OK: string };
+    Geocoder: new () => Geocoder;
+  };
 }

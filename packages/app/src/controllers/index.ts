@@ -7,6 +7,7 @@ export {
 } from './apiClient';
 export {
   addCourseItem,
+  addManualCourseItem,
   editCourseWithChat,
   generateCourse,
   generateCourseByName,
@@ -16,6 +17,7 @@ export {
   saveMyCourse,
   type AddCourseItemRequest,
   type AddCourseItemResponse,
+  type AddManualCourseItemRequest,
   type EditCourseWithChatRequest,
   type EditCourseWithChatResponse,
   type GenerateCourseByNameRequest,
@@ -29,6 +31,7 @@ export {
   type HomeTripStatus,
   type MyCourseDetail,
   type MyCourseSummary,
+  type ManualCourseItem,
   type SaveMyCourseRequest,
 } from './courses';
 export {

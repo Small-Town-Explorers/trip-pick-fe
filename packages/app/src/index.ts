@@ -1,4 +1,12 @@
-export { KakaoMap, type KakaoMapCoordinate, type KakaoMapProps } from './components/KakaoMap';
+export {
+  KakaoLocationPickerMap,
+  KakaoRouteMap,
+  type KakaoLocationPickerMapProps,
+  type KakaoMapAddressSearchRequest,
+  type KakaoMapCoordinate,
+  type KakaoMapLocation,
+  type KakaoRouteMapProps,
+} from './components/KakaoMap';
 export {
   colors,
   fontFamilies,

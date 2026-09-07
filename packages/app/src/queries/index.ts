@@ -23,6 +23,7 @@ export {
 } from './useNoticesQuery';
 export { useInfinitePlaceSearchQuery } from './useInfinitePlaceSearchQuery';
 export { useAddCourseItemMutation } from './useAddCourseItemMutation';
+export { useAddManualCourseItemMutation } from './useAddManualCourseItemMutation';
 export { useEditCourseWithChatMutation } from './useEditCourseWithChatMutation';
 export {
   homeTripQueryKey,

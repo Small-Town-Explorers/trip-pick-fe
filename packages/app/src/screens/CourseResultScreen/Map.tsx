@@ -1,5 +1,5 @@
 import styled from '@emotion/native';
-import { KakaoMap } from '@components/KakaoMap';
+import { KakaoRouteMap } from '@components/KakaoMap';
 import { useMemo } from 'react';
 import { Platform } from 'react-native';
 import { colors, typography } from '@styles';
@@ -22,7 +22,7 @@ export function CourseResultMap({ places }: { places: CoursePlaces }) {
   );
 
   if (Platform.OS === 'web') {
-    return <KakaoMap coordinates={coordinates} height={240} />;
+    return <KakaoRouteMap coordinates={coordinates} height={240} />;
   }
 
   return (

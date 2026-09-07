@@ -1,5 +1,5 @@
 import { IconComponent } from '@components/Icons';
-import { KakaoMap } from '@components/KakaoMap';
+import { KakaoRouteMap } from '@components/KakaoMap';
 import { useMemo } from 'react';
 import styled from '@emotion/native';
 import { colors, typography } from '@styles';
@@ -87,7 +87,7 @@ export const HomeUpcomingTrip = () => {
             <TripTitle>{trip?.title}</TripTitle>
             <Map accessibilityLabel={`좌표가 등록된 여행 장소 ${markerCount}곳의 지도`}>
               {Platform.OS === 'web' ? (
-                <KakaoMap coordinates={coordinates} height={200} />
+                <KakaoRouteMap coordinates={coordinates} height={200} />
               ) : (
                 <MapLabel>여행 코스 지도</MapLabel>
               )}

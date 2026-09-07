@@ -24,12 +24,14 @@ import {
   ApiError,
   type GeneratedCourseItem,
   type GeneratedCourseResponse,
+  type ManualCourseItem,
   type PlaceSearchItem,
 } from '../../controllers';
 import {
   generatedCourseQueryKey,
   storeGeneratedCourse,
   useAddCourseItemMutation,
+  useAddManualCourseItemMutation,
   useEditCourseWithChatMutation,
   useGenerateCourseByNameMutation,
   useMyCourseDetailQuery,
@@ -182,6 +184,7 @@ function CourseResultContent({
   const [course, setCourse] = useState(initialCourse);
   const regenerateMutation = useGenerateCourseByNameMutation();
   const addCourseItemMutation = useAddCourseItemMutation();
+  const addManualCourseItemMutation = useAddManualCourseItemMutation();
   const editCourseWithChatMutation = useEditCourseWithChatMutation();
   const saveMyCourseMutation = useSaveMyCourseMutation();
   const regenerationSequence = useRef(0);
@@ -257,6 +260,41 @@ function CourseResultContent({
         error instanceof ApiError
           ? error.message
           : '장소를 코스에 추가하지 못했어요. 잠시 후 다시 시도해 주세요.',
+      );
+      return false;
+    } finally {
+      setIsAddingPlace(false);
+    }
+  };
+
+  const addManualPlace = async (place: ManualCourseItem) => {
+    setPlaceAddError('');
+
+    if (!course) {
+      setPlaceAddError('기존 코스 정보를 찾을 수 없어 장소를 추가할 수 없어요.');
+      return false;
+    }
+
+    setIsAddingPlace(true);
+    try {
+      const response = await addManualCourseItemMutation.mutateAsync({
+        course: applyEditedPlacesToCourse(course, places, period),
+        place,
+      });
+      const nextCourse = {
+        ...response.course,
+        startDate: period.startDate ?? response.course.startDate,
+        endDate: period.endDate ?? response.course.endDate,
+      };
+      storeGeneratedCourse(queryClient, courseId, nextCourse);
+      setCourse(nextCourse);
+      setPlaces(createCoursePlacesFromResponse(nextCourse));
+      return true;
+    } catch (error) {
+      setPlaceAddError(
+        error instanceof ApiError
+          ? error.message
+          : '직접 입력한 장소를 추가하지 못했어요. 잠시 후 다시 시도해 주세요.',
       );
       return false;
     } finally {
@@ -439,7 +477,8 @@ function CourseResultContent({
         visible={isDirectPlaceVisible}
         isAdding={isAddingPlace}
         addError={placeAddError}
-        onAdd={(place) => addPlaces([place])}
+        initialMapAddress={`${course.region.province} ${course.region.name}`.trim()}
+        onAdd={addManualPlace}
         onClose={closeModals}
       />
       <CourseResultScheduleModal
