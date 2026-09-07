@@ -17,6 +17,7 @@ export type AppRoute =
   | `/course-result/${string}`
   | '/my-trips'
   | `/my-trips/${string}`
+  | `/my-page/notices/${string}`
   | '/my-page'
   | `/my-page/${MyPageSection}`;
 
@@ -31,6 +32,7 @@ export const appRoutes = {
   myTrips: '/my-trips' as const,
   myTripFolder: (id: string) => `/my-trips/${encodeURIComponent(id)}` as const,
   myPage: '/my-page' as const,
+  myPageNoticeDetail: (id: string) => `/my-page/notices/${encodeURIComponent(id)}` as const,
   myPageSection: (section: MyPageSection) => `/my-page/${section}` as const,
 };
 

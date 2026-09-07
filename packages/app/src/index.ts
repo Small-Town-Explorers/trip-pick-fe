@@ -73,6 +73,7 @@ export {
   MyPageFaqScreen,
   MyPageLocationScreen,
   MyPageNoticesScreen,
+  MyPageNoticeDetailScreen,
   MyPageNotificationsScreen,
   MyPagePrivacyScreen,
   MyPageScreen,

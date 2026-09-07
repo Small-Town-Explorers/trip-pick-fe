@@ -7,3 +7,4 @@ export * from './Notices/Screen';
 export * from './Faq/Screen';
 export * from './Terms/Screen';
 export * from './Privacy/Screen';
+export * from './Notices/Detail/Screen';
