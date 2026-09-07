@@ -33,6 +33,7 @@ import {
   CancelIcon_24,
   DeleteIcon_20,
   DonutMenuIcon_20,
+  LuggageIcon_28,
 } from './Icons.registry';
 
 type IconComponent = React.ComponentType<{
@@ -77,7 +78,8 @@ export type IconName =
   | 'search'
   | 'cancel'
   | 'delete'
-  | 'donut_menu';
+  | 'donut_menu'
+  | 'luggage';
 
 export const icons: Record<
   IconName,
@@ -288,6 +290,12 @@ export const icons: Record<
     label: 'Donut Menu',
     sizes: {
       '20': DonutMenuIcon_20,
+    },
+  },
+  luggage: {
+    label: 'Luggage',
+    sizes: {
+      '28': LuggageIcon_28,
     },
   },
 } as const;

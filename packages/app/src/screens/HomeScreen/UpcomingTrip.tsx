@@ -71,10 +71,14 @@ export const HomeUpcomingTrip = () => {
         </State>
       ) : null}
 
-      {!isPending && !error && !hasTrip ? (
-        <State>
-          <StateText>예정된 여행이 없어요.</StateText>
-        </State>
+      {!isPending && !error && hasTrip ? (
+        <NoTrip>
+          <IconComponent name="luggage" color={colors.primary[500]} size={28} />
+          <NoTripText>예정되거나 진행 중인 여행이 없어요.</NoTripText>
+          <NoTripSubText>
+            {'나에게 꼭맞는 소도시 코스를 추천 받고,\n새로운 여행을 즐겨보세요!'}
+          </NoTripSubText>
+        </NoTrip>
       ) : null}
 
       {!isPending && !error && hasTrip ? (
@@ -132,6 +136,26 @@ export const HomeUpcomingTrip = () => {
     </Section>
   );
 };
+
+const NoTrip = styled.View({
+  alignItems: 'center',
+  gap: 12,
+  paddingVertical: 32,
+  backgroundColor: colors.gray[25],
+  marginHorizontal: 20,
+  borderRadius: 16,
+});
+
+const NoTripText = styled.Text({
+  ...typography.body2.medium,
+  color: colors.gray[700],
+});
+
+const NoTripSubText = styled.Text({
+  textAlign: 'center',
+  ...typography.body3.regular,
+  color: colors.gray[500],
+});
 
 const Section = styled.View({
   width: '100%',
