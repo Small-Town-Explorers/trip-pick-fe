@@ -247,7 +247,7 @@ export function CourseResultRoutine({
             <DateText>{formatDate(date)}</DateText>
             {dayIndex === 0 ? (
               <ScheduleButton accessibilityRole="button" onPress={onSchedulePress}>
-                <ScheduleLabel>날짜 변경</ScheduleLabel>
+                <ScheduleLabel>일정 변경</ScheduleLabel>
               </ScheduleButton>
             ) : null}
           </DateRow>

@@ -44,7 +44,7 @@ export const MyPageMenus = () => {
   const updateNotifications = useUpdateNotificationSettingsMutation();
   const providerLabel = account?.provider === 'KAKAO' ? '카카오 로그인됨' : '로그인 정보 확인 중';
   const [locationPermissionStatus, setLocationPermissionStatus] = useState<boolean>(
-    Boolean(localStorage.getItem('locationPermissionStatus')),
+    Boolean(localStorage.getItem('locationPermissionStatus') === 'true'),
   );
 
   return menus.map((menu, menuIdx) => (
