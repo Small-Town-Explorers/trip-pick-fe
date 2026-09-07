@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
-import type { KakaoMapProps } from './KakaoMap.types';
+import type { KakaoRouteMapProps } from './KakaoMap.types';
 import type { KakaoMaps } from './kakao.types';
 
 const getDayColor = (dayIndex: number) => (dayIndex % 2 === 0 ? '#155744' : '#349653');
 
-/** 웹 전용: index.html에서 로드한 카카오 SDK를 사용합니다. */
-export function KakaoMap({ coordinates, height = 240, style }: KakaoMapProps) {
+/** 날짜별 장소와 이동 경로를 표시하는 웹 전용 카카오 지도입니다. */
+export function KakaoRouteMap({ coordinates, height = 240, style }: KakaoRouteMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const statusRef = useRef<HTMLDivElement>(null);
 
@@ -17,6 +17,7 @@ export function KakaoMap({ coordinates, height = 240, style }: KakaoMapProps) {
       statusRef.current.style.display = message ? 'grid' : 'none';
     };
     if (!container) return;
+
     const locations = coordinates
       .flatMap((day, dayIndex) => day.map((point) => ({ ...point, dayIndex })))
       .map((point, index) => ({ ...point, index: index + 1 }))
@@ -40,12 +41,14 @@ export function KakaoMap({ coordinates, height = 240, style }: KakaoMapProps) {
       setStatus('올바른 위도·경도를 입력해주세요.');
       return;
     }
+
     const maps = (window as Window & { kakao?: { maps: KakaoMaps } }).kakao?.maps;
     const failure = '지도를 불러오지 못했습니다. JavaScript 키와 등록 도메인을 확인해주세요.';
     if (!maps) {
       setStatus(failure);
       return;
     }
+
     let cancelled = false;
     let dispose = () => {};
     setStatus('지도를 불러오는 중입니다.');
@@ -53,6 +56,7 @@ export function KakaoMap({ coordinates, height = 240, style }: KakaoMapProps) {
       cancelled = true;
       setStatus(failure);
     }, 15000);
+
     maps.load(() => {
       if (cancelled) return;
       window.clearTimeout(timeout);
@@ -103,6 +107,7 @@ export function KakaoMap({ coordinates, height = 240, style }: KakaoMapProps) {
             zIndex: 1,
           });
         });
+
         // 날짜 경계를 잇는 구간은 출발 장소의 날짜 색상을 사용합니다.
         const lines = path.slice(0, -1).map(
           (position, index) =>
@@ -143,6 +148,7 @@ export function KakaoMap({ coordinates, height = 240, style }: KakaoMapProps) {
         setStatus(failure);
       }
     });
+
     return () => {
       cancelled = true;
       window.clearTimeout(timeout);

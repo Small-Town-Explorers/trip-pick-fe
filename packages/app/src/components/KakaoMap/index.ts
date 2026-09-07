@@ -1,2 +1,9 @@
-export { KakaoMap } from './KakaoMap';
-export type { KakaoMapCoordinate, KakaoMapProps } from './KakaoMap.types';
+export { KakaoLocationPickerMap } from './KakaoLocationPickerMap';
+export { KakaoRouteMap } from './KakaoRouteMap';
+export type {
+  KakaoLocationPickerMapProps,
+  KakaoMapAddressSearchRequest,
+  KakaoMapCoordinate,
+  KakaoMapLocation,
+  KakaoRouteMapProps,
+} from './KakaoMap.types';

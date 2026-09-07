@@ -1,7 +1,10 @@
 import Landscape1 from '@assets/images/mock/landscape/landscape1.png';
 import Landscape2 from '@assets/images/mock/landscape/landscape2.png';
 import { CourseCreateButton } from '@components/Buttons';
+import { DeleteActionButton } from '@components/DeleteActionButton';
 import { Header } from '@components/Header';
+import { IconComponent } from '@components/Icons';
+import { ConfirmModal } from '@components/Modal';
 import styled from '@emotion/native';
 import { colors, shadows, typography } from '@styles';
 import { useQueryClient } from '@tanstack/react-query';
@@ -9,7 +12,12 @@ import { useState } from 'react';
 import { ActivityIndicator, type ImageSourcePropType } from 'react-native';
 import { ApiError, getMyCourseDetail, type MyCourseSummary } from '../../controllers';
 import { appRoutes, useAppNavigation } from '../../navigation';
-import { myCourseDetailQueryKey, useFoldersQuery, useMyCoursesQuery } from '../../queries';
+import {
+  myCourseDetailQueryKey,
+  useDeleteMyCourseMutation,
+  useFoldersQuery,
+  useMyCoursesQuery,
+} from '../../queries';
 
 interface MyTripFolderScreenProps {
   folderId: string;
@@ -43,8 +51,12 @@ export function MyTripFolderScreen({ folderId }: MyTripFolderScreenProps) {
   const queryClient = useQueryClient();
   const { data: folders = [] } = useFoldersQuery();
   const { data: courses = [], error, isPending, refetch } = useMyCoursesQuery(folderId);
+  const deleteCourseMutation = useDeleteMyCourseMutation();
   const [openingCourseId, setOpeningCourseId] = useState<string>();
+  const [openedMenuId, setOpenedMenuId] = useState<string>();
+  const [deleteTarget, setDeleteTarget] = useState<MyCourseSummary>();
   const [openError, setOpenError] = useState('');
+  const [deleteError, setDeleteError] = useState('');
   const folder = folders.find(({ id }) => id === folderId);
   const today = getToday();
   const upcomingCourses = courses.filter((course) => !course.endDate || course.endDate >= today);
@@ -72,12 +84,35 @@ export function MyTripFolderScreen({ folderId }: MyTripFolderScreenProps) {
     }
   };
 
+  const deleteCourse = async () => {
+    if (!deleteTarget || deleteCourseMutation.isPending) return;
+
+    setDeleteError('');
+    try {
+      await deleteCourseMutation.mutateAsync(deleteTarget.id);
+      setDeleteTarget(undefined);
+    } catch (mutationError) {
+      setDeleteError(
+        mutationError instanceof ApiError
+          ? mutationError.message
+          : '여행 코스를 삭제하지 못했어요. 다시 시도해 주세요.',
+      );
+    }
+  };
+
   const renderCourse = (course: MyCourseSummary) => (
     <Course
       key={course.id}
+      active={openedMenuId === course.id}
       accessibilityRole="button"
       disabled={Boolean(openingCourseId)}
-      onPress={() => void openCourse(course)}
+      onPress={() => {
+        if (openedMenuId) {
+          setOpenedMenuId(undefined);
+          return;
+        }
+        void openCourse(course);
+      }}
     >
       <CourseImage source={getCourseImage(course.id)} resizeMode="cover" />
       <CourseBody>
@@ -85,11 +120,36 @@ export function MyTripFolderScreen({ folderId }: MyTripFolderScreenProps) {
           <CourseTitle numberOfLines={1}>{course.title}</CourseTitle>
           {openingCourseId === course.id ? (
             <ActivityIndicator size="small" color={colors.primary[700]} />
-          ) : null}
+          ) : (
+            <CourseMenuButton
+              accessibilityRole="button"
+              accessibilityLabel={`${course.title} 메뉴`}
+              onPress={(event) => {
+                event.stopPropagation();
+                setOpenedMenuId((current) => (current === course.id ? undefined : course.id));
+              }}
+            >
+              <IconComponent name="donut_menu" color={colors.gray[600]} />
+            </CourseMenuButton>
+          )}
         </CourseHeader>
         <DateText>{formatPeriod(course)}</DateText>
         <Chip>{course.itemCount}개의 스팟</Chip>
       </CourseBody>
+      {openedMenuId === course.id ? (
+        <CourseDeleteMenu>
+          <DeleteActionButton
+            accessibilityLabel={`${course.title} 삭제`}
+            disabled={deleteCourseMutation.isPending}
+            onPress={(event) => {
+              event.stopPropagation();
+              setOpenedMenuId(undefined);
+              setDeleteError('');
+              setDeleteTarget(course);
+            }}
+          />
+        </CourseDeleteMenu>
+      ) : null}
     </Course>
   );
 
@@ -137,6 +197,22 @@ export function MyTripFolderScreen({ folderId }: MyTripFolderScreenProps) {
           AI로 새 여행 코스 만들기
         </CourseCreateButton>
       </Action>
+      <ConfirmModal
+        cancelText="취소"
+        confirmText="삭제"
+        title="여행 코스 삭제"
+        visible={Boolean(deleteTarget)}
+        onCancel={() => {
+          setDeleteTarget(undefined);
+          setDeleteError('');
+        }}
+        onConfirm={deleteCourse}
+      >
+        <DeleteDescription>
+          &apos;{deleteTarget?.title ?? ''}&apos; 코스를{`\n`}삭제하시겠습니까?
+        </DeleteDescription>
+        {deleteError ? <DeleteError>{deleteError}</DeleteError> : null}
+      </ConfirmModal>
     </Screen>
   );
 }
@@ -146,9 +222,10 @@ const Scroll = styled.ScrollView({ flex: 1 });
 const contentStyle = { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 128 } as const;
 const Section = styled.View({ width: '100%', marginBottom: 40, gap: 24 });
 const SubTitle = styled.Text({ ...typography.heading3.semibold, color: colors.gray[1000] });
-const Course = styled.Pressable({
+const Course = styled.Pressable<{ active: boolean }>(({ active }) => ({
   width: '100%',
   minHeight: 119,
+  zIndex: active ? 20 : 0,
   padding: 16,
   flexDirection: 'row',
   alignItems: 'flex-start',
@@ -156,7 +233,7 @@ const Course = styled.Pressable({
   backgroundColor: '#FFFFFF',
   borderRadius: 12,
   ...shadows[2],
-});
+}));
 const CourseImage = styled.Image({ width: 87, height: 87, borderRadius: 8 });
 const CourseBody = styled.View({ flex: 1, height: 87, gap: 8 });
 const CourseHeader = styled.View({
@@ -169,6 +246,18 @@ const CourseTitle = styled.Text({
   flex: 1,
   ...typography.body2.semibold,
   color: colors.gray[1000],
+});
+const CourseMenuButton = styled.Pressable({
+  width: 24,
+  height: 24,
+  alignItems: 'center',
+  justifyContent: 'center',
+});
+const CourseDeleteMenu = styled.View({
+  position: 'absolute',
+  top: 58,
+  right: -10,
+  zIndex: 30,
 });
 const DateText = styled.Text({ ...typography.body3.medium, color: colors.gray[600] });
 const Chip = styled.Text({
@@ -217,5 +306,15 @@ const OpenError = styled.Text({
   ...typography.body3.regular,
   color: colors.semantic.warning,
   backgroundColor: colors.semantic.warningDisabled,
+  textAlign: 'center',
+});
+const DeleteDescription = styled.Text({
+  ...typography.body2.regular,
+  color: colors.gray[600],
+  textAlign: 'center',
+});
+const DeleteError = styled.Text({
+  ...typography.caption1.regular,
+  color: colors.semantic.warning,
   textAlign: 'center',
 });

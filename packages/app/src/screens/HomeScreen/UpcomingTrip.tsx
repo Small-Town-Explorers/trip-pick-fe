@@ -1,5 +1,5 @@
 import { IconComponent } from '@components/Icons';
-import { KakaoMap } from '@components/KakaoMap';
+import { KakaoRouteMap } from '@components/KakaoMap';
 import { useMemo } from 'react';
 import styled from '@emotion/native';
 import { colors, typography } from '@styles';
@@ -72,9 +72,13 @@ export const HomeUpcomingTrip = () => {
       ) : null}
 
       {!isPending && !error && !hasTrip ? (
-        <State>
-          <StateText>예정된 여행이 없어요.</StateText>
-        </State>
+        <NoTrip>
+          <IconComponent name="luggage" color={colors.primary[500]} size={28} />
+          <NoTripText>예정되거나 진행 중인 여행이 없어요.</NoTripText>
+          <NoTripSubText>
+            {'나에게 꼭맞는 소도시 코스를 추천 받고,\n새로운 여행을 즐겨보세요!'}
+          </NoTripSubText>
+        </NoTrip>
       ) : null}
 
       {!isPending && !error && hasTrip ? (
@@ -83,7 +87,7 @@ export const HomeUpcomingTrip = () => {
             <TripTitle>{trip?.title}</TripTitle>
             <Map accessibilityLabel={`좌표가 등록된 여행 장소 ${markerCount}곳의 지도`}>
               {Platform.OS === 'web' ? (
-                <KakaoMap coordinates={coordinates} height={200} />
+                <KakaoRouteMap coordinates={coordinates} height={200} />
               ) : (
                 <MapLabel>여행 코스 지도</MapLabel>
               )}
@@ -132,6 +136,26 @@ export const HomeUpcomingTrip = () => {
     </Section>
   );
 };
+
+const NoTrip = styled.View({
+  alignItems: 'center',
+  gap: 12,
+  paddingVertical: 32,
+  backgroundColor: colors.gray[25],
+  marginHorizontal: 20,
+  borderRadius: 16,
+});
+
+const NoTripText = styled.Text({
+  ...typography.body2.medium,
+  color: colors.gray[700],
+});
+
+const NoTripSubText = styled.Text({
+  textAlign: 'center',
+  ...typography.body3.regular,
+  color: colors.gray[500],
+});
 
 const Section = styled.View({
   width: '100%',

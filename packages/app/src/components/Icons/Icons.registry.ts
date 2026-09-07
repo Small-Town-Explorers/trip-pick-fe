@@ -32,3 +32,4 @@ export { default as SearchIcon_24 } from '@icons/search_24x24.svg?react';
 export { default as CancelIcon_24 } from '@icons/cancel_24x24.svg?react';
 export { default as DeleteIcon_20 } from '@icons/delete_20x20.svg?react';
 export { default as DonutMenuIcon_20 } from '@icons/donut_menu_20x20.svg?react';
+export { default as LuggageIcon_28 } from '@icons/luggage_28x28.svg?react';

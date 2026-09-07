@@ -9,6 +9,7 @@ type ConfirmModalProps = PropsWithChildren<{
   cancelText?: string;
   confirmText?: string;
   width?: number;
+  disabled?: boolean;
   onClose?: () => void;
   onCancel: () => void;
   onConfirm: () => void;
@@ -21,6 +22,7 @@ export function ConfirmModal({
   cancelText = '취소',
   confirmText = '확인',
   width = 300,
+  disabled = false,
   onCancel,
   onClose = onCancel,
   onConfirm,
@@ -33,12 +35,13 @@ export function ConfirmModal({
       transparent
       visible={visible}
     >
-      <Backdrop accessibilityRole="button" accessibilityLabel="모달 닫기" onPress={onClose}>
-        <Dialog
-          width={width}
-          accessibilityRole="alert"
-          onPress={(event) => event.stopPropagation()}
-        >
+      <Backdrop>
+        <BackdropButton
+          accessibilityRole="button"
+          accessibilityLabel="모달 닫기"
+          onPress={onClose}
+        />
+        <Dialog width={width} accessibilityRole="alert">
           <Content>
             <Title>{title}</Title>
             <Body>{children}</Body>
@@ -48,8 +51,8 @@ export function ConfirmModal({
             <CancelButton accessibilityRole="button" onPress={onCancel}>
               <CancelLabel>{cancelText}</CancelLabel>
             </CancelButton>
-            <ConfirmButton accessibilityRole="button" onPress={onConfirm}>
-              <ConfirmLabel>{confirmText}</ConfirmLabel>
+            <ConfirmButton accessibilityRole="button" onPress={onConfirm} disabled={disabled}>
+              <ConfirmLabel disabled={disabled}>{confirmText}</ConfirmLabel>
             </ConfirmButton>
           </Actions>
         </Dialog>
@@ -58,7 +61,7 @@ export function ConfirmModal({
   );
 }
 
-const Backdrop = styled.Pressable({
+const Backdrop = styled.View({
   flex: 1,
   alignItems: 'center',
   justifyContent: 'center',
@@ -66,7 +69,15 @@ const Backdrop = styled.Pressable({
   backgroundColor: withAlpha(colors.gray[300], 0.3),
 });
 
-const Dialog = styled.Pressable<{ width: number }>(({ width }) => ({
+const BackdropButton = styled.Pressable({
+  position: 'absolute',
+  top: 0,
+  right: 0,
+  bottom: 0,
+  left: 0,
+});
+
+const Dialog = styled.View<{ width: number }>(({ width }) => ({
   width,
   maxWidth: '100%',
   padding: 20,
@@ -110,20 +121,20 @@ const CancelButton = styled.Pressable({
   borderRadius: 8,
 });
 
-const ConfirmButton = styled.Pressable({
+const ConfirmButton = styled.Pressable(({ disabled }) => ({
   flex: 1,
   alignItems: 'center',
   justifyContent: 'center',
-  backgroundColor: colors.primary[600],
+  backgroundColor: disabled ? withAlpha(colors.primary[600], 0.1) : colors.primary[600],
   borderRadius: 8,
-});
+}));
 
 const CancelLabel = styled.Text({
   ...typography.body2.semibold,
   color: colors.primary[800],
 });
 
-const ConfirmLabel = styled.Text({
+const ConfirmLabel = styled.Text(({ disabled }) => ({
   ...typography.body2.semibold,
-  color: '#FFFFFF',
-});
+  color: disabled ? colors.gray[200] : '#FFFFFF',
+}));

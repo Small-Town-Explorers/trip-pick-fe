@@ -1,6 +1,7 @@
 import { Header } from '@components/Header';
 import { IconComponent } from '@components/Icons';
 import { ConfirmModal } from '@components/Modal';
+import { DeleteActionButton } from '@components/DeleteActionButton';
 import styled from '@emotion/native';
 import { colors, createShadow, shadows, typography, withAlpha } from '@styles';
 import { useState } from 'react';
@@ -160,19 +161,16 @@ export function MyTripsScreen() {
                       <MenuText>이름 변경</MenuText>
                       <IconComponent name="pencil" color={colors.gray[600]} size={20} />
                     </MenuButton>
-                    <MenuButton
-                      accessibilityRole="button"
+                    <DeleteActionButton
                       accessibilityLabel={`${folder.name} 삭제`}
+                      fullWidth
                       onPress={(event) => {
                         event.stopPropagation();
                         setOpenedMenuId(null);
                         setFormError('');
                         setDeleteTarget(folder);
                       }}
-                    >
-                      <DeleteText>삭제</DeleteText>
-                      <IconComponent name="delete" color="#F04438" size={20} />
-                    </MenuButton>
+                    />
                   </FolderMenu>
                 ) : null}
               </Folder>
@@ -312,8 +310,6 @@ const MenuButton = styled.Pressable({
   gap: 10,
 });
 const MenuText = styled.Text({ ...typography.body2.medium, color: colors.gray[600] });
-const DeleteText = styled.Text({ ...typography.body2.medium, color: colors.semantic.warning });
-
 const Status = styled.View({ alignItems: 'center', gap: 10, paddingVertical: 16 });
 const StatusText = styled.Text({ ...typography.body3.regular, color: colors.gray[600] });
 const RetryButton = styled.Pressable({

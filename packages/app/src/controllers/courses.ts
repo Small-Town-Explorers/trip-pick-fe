@@ -67,6 +67,10 @@ export type SaveMyCourseRequest = {
   course: GeneratedCourseResponse;
 };
 
+export type UpdateMyCourseRequest = SaveMyCourseRequest & {
+  id: string;
+};
+
 export type MyCourseSummary = {
   id: string;
   title: string;
@@ -123,6 +127,19 @@ export type AddCourseItemResponse = {
   warnings: string[];
 };
 
+export type ManualCourseItem = {
+  name: string;
+  memo?: string;
+  address?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+};
+
+export type AddManualCourseItemRequest = {
+  course: GeneratedCourseResponse;
+  place: ManualCourseItem;
+};
+
 export type EditCourseWithChatRequest = {
   message: string;
   course: GeneratedCourseResponse;
@@ -159,6 +176,14 @@ export function addCourseItem(request: AddCourseItemRequest) {
   });
 }
 
+export function addManualCourseItem(request: AddManualCourseItemRequest) {
+  return apiRequest<AddCourseItemResponse>('/api/v1/courses/items/manual', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+}
+
 export function editCourseWithChat(request: EditCourseWithChatRequest) {
   return apiRequest<EditCourseWithChatResponse>('/api/v1/courses/chat', {
     method: 'POST',
@@ -175,6 +200,14 @@ export function saveMyCourse(request: SaveMyCourseRequest) {
   });
 }
 
+export function updateMyCourse({ id, ...request }: UpdateMyCourseRequest) {
+  return apiRequest<MyCourseDetail>(`/api/v1/my/courses/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+}
+
 export function getMyCourses(folderId?: string) {
   const query = folderId ? `?folderId=${encodeURIComponent(folderId)}` : '';
   return apiRequest<MyCourseSummary[]>(`/api/v1/my/courses${query}`);
@@ -182,6 +215,14 @@ export function getMyCourses(folderId?: string) {
 
 export function getMyCourseDetail(courseId: string) {
   return apiRequest<MyCourseDetail>(`/api/v1/my/courses/${encodeURIComponent(courseId)}`);
+}
+
+export function deleteMyCourse(courseId: string) {
+  return apiRequest<void>(
+    `/api/v1/my/courses/${encodeURIComponent(courseId)}`,
+    { method: 'DELETE' },
+    { allowEmptyResponse: true },
+  );
 }
 
 export function getHomeTrip() {

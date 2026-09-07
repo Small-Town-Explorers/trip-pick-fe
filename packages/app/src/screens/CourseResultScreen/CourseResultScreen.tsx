@@ -11,6 +11,7 @@ import { CourseResultChatModal } from './ChatModal';
 import { CourseResultDirectPlaceModal } from './DirectPlaceModal';
 import { CourseResultMap } from './Map';
 import { CourseResultRegenerateModal } from './RegenerateModal';
+import { CourseResultEditRoutine } from './EditRoutine';
 import { CourseResultRoutine, createCoursePlacesFromResponse, type CoursePlaces } from './Routine';
 import { CourseResultScheduleModal } from './ScheduleModal';
 import { CourseResultShareModal } from './ShareModal';
@@ -24,16 +25,19 @@ import {
   ApiError,
   type GeneratedCourseItem,
   type GeneratedCourseResponse,
+  type ManualCourseItem,
   type PlaceSearchItem,
 } from '../../controllers';
 import {
   generatedCourseQueryKey,
   storeGeneratedCourse,
   useAddCourseItemMutation,
+  useAddManualCourseItemMutation,
   useEditCourseWithChatMutation,
   useGenerateCourseByNameMutation,
   useMyCourseDetailQuery,
   useSaveMyCourseMutation,
+  useUpdateMyCourseMutation,
 } from '../../queries';
 import { getPersistedGeneratedCourse } from '../../storage/generatedCourse';
 
@@ -92,38 +96,49 @@ const applyEditedPlacesToCourse = (
   course: GeneratedCourseResponse,
   places: CoursePlaces,
   period: CalendarRange,
-): GeneratedCourseResponse => ({
-  ...course,
-  startDate: period.startDate ?? course.startDate,
-  endDate: period.endDate ?? course.endDate,
-  plan: course.plan.map((dayPlan, dayIndex) => {
-    const itemsByUid = new Map(
-      dayPlan.items.map((item) => [getGeneratedItemId(dayPlan.day, item), item]),
-    );
-    const items = (places[dayIndex] ?? []).flatMap((place, index) => {
-      const item = itemsByUid.get(place.uid);
-      return item ? [{ ...item, order: index + 1 }] : [];
-    });
+): GeneratedCourseResponse => {
+  // UIDs retain the original day when a place moves. Resolve against the entire
+  // source course so cross-day moves keep all original item metadata.
+  const itemsByUid = new Map(
+    course.plan.flatMap((dayPlan) =>
+      dayPlan.items.map((item) => [getGeneratedItemId(dayPlan.day, item), item] as const),
+    ),
+  );
 
-    return { ...dayPlan, items };
-  }),
-});
+  return {
+    ...course,
+    startDate: period.startDate ?? course.startDate,
+    endDate: period.endDate ?? course.endDate,
+    plan: course.plan.map((dayPlan, dayIndex) => {
+      const items = (places[dayIndex] ?? []).flatMap((place, index) => {
+        const item = itemsByUid.get(place.uid);
+        return item ? [{ ...item, order: index + 1 }] : [];
+      });
+
+      return { ...dayPlan, items };
+    }),
+  };
+};
 
 export function CourseResultScreen({
   courseId,
   headerTitle = '코스 생성 결과',
 }: CourseResultScreenProps) {
   const queryClient = useQueryClient();
-  const initialGeneratedCourse =
-    queryClient.getQueryData<GeneratedCourseResponse>(generatedCourseQueryKey(courseId)) ??
-    getPersistedGeneratedCourse(courseId);
+  const isExistingCourse = headerTitle === '내 여행 상세';
+  const initialGeneratedCourse = isExistingCourse
+    ? undefined
+    : (queryClient.getQueryData<GeneratedCourseResponse>(generatedCourseQueryKey(courseId)) ??
+      getPersistedGeneratedCourse(courseId));
   const {
     data: savedCourse,
     error: savedCourseError,
     isPending: isSavedCoursePending,
     refetch: refetchSavedCourse,
-  } = useMyCourseDetailQuery(courseId, !initialGeneratedCourse);
-  const loadedCourse = initialGeneratedCourse ?? savedCourse?.course;
+  } = useMyCourseDetailQuery(courseId, isExistingCourse || !initialGeneratedCourse);
+  const loadedCourse = isExistingCourse
+    ? savedCourse?.course
+    : (initialGeneratedCourse ?? savedCourse?.course);
 
   if (!loadedCourse) {
     return (
@@ -161,6 +176,7 @@ export function CourseResultScreen({
       headerTitle={headerTitle}
       initialCourse={loadedCourse}
       initialTitle={savedCourse?.title}
+      isExistingCourse={isExistingCourse}
     />
   );
 }
@@ -169,6 +185,7 @@ interface CourseResultContentProps extends CourseResultScreenProps {
   headerTitle: '내 여행 상세' | '코스 생성 결과';
   initialCourse: GeneratedCourseResponse;
   initialTitle?: string;
+  isExistingCourse: boolean;
 }
 
 function CourseResultContent({
@@ -176,14 +193,17 @@ function CourseResultContent({
   headerTitle,
   initialCourse,
   initialTitle,
+  isExistingCourse,
 }: CourseResultContentProps) {
   const { back } = useAppNavigation();
   const queryClient = useQueryClient();
   const [course, setCourse] = useState(initialCourse);
   const regenerateMutation = useGenerateCourseByNameMutation();
   const addCourseItemMutation = useAddCourseItemMutation();
+  const addManualCourseItemMutation = useAddManualCourseItemMutation();
   const editCourseWithChatMutation = useEditCourseWithChatMutation();
   const saveMyCourseMutation = useSaveMyCourseMutation();
+  const updateMyCourseMutation = useUpdateMyCourseMutation();
   const regenerationSequence = useRef(0);
   const [title, setTitle] = useState(
     () => initialTitle ?? `${initialCourse.region.province} ${initialCourse.region.name} 여행`,
@@ -257,6 +277,41 @@ function CourseResultContent({
         error instanceof ApiError
           ? error.message
           : '장소를 코스에 추가하지 못했어요. 잠시 후 다시 시도해 주세요.',
+      );
+      return false;
+    } finally {
+      setIsAddingPlace(false);
+    }
+  };
+
+  const addManualPlace = async (place: ManualCourseItem) => {
+    setPlaceAddError('');
+
+    if (!course) {
+      setPlaceAddError('기존 코스 정보를 찾을 수 없어 장소를 추가할 수 없어요.');
+      return false;
+    }
+
+    setIsAddingPlace(true);
+    try {
+      const response = await addManualCourseItemMutation.mutateAsync({
+        course: applyEditedPlacesToCourse(course, places, period),
+        place,
+      });
+      const nextCourse = {
+        ...response.course,
+        startDate: period.startDate ?? response.course.startDate,
+        endDate: period.endDate ?? response.course.endDate,
+      };
+      storeGeneratedCourse(queryClient, courseId, nextCourse);
+      setCourse(nextCourse);
+      setPlaces(createCoursePlacesFromResponse(nextCourse));
+      return true;
+    } catch (error) {
+      setPlaceAddError(
+        error instanceof ApiError
+          ? error.message
+          : '직접 입력한 장소를 추가하지 못했어요. 잠시 후 다시 시도해 주세요.',
       );
       return false;
     } finally {
@@ -344,7 +399,10 @@ function CourseResultContent({
   }, []);
 
   const saveCourse = async (folderId: string) => {
-    if (!course || saveMyCourseMutation.isPending) return false;
+    const isSaving = isExistingCourse
+      ? updateMyCourseMutation.isPending
+      : saveMyCourseMutation.isPending;
+    if (!course || isSaving) return false;
 
     const trimmedTitle = title.trim();
     if (!trimmedTitle) {
@@ -354,19 +412,26 @@ function CourseResultContent({
 
     setCourseSaveError('');
     try {
-      const saved = await saveMyCourseMutation.mutateAsync({
+      const request = {
         title: trimmedTitle,
         folderId,
         startDate: period.startDate,
         course: applyEditedPlacesToCourse(course, places, period),
-      });
+      };
+      const saved = isExistingCourse
+        ? await updateMyCourseMutation.mutateAsync({ id: courseId, ...request })
+        : await saveMyCourseMutation.mutateAsync(request);
       setCourseSaveNotice({ title: saved.title });
       setIsSaveVisible(false);
       back();
       return true;
     } catch (error) {
       setCourseSaveError(
-        error instanceof ApiError ? error.message : '코스를 저장하지 못했어요. 다시 시도해 주세요.',
+        error instanceof ApiError
+          ? error.message
+          : isExistingCourse
+            ? '코스를 수정하지 못했어요. 다시 시도해 주세요.'
+            : '코스를 저장하지 못했어요. 다시 시도해 주세요.',
       );
       return false;
     }
@@ -387,15 +452,24 @@ function CourseResultContent({
           ) : null}
         </Header>
         <CourseResultMap places={places} />
-        <CourseResultRoutine
-          editing={isEditing}
-          title={title}
-          period={period}
-          places={places}
-          onPlacesChange={setPlaces}
-          onTitleChange={setTitle}
-          onSchedulePress={() => setIsScheduleVisible(true)}
-        />
+        {isEditing ? (
+          <CourseResultEditRoutine
+            title={title}
+            period={period}
+            places={places}
+            onPlacesChange={setPlaces}
+            onTitleChange={setTitle}
+            onSchedulePress={() => setIsScheduleVisible(true)}
+          />
+        ) : (
+          <CourseResultRoutine
+            title={title}
+            period={period}
+            places={places}
+            onTitleChange={setTitle}
+            onSchedulePress={() => setIsScheduleVisible(true)}
+          />
+        )}
       </Scroll>
       {isEditing ? (
         <CourseResultEditActions
@@ -439,7 +513,8 @@ function CourseResultContent({
         visible={isDirectPlaceVisible}
         isAdding={isAddingPlace}
         addError={placeAddError}
-        onAdd={(place) => addPlaces([place])}
+        initialMapAddress={`${course.region.province} ${course.region.name}`.trim()}
+        onAdd={addManualPlace}
         onClose={closeModals}
       />
       <CourseResultScheduleModal
@@ -457,7 +532,9 @@ function CourseResultContent({
       />
       <CourseResultSaveModal
         visible={isSaveVisible}
-        isSaving={saveMyCourseMutation.isPending}
+        isSaving={
+          isExistingCourse ? updateMyCourseMutation.isPending : saveMyCourseMutation.isPending
+        }
         saveError={courseSaveError}
         onClose={() => {
           setCourseSaveError('');

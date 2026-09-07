@@ -15,8 +15,7 @@ interface EditTripSpotCardProps {
   image?: string | null;
   name: string;
   description: string;
-  maxDown: number;
-  maxUp: number;
+  dropOffsets: number[];
   shiftStep?: number;
   committing?: boolean;
   onDelete?: () => void;
@@ -26,8 +25,7 @@ interface EditTripSpotCardProps {
 }
 
 interface CourseResultDragHandleProps {
-  maxDown: number;
-  maxUp: number;
+  dropOffsets: number[];
   shiftStep: number;
   committing: boolean;
   onDrag: (offset: number) => void;
@@ -36,11 +34,16 @@ interface CourseResultDragHandleProps {
 }
 
 const CARD_STEP = 109;
+
+const nearestOffset = (offsets: number[], dy: number) =>
+  offsets.reduce(
+    (nearest, offset) => (Math.abs(offset - dy) < Math.abs(nearest - dy) ? offset : nearest),
+    0,
+  );
 const DROP_DURATION = 140;
 
 const CourseResultDragHandle = ({
-  maxDown,
-  maxUp,
+  dropOffsets,
   shiftStep,
   committing,
   onDrag,
@@ -54,6 +57,11 @@ const CourseResultDragHandle = ({
   const [finalizing, setFinalizing] = useState(false);
   const lastStep = useRef(0);
   const callbacks = useRef({ onDrag, onDragCancel, onDrop });
+  const offsetsRef = useRef(dropOffsets);
+
+  useLayoutEffect(() => {
+    offsetsRef.current = dropOffsets;
+  }, [dropOffsets]);
 
   useEffect(() => {
     callbacks.current = { onDrag, onDragCancel, onDrop };
@@ -62,7 +70,8 @@ const CourseResultDragHandle = ({
   useLayoutEffect(() => {
     const toValue = shiftStep * CARD_STEP;
 
-    if (Platform.OS === 'web') {
+    if (Platform.OS === 'web' || committing) {
+      shiftY.stopAnimation();
       shiftY.setValue(toValue);
       return;
     }
@@ -75,7 +84,7 @@ const CourseResultDragHandle = ({
       restSpeedThreshold: 0.5,
       useNativeDriver: true,
     }).start();
-  }, [shiftStep, shiftY]);
+  }, [shiftStep, shiftY, committing]);
 
   const panResponder = useMemo(
     () =>
@@ -98,18 +107,18 @@ const CourseResultDragHandle = ({
           callbacks.current.onDrag(0);
         },
         onPanResponderMove: (_, gesture) => {
-          const minOffset = -maxUp * CARD_STEP;
-          const maxOffset = maxDown * CARD_STEP;
+          const minOffset = Math.min(...offsetsRef.current);
+          const maxOffset = Math.max(...offsetsRef.current);
           translateY.setValue(Math.max(minOffset, Math.min(maxOffset, gesture.dy)));
 
-          const step = Math.max(-maxUp, Math.min(maxDown, Math.round(gesture.dy / CARD_STEP)));
+          const step = nearestOffset(offsetsRef.current, gesture.dy);
           if (step !== lastStep.current) {
             lastStep.current = step;
             callbacks.current.onDrag(step);
           }
         },
         onPanResponderRelease: (_, gesture) => {
-          const step = Math.max(-maxUp, Math.min(maxDown, Math.round(gesture.dy / CARD_STEP)));
+          const step = nearestOffset(offsetsRef.current, gesture.dy);
 
           if (step !== lastStep.current) {
             lastStep.current = step;
@@ -119,7 +128,7 @@ const CourseResultDragHandle = ({
           if (Platform.OS === 'web') {
             setDragging(false);
             requestAnimationFrame(() => {
-              translateY.setValue(step * CARD_STEP);
+              translateY.setValue(step);
 
               setTimeout(() => {
                 setFinalizing(true);
@@ -136,7 +145,7 @@ const CourseResultDragHandle = ({
           }
 
           Animated.spring(translateY, {
-            toValue: step * CARD_STEP,
+            toValue: step,
             damping: 22,
             stiffness: 240,
             restDisplacementThreshold: 0.5,
@@ -170,7 +179,7 @@ const CourseResultDragHandle = ({
           });
         },
       }),
-    [maxDown, maxUp, translateY],
+    [translateY],
   );
 
   return (
@@ -195,8 +204,7 @@ export function EditTripSpotCard({
   image,
   name,
   description,
-  maxDown,
-  maxUp,
+  dropOffsets,
   shiftStep = 0,
   committing = false,
   onDelete,
@@ -206,8 +214,7 @@ export function EditTripSpotCard({
 }: EditTripSpotCardProps) {
   return (
     <CourseResultDragHandle
-      maxDown={maxDown}
-      maxUp={maxUp}
+      dropOffsets={dropOffsets}
       shiftStep={shiftStep}
       committing={committing}
       onDrag={onDrag}
@@ -240,6 +247,7 @@ const Card = styled(Animated.View)<{ committing: boolean; dragging: boolean }>(
   ({ committing, dragging }) => ({
     flex: 1,
     minWidth: 0,
+    height: 93,
     padding: 16,
     flexDirection: 'row',
     gap: 16,

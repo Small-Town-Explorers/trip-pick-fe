@@ -7,6 +7,8 @@ export {
 } from './apiClient';
 export {
   addCourseItem,
+  addManualCourseItem,
+  deleteMyCourse,
   editCourseWithChat,
   generateCourse,
   generateCourseByName,
@@ -14,8 +16,10 @@ export {
   getMyCourseDetail,
   getMyCourses,
   saveMyCourse,
+  updateMyCourse,
   type AddCourseItemRequest,
   type AddCourseItemResponse,
+  type AddManualCourseItemRequest,
   type EditCourseWithChatRequest,
   type EditCourseWithChatResponse,
   type GenerateCourseByNameRequest,
@@ -29,7 +33,9 @@ export {
   type HomeTripStatus,
   type MyCourseDetail,
   type MyCourseSummary,
+  type ManualCourseItem,
   type SaveMyCourseRequest,
+  type UpdateMyCourseRequest,
 } from './courses';
 export {
   createFolder,

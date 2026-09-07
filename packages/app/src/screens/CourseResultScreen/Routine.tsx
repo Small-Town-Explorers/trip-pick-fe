@@ -1,18 +1,16 @@
 import { type CalendarRange } from '@components/Calendar';
 import { IconComponent } from '@components/Icons';
-import { ConfirmModal } from '@components/Modal';
 import { TripSpotCard } from '@components/TripSpotCard';
 import styled from '@emotion/native';
 import { colors, typography } from '@styles';
-import { useLayoutEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Platform } from 'react-native';
-import { EditTripSpotCard } from '@components/EditTripSpotCard';
 import type { CoursePlaceInput } from './types';
 import type { GeneratedCourseResponse } from '../../controllers';
 
 const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
 
-const formatDate = (dateString: string) => {
+export const formatDate = (dateString: string) => {
   const [year, month, date] = dateString.split('-').map(Number);
   const weekday = weekdays[new Date(year, month - 1, date).getDay()];
   return `${year}.${month}.${date} ${weekday}`;
@@ -72,7 +70,7 @@ const addDays = (dateString: string, days: number) => {
   return date;
 };
 
-const getScheduleDates = ({ startDate, endDate }: CalendarRange) => {
+export const getScheduleDates = ({ startDate, endDate }: CalendarRange) => {
   if (!startDate) return [];
   if (!endDate) return [startDate];
 
@@ -146,67 +144,22 @@ const calculateDistanceMeters = (places: CoursePlace[], currentIndex: number) =>
 const toRadians = (degrees: number) => (degrees * Math.PI) / 180;
 
 interface CourseResultRoutineProps {
-  editing?: boolean;
   title: string;
   period: CalendarRange;
   places: CoursePlaces;
   onTitleChange: (title: string) => void;
-  onPlacesChange: (places: CoursePlaces) => void;
   onSchedulePress: () => void;
 }
 
 export function CourseResultRoutine({
-  editing = false,
   title,
   period,
   places,
   onTitleChange,
-  onPlacesChange,
   onSchedulePress,
 }: CourseResultRoutineProps) {
   const [isTitleEditing, setIsTitleEditing] = useState(false);
-  const [pendingDelete, setPendingDelete] = useState<{
-    dayIndex: number;
-    uid: string;
-    name: string;
-  } | null>(null);
-  const [pendingDeleteName, setPendingDeleteName] = useState<string>();
-  const [dragPreview, setDragPreview] = useState<{
-    dayIndex: number;
-    uid: string;
-    fromIndex: number;
-    toIndex: number;
-  } | null>(null);
-  const [dragCommitting, setDragCommitting] = useState(false);
-  const scheduleDates = getScheduleDates(period);
-
-  useLayoutEffect(() => {
-    if (!dragCommitting || Platform.OS !== 'web') return;
-
-    const frame = requestAnimationFrame(() => setDragCommitting(false));
-    return () => cancelAnimationFrame(frame);
-  }, [dragCommitting]);
-
-  const reorderPlace = (dayIndex: number, fromIndex: number, offset: number) => {
-    if (offset === 0) return;
-    const nextDays = places.map((day) => [...day]);
-    const targetIndex = Math.max(0, Math.min(nextDays[dayIndex].length - 1, fromIndex + offset));
-    if (targetIndex === fromIndex) return;
-    const [movedPlace] = nextDays[dayIndex].splice(fromIndex, 1);
-    nextDays[dayIndex].splice(targetIndex, 0, movedPlace);
-    onPlacesChange(recalculateCoursePlaces(nextDays));
-  };
-
-  const deletePlace = () => {
-    if (!pendingDelete) return;
-    const nextDays = places.map((day, dayIndex) =>
-      dayIndex === pendingDelete.dayIndex
-        ? day.filter((place) => place.uid !== pendingDelete.uid)
-        : [...day],
-    );
-    onPlacesChange(recalculateCoursePlaces(nextDays));
-    setPendingDelete(null);
-  };
+  const scheduleDates = useMemo(() => getScheduleDates(period), [period]);
 
   return (
     <Section>
@@ -247,7 +200,7 @@ export function CourseResultRoutine({
             <DateText>{formatDate(date)}</DateText>
             {dayIndex === 0 ? (
               <ScheduleButton accessibilityRole="button" onPress={onSchedulePress}>
-                <ScheduleLabel>날짜 변경</ScheduleLabel>
+                <ScheduleLabel>일정 변경</ScheduleLabel>
               </ScheduleButton>
             ) : null}
           </DateRow>
@@ -255,100 +208,38 @@ export function CourseResultRoutine({
           <List>
             {places[dayIndex]?.map((place, placeIndex, dayPlaceList) => (
               <Item key={place.uid}>
-                {editing ? (
+                <>
+                  <Route>
+                    <Marker day={dayIndex}>
+                      <MarkerNumber>{place.order}</MarkerNumber>
+                    </Marker>
+                    {placeIndex !== dayPlaceList.length - 1 ? (
+                      <>
+                        <UpperLine />
+                        {dayPlaceList[placeIndex + 1].distanceMeters !== null ? (
+                          <Distance>
+                            {formatDistance(dayPlaceList[placeIndex + 1].distanceMeters!)}
+                          </Distance>
+                        ) : null}
+                        <LowerLine />
+                      </>
+                    ) : null}
+                  </Route>
                   <CardSlot>
-                    <EditTripSpotCard
+                    <TripSpotCard
                       image={place.image}
+                      type={place.tag}
                       name={place.name}
                       description={place.summary}
-                      maxDown={dayPlaceList.length - placeIndex - 1}
-                      maxUp={placeIndex}
-                      committing={dragCommitting}
-                      shiftStep={
-                        dragPreview?.dayIndex !== dayIndex || dragPreview.uid === place.uid
-                          ? 0
-                          : dragPreview.fromIndex < dragPreview.toIndex &&
-                              placeIndex > dragPreview.fromIndex &&
-                              placeIndex <= dragPreview.toIndex
-                            ? -1
-                            : dragPreview.fromIndex > dragPreview.toIndex &&
-                                placeIndex >= dragPreview.toIndex &&
-                                placeIndex < dragPreview.fromIndex
-                              ? 1
-                              : 0
-                      }
-                      onDelete={() => {
-                        setPendingDelete({
-                          dayIndex: dayIndex,
-                          uid: place.uid,
-                          name: place.name,
-                        });
-                        setPendingDeleteName(place.name);
-                      }}
-                      onDrag={(offset) =>
-                        setDragPreview({
-                          dayIndex,
-                          uid: place.uid,
-                          fromIndex: placeIndex,
-                          toIndex: Math.max(
-                            0,
-                            Math.min(dayPlaceList.length - 1, placeIndex + offset),
-                          ),
-                        })
-                      }
-                      onDragCancel={() => setDragPreview(null)}
-                      onDrop={(offset) => {
-                        if (Platform.OS === 'web') {
-                          setDragCommitting(true);
-                        }
-                        reorderPlace(dayIndex, placeIndex, offset);
-                        setDragPreview(null);
-                      }}
+                      mapUrl={getPlaceMapUrl(place)}
                     />
                   </CardSlot>
-                ) : (
-                  <>
-                    <Route>
-                      <Marker day={dayIndex}>
-                        <MarkerNumber>{place.order}</MarkerNumber>
-                      </Marker>
-                      {placeIndex !== dayPlaceList.length - 1 ? (
-                        <>
-                          <UpperLine />
-                          {dayPlaceList[placeIndex + 1].distanceMeters !== null ? (
-                            <Distance>
-                              {formatDistance(dayPlaceList[placeIndex + 1].distanceMeters!)}
-                            </Distance>
-                          ) : null}
-                          <LowerLine />
-                        </>
-                      ) : null}
-                    </Route>
-                    <CardSlot>
-                      <TripSpotCard
-                        image={place.image}
-                        type={place.tag}
-                        name={place.name}
-                        description={place.summary}
-                        mapUrl={editing ? undefined : getPlaceMapUrl(place)}
-                      />
-                    </CardSlot>
-                  </>
-                )}
+                </>
               </Item>
             ))}
           </List>
         </DaySection>
       ))}
-      <ConfirmModal
-        confirmText="삭제"
-        title="일정 삭제"
-        visible={Boolean(pendingDelete)}
-        onCancel={() => setPendingDelete(null)}
-        onConfirm={deletePlace}
-      >
-        <DeleteMessage>&quot;{pendingDeleteName}&quot; 일정을 삭제하시겠습니까?</DeleteMessage>
-      </ConfirmModal>
     </Section>
   );
 }
@@ -507,10 +398,4 @@ const CardSlot = styled.View({
   flex: 1,
   minWidth: 0,
   paddingBottom: 16,
-});
-
-const DeleteMessage = styled.Text({
-  ...typography.body2.regular,
-  color: colors.gray[600],
-  textAlign: 'center',
 });

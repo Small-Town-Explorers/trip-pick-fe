@@ -8,6 +8,7 @@ import {
   useNotificationSettingsQuery,
   useUpdateNotificationSettingsMutation,
 } from '../../queries';
+import { useState } from 'react';
 
 const menus: {
   type: string;
@@ -21,7 +22,7 @@ const menus: {
     items: [
       { label: '계정 정보', route: 'account' },
       { label: '알림 설정', route: 'notifications' },
-      { label: '위치 권한', route: 'location' },
+      { label: '위치 권한' },
       { label: '앱 버전' },
     ],
   },
@@ -42,6 +43,9 @@ export const MyPageMenus = () => {
   const { data: notificationSettings } = useNotificationSettingsQuery();
   const updateNotifications = useUpdateNotificationSettingsMutation();
   const providerLabel = account?.provider === 'KAKAO' ? '카카오 로그인됨' : '로그인 정보 확인 중';
+  const [locationPermissionStatus, setLocationPermissionStatus] = useState<boolean>(
+    Boolean(localStorage.getItem('locationPermissionStatus') === 'true'),
+  );
 
   return menus.map((menu, menuIdx) => (
     <Menu key={menuIdx}>
@@ -73,8 +77,19 @@ export const MyPageMenus = () => {
               ) : null}
               {item.route ? (
                 <IconComponent name="carousel_right" size={14} color={colors.gray[500]} />
-              ) : (
+              ) : item.label === '앱 버전' ? (
                 <MenuItemVersionSub>1.2.0</MenuItemVersionSub>
+              ) : (
+                <ToggleButton
+                  value={locationPermissionStatus}
+                  onToggle={() =>
+                    setLocationPermissionStatus((prev) => {
+                      const newStatus = !prev;
+                      localStorage.setItem('locationPermissionStatus', String(newStatus));
+                      return newStatus;
+                    })
+                  }
+                />
               )}
             </MenuItemRight>
           </MenuItem>

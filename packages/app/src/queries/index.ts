@@ -23,15 +23,19 @@ export {
 } from './useNoticesQuery';
 export { useInfinitePlaceSearchQuery } from './useInfinitePlaceSearchQuery';
 export { useAddCourseItemMutation } from './useAddCourseItemMutation';
+export { useAddManualCourseItemMutation } from './useAddManualCourseItemMutation';
 export { useEditCourseWithChatMutation } from './useEditCourseWithChatMutation';
 export {
   homeTripQueryKey,
   myCourseDetailQueryKey,
+  myCourseListsQueryKey,
   myCoursesQueryKey,
+  useDeleteMyCourseMutation,
   useMyCourseDetailQuery,
   useMyCoursesQuery,
   useHomeTripQuery,
   useSaveMyCourseMutation,
+  useUpdateMyCourseMutation,
 } from './useMyCourses';
 export {
   foldersQueryKey,
