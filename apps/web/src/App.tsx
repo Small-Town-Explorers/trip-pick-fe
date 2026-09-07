@@ -8,6 +8,7 @@ import {
   HomeScreen,
   LoginScreen,
   MyPageScreen,
+  MyPageNoticeDetailScreen,
   MyPageSectionScreen,
   MyTripFolderScreen,
   MyTripsScreen,
@@ -110,6 +111,15 @@ function MyTripFolderRoute() {
   return id ? <MyTripFolderScreen folderId={id} /> : <Navigate to="/my-trips" replace />;
 }
 
+function MyPageNoticeDetailRoute() {
+  const { id } = useParams<{ id: string }>();
+  return id ? (
+    <MyPageNoticeDetailScreen noticeId={id} />
+  ) : (
+    <Navigate to="/my-page/notices" replace />
+  );
+}
+
 function MyPageSectionRoute() {
   const { section } = useParams<{ section: MyPageSectionRouteName }>();
   return section ? <MyPageSectionScreen section={section} /> : <Navigate to="/my-page" replace />;
@@ -139,6 +149,7 @@ function App() {
         <Route path="/my-trips" element={<MyTripsScreen />} />
         <Route path="/my-trips/:id" element={<MyTripFolderRoute />} />
         <Route path="/my-page" element={<MyPageScreen />} />
+        <Route path="/my-page/notices/:id" element={<MyPageNoticeDetailRoute />} />
         <Route path="/my-page/:section" element={<MyPageSectionRoute />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
