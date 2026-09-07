@@ -5,6 +5,7 @@ import {
   getMyCourseDetail,
   getMyCourses,
   saveMyCourse,
+  updateMyCourse,
   type MyCourseDetail,
   type MyCourseSummary,
 } from '../controllers';
@@ -51,6 +52,23 @@ export function useSaveMyCourseMutation() {
       queryClient.setQueryData<MyCourseDetail>(myCourseDetailQueryKey(savedCourse.id), savedCourse);
       void queryClient.invalidateQueries({ queryKey: myCourseListsQueryKey });
       void queryClient.invalidateQueries({ queryKey: homeTripQueryKey });
+    },
+  });
+}
+
+export function useUpdateMyCourseMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateMyCourse,
+    onSuccess: (updatedCourse) => {
+      queryClient.setQueryData<MyCourseDetail>(
+        myCourseDetailQueryKey(updatedCourse.id),
+        updatedCourse,
+      );
+      void queryClient.invalidateQueries({ queryKey: myCourseListsQueryKey });
+      void queryClient.invalidateQueries({ queryKey: homeTripQueryKey });
+      void queryClient.invalidateQueries({ queryKey: myPageSummaryQueryKey });
     },
   });
 }

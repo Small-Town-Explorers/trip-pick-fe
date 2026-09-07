@@ -16,6 +16,7 @@ export {
   getMyCourseDetail,
   getMyCourses,
   saveMyCourse,
+  updateMyCourse,
   type AddCourseItemRequest,
   type AddCourseItemResponse,
   type AddManualCourseItemRequest,
@@ -34,6 +35,7 @@ export {
   type MyCourseSummary,
   type ManualCourseItem,
   type SaveMyCourseRequest,
+  type UpdateMyCourseRequest,
 } from './courses';
 export {
   createFolder,

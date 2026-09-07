@@ -36,6 +36,7 @@ import {
   useGenerateCourseByNameMutation,
   useMyCourseDetailQuery,
   useSaveMyCourseMutation,
+  useUpdateMyCourseMutation,
 } from '../../queries';
 import { getPersistedGeneratedCourse } from '../../storage/generatedCourse';
 
@@ -116,16 +117,20 @@ export function CourseResultScreen({
   headerTitle = '코스 생성 결과',
 }: CourseResultScreenProps) {
   const queryClient = useQueryClient();
-  const initialGeneratedCourse =
-    queryClient.getQueryData<GeneratedCourseResponse>(generatedCourseQueryKey(courseId)) ??
-    getPersistedGeneratedCourse(courseId);
+  const isExistingCourse = headerTitle === '내 여행 상세';
+  const initialGeneratedCourse = isExistingCourse
+    ? undefined
+    : (queryClient.getQueryData<GeneratedCourseResponse>(generatedCourseQueryKey(courseId)) ??
+      getPersistedGeneratedCourse(courseId));
   const {
     data: savedCourse,
     error: savedCourseError,
     isPending: isSavedCoursePending,
     refetch: refetchSavedCourse,
-  } = useMyCourseDetailQuery(courseId, !initialGeneratedCourse);
-  const loadedCourse = initialGeneratedCourse ?? savedCourse?.course;
+  } = useMyCourseDetailQuery(courseId, isExistingCourse || !initialGeneratedCourse);
+  const loadedCourse = isExistingCourse
+    ? savedCourse?.course
+    : (initialGeneratedCourse ?? savedCourse?.course);
 
   if (!loadedCourse) {
     return (
@@ -163,6 +168,7 @@ export function CourseResultScreen({
       headerTitle={headerTitle}
       initialCourse={loadedCourse}
       initialTitle={savedCourse?.title}
+      isExistingCourse={isExistingCourse}
     />
   );
 }
@@ -171,6 +177,7 @@ interface CourseResultContentProps extends CourseResultScreenProps {
   headerTitle: '내 여행 상세' | '코스 생성 결과';
   initialCourse: GeneratedCourseResponse;
   initialTitle?: string;
+  isExistingCourse: boolean;
 }
 
 function CourseResultContent({
@@ -178,6 +185,7 @@ function CourseResultContent({
   headerTitle,
   initialCourse,
   initialTitle,
+  isExistingCourse,
 }: CourseResultContentProps) {
   const { back } = useAppNavigation();
   const queryClient = useQueryClient();
@@ -187,6 +195,7 @@ function CourseResultContent({
   const addManualCourseItemMutation = useAddManualCourseItemMutation();
   const editCourseWithChatMutation = useEditCourseWithChatMutation();
   const saveMyCourseMutation = useSaveMyCourseMutation();
+  const updateMyCourseMutation = useUpdateMyCourseMutation();
   const regenerationSequence = useRef(0);
   const [title, setTitle] = useState(
     () => initialTitle ?? `${initialCourse.region.province} ${initialCourse.region.name} 여행`,
@@ -382,7 +391,10 @@ function CourseResultContent({
   }, []);
 
   const saveCourse = async (folderId: string) => {
-    if (!course || saveMyCourseMutation.isPending) return false;
+    const isSaving = isExistingCourse
+      ? updateMyCourseMutation.isPending
+      : saveMyCourseMutation.isPending;
+    if (!course || isSaving) return false;
 
     const trimmedTitle = title.trim();
     if (!trimmedTitle) {
@@ -392,19 +404,26 @@ function CourseResultContent({
 
     setCourseSaveError('');
     try {
-      const saved = await saveMyCourseMutation.mutateAsync({
+      const request = {
         title: trimmedTitle,
         folderId,
         startDate: period.startDate,
         course: applyEditedPlacesToCourse(course, places, period),
-      });
+      };
+      const saved = isExistingCourse
+        ? await updateMyCourseMutation.mutateAsync({ id: courseId, ...request })
+        : await saveMyCourseMutation.mutateAsync(request);
       setCourseSaveNotice({ title: saved.title });
       setIsSaveVisible(false);
       back();
       return true;
     } catch (error) {
       setCourseSaveError(
-        error instanceof ApiError ? error.message : '코스를 저장하지 못했어요. 다시 시도해 주세요.',
+        error instanceof ApiError
+          ? error.message
+          : isExistingCourse
+            ? '코스를 수정하지 못했어요. 다시 시도해 주세요.'
+            : '코스를 저장하지 못했어요. 다시 시도해 주세요.',
       );
       return false;
     }
@@ -496,7 +515,9 @@ function CourseResultContent({
       />
       <CourseResultSaveModal
         visible={isSaveVisible}
-        isSaving={saveMyCourseMutation.isPending}
+        isSaving={
+          isExistingCourse ? updateMyCourseMutation.isPending : saveMyCourseMutation.isPending
+        }
         saveError={courseSaveError}
         onClose={() => {
           setCourseSaveError('');

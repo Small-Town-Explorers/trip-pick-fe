@@ -35,6 +35,7 @@ export {
   useMyCoursesQuery,
   useHomeTripQuery,
   useSaveMyCourseMutation,
+  useUpdateMyCourseMutation,
 } from './useMyCourses';
 export {
   foldersQueryKey,

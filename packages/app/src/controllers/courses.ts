@@ -67,6 +67,10 @@ export type SaveMyCourseRequest = {
   course: GeneratedCourseResponse;
 };
 
+export type UpdateMyCourseRequest = SaveMyCourseRequest & {
+  id: string;
+};
+
 export type MyCourseSummary = {
   id: string;
   title: string;
@@ -191,6 +195,14 @@ export function editCourseWithChat(request: EditCourseWithChatRequest) {
 export function saveMyCourse(request: SaveMyCourseRequest) {
   return apiRequest<MyCourseDetail>('/api/v1/my/courses', {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+}
+
+export function updateMyCourse({ id, ...request }: UpdateMyCourseRequest) {
+  return apiRequest<MyCourseDetail>(`/api/v1/my/courses/${encodeURIComponent(id)}`, {
+    method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(request),
   });
