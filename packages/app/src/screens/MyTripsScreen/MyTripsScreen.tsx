@@ -128,7 +128,7 @@ export function MyTripsScreen() {
                   navigate(appRoutes.myTripFolder(folder.id));
                 }}
               >
-                <FolderImage source={undefined} resizeMode="cover" />
+                <FolderImage source={{ uri: folder.imageUrl }} resizeMode="cover" />
                 <FolderInfo>
                   <FolderInfoHeader>
                     <FolderName numberOfLines={1}>{folder.name}</FolderName>

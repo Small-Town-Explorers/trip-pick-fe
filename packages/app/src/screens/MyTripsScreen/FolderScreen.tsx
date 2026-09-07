@@ -155,7 +155,7 @@ export function MyTripFolderScreen({ folderId }: MyTripFolderScreenProps) {
 
   return (
     <Screen testID={`my-trip-folder-${folderId}`}>
-      <Header title={folder?.name ?? '보관함'} sub={`(${courses.length})`} />
+      <Header title={folder?.name ?? '보관함'} sub={`(${folder?.courseCount ?? 0})`} />
       <Scroll contentContainerStyle={contentStyle}>
         {isPending ? (
           <Status>

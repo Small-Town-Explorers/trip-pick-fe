@@ -4,6 +4,8 @@ export type Folder = {
   id: string;
   name: string;
   createdAt: string;
+  courseCount: number;
+  imageUrl: string;
 };
 
 export type FolderNameRequest = {
