@@ -6,12 +6,15 @@ import styled from '@emotion/native';
 import { colors, shadows, typography } from '@styles';
 import { useState } from 'react';
 import { ActivityIndicator, Platform, type ImageSourcePropType } from 'react-native';
-import { ApiError } from '../../controllers';
+import { ApiError, hasApiAccessToken } from '../../controllers';
 import { useCreateFolderMutation, useFoldersQuery } from '../../queries';
+import { KakaoButton } from '@components/Buttons';
+import { appRoutes, useAppNavigation } from '../../navigation';
 
 interface CourseResultSaveModalProps {
   visible: boolean;
   isSaving: boolean;
+  title: string;
   saveError: string;
   onClose: () => void;
   onSave: (folderId: string) => Promise<boolean>;
@@ -22,11 +25,19 @@ const folderImages = [Landscape1, Landscape2];
 export function CourseResultSaveModal({
   visible,
   isSaving,
+  title,
   saveError,
   onClose,
   onSave,
 }: CourseResultSaveModalProps) {
-  const { data: folders = [], error, isPending, refetch } = useFoldersQuery(visible);
+  const { navigate } = useAppNavigation();
+  const isAuthenticated = hasApiAccessToken();
+  const {
+    data: folders = [],
+    error,
+    isPending,
+    refetch,
+  } = useFoldersQuery(visible && isAuthenticated);
   const createFolderMutation = useCreateFolderMutation();
   const [isFolderModalVisible, setIsFolderModalVisible] = useState(false);
   const [folderName, setFolderName] = useState('');
@@ -64,63 +75,90 @@ export function CourseResultSaveModal({
         visible={visible}
         title="코스 저장"
         onClose={onClose}
-        sheetStyle={sheetStyle}
+        baseHeight={440}
+        isExpandable={false}
       >
-        {() => (
-          <FolderScroll contentContainerStyle={folderContentStyle}>
-            <FolderGrid>
-              <NewFolder
-                accessibilityRole="button"
-                accessibilityLabel="새 보관함 만들기"
-                disabled={isSaving}
-                onPress={() => setIsFolderModalVisible(true)}
-              >
-                <IconComponent name="plus" size={40} color={colors.primary[600]} />
-                <NewFolderLabel>새 보관함</NewFolderLabel>
-              </NewFolder>
-              {isPending ? (
-                <FolderLoading>
-                  <ActivityIndicator color={colors.primary[700]} />
-                </FolderLoading>
-              ) : null}
-              {error ? (
-                <FolderLoading>
-                  <FolderStateText>보관함을 불러오지 못했어요.</FolderStateText>
-                  <RetryButton accessibilityRole="button" onPress={() => refetch()}>
-                    <RetryText>다시 시도</RetryText>
-                  </RetryButton>
-                </FolderLoading>
-              ) : null}
-              {folders.map((folder, index) => (
-                <FolderCard
-                  key={folder.id}
+        {({ close }) =>
+          !isAuthenticated ? (
+            <Unauthenticated>
+              <LoginPrompt>
+                <IconComponent name="profile" color={colors.primary[500]} size={28} />
+                <LoginPromptTitle>로그인하고 여행 코스를 내 보관함에 저장하세요.</LoginPromptTitle>
+                <LoginPromptDescription>
+                  로그인 시 지금 생성된{' '}
+                  <LoginPromptDescriptionHighlight>
+                    &apos;{title.trim()}&apos;
+                  </LoginPromptDescriptionHighlight>{' '}
+                  일정이 소실 없이 저장됩니다.
+                </LoginPromptDescription>
+              </LoginPrompt>
+              <LoginAction>
+                <KakaoButton onPress={() => navigate(appRoutes.login)} />
+                <GuestButton
                   accessibilityRole="button"
-                  accessibilityLabel={`${folder.name}에 저장`}
-                  disabled={isSaving}
-                  onPress={() => void onSave(folder.id)}
+                  accessibilityLabel="다음에 하기"
+                  onPress={close}
                 >
-                  <FolderImage
-                    source={
-                      folderImages[index % folderImages.length] as unknown as ImageSourcePropType
-                    }
-                    resizeMode="cover"
-                  />
-                  <FolderInfo>
-                    <FolderName numberOfLines={1}>{folder.name}</FolderName>
-                    <FolderMeta>보관함</FolderMeta>
-                  </FolderInfo>
-                </FolderCard>
-              ))}
-            </FolderGrid>
-            {isSaving ? (
-              <SaveState>
-                <ActivityIndicator color={colors.primary[700]} />
-                <FolderStateText>코스를 저장하고 있어요.</FolderStateText>
-              </SaveState>
-            ) : null}
-            {saveError ? <FolderError>{saveError}</FolderError> : null}
-          </FolderScroll>
-        )}
+                  <GuestButtonText>다음에 하기</GuestButtonText>
+                </GuestButton>
+              </LoginAction>
+            </Unauthenticated>
+          ) : (
+            <FolderScroll contentContainerStyle={folderContentStyle}>
+              <FolderGrid>
+                <NewFolder
+                  accessibilityRole="button"
+                  accessibilityLabel="새 보관함 만들기"
+                  disabled={isSaving}
+                  onPress={() => setIsFolderModalVisible(true)}
+                >
+                  <IconComponent name="plus" size={40} color={colors.primary[600]} />
+                  <NewFolderLabel>새 보관함</NewFolderLabel>
+                </NewFolder>
+                {isPending ? (
+                  <FolderLoading>
+                    <ActivityIndicator color={colors.primary[700]} />
+                  </FolderLoading>
+                ) : null}
+                {error ? (
+                  <FolderLoading>
+                    <FolderStateText>보관함을 불러오지 못했어요.</FolderStateText>
+                    <RetryButton accessibilityRole="button" onPress={() => refetch()}>
+                      <RetryText>다시 시도</RetryText>
+                    </RetryButton>
+                  </FolderLoading>
+                ) : null}
+                {folders.map((folder, index) => (
+                  <FolderCard
+                    key={folder.id}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${folder.name}에 저장`}
+                    disabled={isSaving}
+                    onPress={() => void onSave(folder.id)}
+                  >
+                    <FolderImage
+                      source={
+                        folderImages[index % folderImages.length] as unknown as ImageSourcePropType
+                      }
+                      resizeMode="cover"
+                    />
+                    <FolderInfo>
+                      <FolderName numberOfLines={1}>{folder.name}</FolderName>
+                      <FolderMeta>보관함</FolderMeta>
+                    </FolderInfo>
+                  </FolderCard>
+                ))}
+              </FolderGrid>
+              {isSaving ? (
+                <SaveState>
+                  <ActivityIndicator color={colors.primary[700]} />
+                  <FolderStateText>코스를 저장하고 있어요.</FolderStateText>
+                </SaveState>
+              ) : null}
+              {saveError ? <FolderError>{saveError}</FolderError> : null}
+            </FolderScroll>
+          )
+        }
       </BottomSheetModal>
 
       <ConfirmModal
@@ -148,7 +186,55 @@ export function CourseResultSaveModal({
   );
 }
 
-const sheetStyle = { height: 760, maxHeight: '90%' } as const;
+const Unauthenticated = styled.View({
+  gap: 20,
+  paddingHorizontal: 20,
+  paddingBottom: 40,
+  flex: 1,
+  justifyContent: 'space-between',
+});
+
+const LoginPrompt = styled.View({
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingVertical: 32,
+  paddingHorizontal: 20,
+  gap: 12,
+  borderRadius: 16,
+  backgroundColor: colors.gray[25],
+});
+
+const LoginPromptTitle = styled.Text({
+  ...typography.body1.medium,
+  color: colors.gray[800],
+  textAlign: 'center',
+});
+
+const LoginPromptDescription = styled.Text({
+  ...typography.body3.regular,
+  color: colors.gray[500],
+  textAlign: 'center',
+});
+
+const LoginPromptDescriptionHighlight = styled.Text({
+  color: colors.primary[900],
+});
+
+const LoginAction = styled.View({
+  alignSelf: 'stretch',
+  gap: 16,
+});
+
+const GuestButton = styled.Pressable({
+  alignSelf: 'center',
+});
+
+const GuestButtonText = styled.Text({
+  color: colors.gray[400],
+  ...typography.body3.regular,
+  textDecorationLine: 'underline',
+});
+
 const folderContentStyle = { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 40 } as const;
 
 const FolderScroll = styled.ScrollView({ width: '100%' });

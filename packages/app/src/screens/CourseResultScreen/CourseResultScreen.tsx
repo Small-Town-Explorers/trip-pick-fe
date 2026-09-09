@@ -533,6 +533,7 @@ function CourseResultContent({
       />
       <CourseResultSaveModal
         visible={isSaveVisible}
+        title={title}
         isSaving={
           isExistingCourse ? updateMyCourseMutation.isPending : saveMyCourseMutation.isPending
         }
