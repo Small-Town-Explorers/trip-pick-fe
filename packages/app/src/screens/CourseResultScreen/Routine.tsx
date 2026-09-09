@@ -206,6 +206,14 @@ export function CourseResultRoutine({
           </DateRow>
 
           <List>
+            {places[dayIndex].length === 0 ? (
+              <EmptyList>
+                <EmptyListText>등록된 여행지가 없습니다.</EmptyListText>
+                <EmptyListSubText>
+                  {'1일차 일정이 모두 비어있어요.\n새로운 여행지를 코스에 추가해 보세요!'}
+                </EmptyListSubText>
+              </EmptyList>
+            ) : null}
             {places[dayIndex]?.map((place, placeIndex, dayPlaceList) => (
               <Item key={place.uid}>
                 <>
@@ -243,6 +251,24 @@ export function CourseResultRoutine({
     </Section>
   );
 }
+
+const EmptyList = styled.View({
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingVertical: 32,
+  gap: 12,
+});
+
+const EmptyListText = styled.Text({
+  ...typography.body2.medium,
+  color: colors.gray[700],
+});
+
+const EmptyListSubText = styled.Text({
+  ...typography.body3.regular,
+  color: colors.gray[500],
+  textAlign: 'center',
+});
 
 const Section = styled.View({
   width: '100%',
