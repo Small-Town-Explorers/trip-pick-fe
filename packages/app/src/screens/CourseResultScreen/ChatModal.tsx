@@ -42,14 +42,21 @@ export function CourseResultChatModal({
     getPersistedCourseChat(courseId),
   );
   const [isSending, setIsSending] = useState(false);
+  const [storageError, setStorageError] = useState('');
+  const messagesRef = useRef(messages);
   const chatScrollRef = useRef<ScrollView>(null);
 
   const appendMessage = (message: CourseChatMessage) => {
-    setMessages((currentMessages) => {
-      const nextMessages = [...currentMessages, message];
-      persistCourseChat(courseId, nextMessages);
-      return nextMessages;
-    });
+    const nextMessages = [...messagesRef.current, message];
+    messagesRef.current = nextMessages;
+    setMessages(nextMessages);
+    void persistCourseChat(courseId, nextMessages)
+      .then(() => setStorageError(''))
+      .catch(() => {
+        setStorageError(
+          '대화를 기기에 저장하지 못했어요. 앱을 닫으면 최근 대화가 사라질 수 있어요.',
+        );
+      });
   };
 
   const send = async () => {
@@ -134,6 +141,9 @@ export function CourseResultChatModal({
               </Thinking>
             ) : null}
           </ChatScroll>
+          {storageError ? (
+            <ThinkingText accessibilityLiveRegion="polite">{storageError}</ThinkingText>
+          ) : null}
 
           <Composer>
             <Input

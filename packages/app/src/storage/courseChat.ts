@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import { localDataStorage } from './localDataStorage';
 
 const STORAGE_PREFIX = 'trip-pick:course-chat:';
 
@@ -9,11 +9,6 @@ export type CourseChatMessage = {
 };
 
 const memoryChats = new Map<string, CourseChatMessage[]>();
-
-const getWebStorage = () => {
-  if (Platform.OS !== 'web' || typeof window === 'undefined') return null;
-  return window.localStorage;
-};
 
 const isCourseChatMessage = (value: unknown): value is CourseChatMessage => {
   if (!value || typeof value !== 'object') return false;
@@ -27,16 +22,15 @@ const isCourseChatMessage = (value: unknown): value is CourseChatMessage => {
 
 export function persistCourseChat(courseId: string, messages: CourseChatMessage[]) {
   memoryChats.set(courseId, messages);
-  getWebStorage()?.setItem(`${STORAGE_PREFIX}${courseId}`, JSON.stringify(messages));
+  return localDataStorage.setItem(`${STORAGE_PREFIX}${courseId}`, JSON.stringify(messages));
 }
 
 export function getPersistedCourseChat(courseId: string): CourseChatMessage[] {
   const memoryChat = memoryChats.get(courseId);
   if (memoryChat) return memoryChat;
 
-  const storage = getWebStorage();
   const key = `${STORAGE_PREFIX}${courseId}`;
-  const storedChat = storage?.getItem(key);
+  const storedChat = localDataStorage.getItemSnapshot(key);
   if (!storedChat) return [];
 
   try {
@@ -47,7 +41,7 @@ export function getPersistedCourseChat(courseId: string): CourseChatMessage[] {
     memoryChats.set(courseId, parsedChat);
     return parsedChat;
   } catch {
-    storage?.removeItem(key);
+    void localDataStorage.removeItem(key).catch(() => {});
     return [];
   }
 }

@@ -9,6 +9,7 @@ import {
   useUpdateNotificationSettingsMutation,
 } from '../../queries';
 import { useState } from 'react';
+import { localDataStorage } from '../../storage';
 
 const menus: {
   type: string;
@@ -44,8 +45,20 @@ export const MyPageMenus = () => {
   const updateNotifications = useUpdateNotificationSettingsMutation();
   const providerLabel = account?.provider === 'KAKAO' ? '카카오 로그인됨' : '로그인 정보 확인 중';
   const [locationPermissionStatus, setLocationPermissionStatus] = useState<boolean>(
-    Boolean(localStorage.getItem('locationPermissionStatus') === 'true'),
+    () => localDataStorage.getItemSnapshot('locationPermissionStatus') === 'true',
   );
+  const [storageError, setStorageError] = useState('');
+
+  const toggleLocationPreference = async () => {
+    const next = !locationPermissionStatus;
+    try {
+      await localDataStorage.setItem('locationPermissionStatus', String(next));
+      setLocationPermissionStatus(next);
+      setStorageError('');
+    } catch {
+      setStorageError('위치 설정을 저장하지 못했어요. 다시 시도해 주세요.');
+    }
+  };
 
   return menus.map((menu, menuIdx) => (
     <Menu key={menuIdx}>
@@ -82,19 +95,21 @@ export const MyPageMenus = () => {
               ) : (
                 <ToggleButton
                   value={locationPermissionStatus}
-                  onToggle={() =>
-                    setLocationPermissionStatus((prev) => {
-                      const newStatus = !prev;
-                      localStorage.setItem('locationPermissionStatus', String(newStatus));
-                      return newStatus;
-                    })
-                  }
+                  onToggle={() => void toggleLocationPreference()}
                 />
               )}
             </MenuItemRight>
           </MenuItem>
         ))}
       </MenuInner>
+      {menuIdx === 0 && (storageError || updateNotifications.error) ? (
+        <MenuItemLabel accessibilityLiveRegion="polite">
+          {storageError ||
+            (updateNotifications.error instanceof Error
+              ? updateNotifications.error.message
+              : '알림 설정을 변경하지 못했어요.')}
+        </MenuItemLabel>
+      ) : null}
     </Menu>
   ));
 };

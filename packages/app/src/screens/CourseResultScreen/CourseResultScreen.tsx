@@ -268,7 +268,7 @@ function CourseResultContent({
         startDate: period.startDate ?? nextCourse.startDate,
         endDate: period.endDate ?? nextCourse.endDate,
       };
-      storeGeneratedCourse(queryClient, courseId, nextCourse);
+      await storeGeneratedCourse(queryClient, courseId, nextCourse);
       setCourse(nextCourse);
       setPlaces(createCoursePlacesFromResponse(nextCourse));
       return true;
@@ -303,7 +303,7 @@ function CourseResultContent({
         startDate: period.startDate ?? response.course.startDate,
         endDate: period.endDate ?? response.course.endDate,
       };
-      storeGeneratedCourse(queryClient, courseId, nextCourse);
+      await storeGeneratedCourse(queryClient, courseId, nextCourse);
       setCourse(nextCourse);
       setPlaces(createCoursePlacesFromResponse(nextCourse));
       return true;
@@ -336,7 +336,7 @@ function CourseResultContent({
           startDate: period.startDate ?? response.course.startDate,
           endDate: period.endDate ?? response.course.endDate,
         };
-        storeGeneratedCourse(queryClient, courseId, editedCourse);
+        await storeGeneratedCourse(queryClient, courseId, editedCourse);
         setCourse(editedCourse);
         setPlaces(createCoursePlacesFromResponse(editedCourse));
       }
@@ -373,7 +373,8 @@ function CourseResultContent({
       });
       if (sequence !== regenerationSequence.current) return;
 
-      storeGeneratedCourse(queryClient, courseId, regeneratedCourse);
+      await storeGeneratedCourse(queryClient, courseId, regeneratedCourse);
+      if (sequence !== regenerationSequence.current) return;
       setCourse(regeneratedCourse);
       setPlaces(createCoursePlacesFromResponse(regeneratedCourse));
       setPeriod(getGeneratedCoursePeriod(regeneratedCourse));
@@ -421,7 +422,7 @@ function CourseResultContent({
       const saved = isExistingCourse
         ? await updateMyCourseMutation.mutateAsync({ id: courseId, ...request })
         : await saveMyCourseMutation.mutateAsync(request);
-      setCourseSaveNotice({ title: saved.title });
+      await setCourseSaveNotice({ title: saved.title });
       setIsSaveVisible(false);
       back();
       return true;

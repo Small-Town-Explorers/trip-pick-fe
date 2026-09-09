@@ -1,4 +1,6 @@
-# Kakao 지도 컴포넌트 (웹 전용)
+# Kakao 지도 컴포넌트
+
+웹은 DOM, 모바일은 `.native.tsx`에서 공식 JavaScript 지도 SDK를 WebView로 렌더링합니다. 모바일에서는 앱 시작 시 `configureNativeKakaoMaps({ javascriptKey, baseUrl })`을 호출해야 합니다. `baseUrl`은 해당 키에 등록된 JavaScript SDK 도메인이어야 합니다. 상세 설정과 공식 문서는 [모바일 연결 설정](../../../../../apps/mobile/MOBILE_INTEGRATIONS.md)을 참고하세요.
 
 [공식 가이드](https://apis.map.kakao.com/web/guide/)처럼 `apps/web/index.html`의 script 태그에서 `services` 라이브러리를 포함한 SDK를 로드하고 컴포넌트의 div에 지도를 생성합니다.
 

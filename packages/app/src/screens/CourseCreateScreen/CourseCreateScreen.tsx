@@ -89,7 +89,8 @@ export function CourseCreateScreen() {
       const course = await generateCourse.mutateAsync(request);
       if (sequence !== requestSequence.current) return;
       const courseId = createGeneratedCourseId(regionId);
-      storeGeneratedCourse(queryClient, courseId, course);
+      await storeGeneratedCourse(queryClient, courseId, course);
+      if (sequence !== requestSequence.current) return;
       setGeneratedCourseId(courseId);
     } catch (error) {
       if (sequence !== requestSequence.current) return;

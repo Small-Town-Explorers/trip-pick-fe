@@ -86,11 +86,7 @@ export const HomeUpcomingTrip = () => {
           <Overview>
             <TripTitle>{trip?.title}</TripTitle>
             <Map accessibilityLabel={`좌표가 등록된 여행 장소 ${markerCount}곳의 지도`}>
-              {Platform.OS === 'web' ? (
-                <KakaoRouteMap coordinates={coordinates} height={200} />
-              ) : (
-                <MapLabel>여행 코스 지도</MapLabel>
-              )}
+              <KakaoRouteMap coordinates={coordinates} height={200} />
             </Map>
           </Overview>
 
@@ -198,11 +194,6 @@ const Map = styled.View({
   backgroundColor: colors.gray[100],
   overflow: 'hidden',
   borderRadius: 16,
-});
-
-const MapLabel = styled.Text({
-  ...typography.caption1.medium,
-  color: colors.gray[500],
 });
 
 const Carousel = styled.ScrollView({

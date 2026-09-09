@@ -90,3 +90,6 @@ export {
 } from './screens/MyPage';
 export { PlaceDetailScreen } from './screens/PlaceDetailScreen/PlaceDetailScreen';
 export { TripDetailScreen } from './screens/TripDetailScreen';
+export { localDataStorage, loadLocalData, saveLocalData, removeLocalData } from './storage';
+export { LocalStorageGate } from './providers/LocalStorageGate';
+export { configureNativeKakaoMaps } from './components/KakaoMap/config';

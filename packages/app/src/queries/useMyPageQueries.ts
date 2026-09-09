@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ensureNotificationPermission } from '../permissions/notifications';
 import {
   getAccountInfo,
   getMyPageSummary,
@@ -54,6 +55,9 @@ export function useUpdateNotificationSettingsMutation() {
   return useMutation({
     mutationFn: updateNotificationSettings,
     onMutate: async (changes) => {
+      if (Object.values(changes).some((value) => value === true)) {
+        await ensureNotificationPermission();
+      }
       await queryClient.cancelQueries({ queryKey: notificationSettingsQueryKey });
       const previousSettings = queryClient.getQueryData<NotificationSettings>(
         notificationSettingsQueryKey,

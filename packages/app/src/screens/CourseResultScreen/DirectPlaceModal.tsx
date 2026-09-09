@@ -72,16 +72,12 @@ export function CourseResultDirectPlaceModal({
   };
 
   const addLocation = () => {
-    if (!pendingLocation || isLocationLoading) return;
+    if (!pendingLocation || isLocationLoading || locationError) return;
     setLocation(pendingLocation);
     closeMap();
   };
 
   const searchAddress = () => {
-    if (Platform.OS !== 'web') {
-      setLocationError('지도 위치 선택은 웹에서 지원됩니다.');
-      return;
-    }
     const address = mapQuery.trim();
     if (!address) {
       setLocationError('검색할 주소를 입력해 주세요.');
@@ -226,24 +222,20 @@ export function CourseResultDirectPlaceModal({
             />
           </MapSearch>
           <MapPreview>
-            {Platform.OS === 'web' ? (
-              <KakaoLocationPickerMap
-                addressSearchRequest={addressSearchRequest}
-                height={300}
-                initialCenterAddress={initialMapAddress}
-                selectedCoordinate={pendingLocation}
-                style={{ borderRadius: 12 }}
-                onLocationError={setLocationError}
-                onLocationLoadingChange={setIsLocationLoading}
-                onLocationSelect={(nextLocation) => {
-                  setPendingLocation(nextLocation);
-                  setMapQuery(nextLocation.address);
-                  setLocationError('');
-                }}
-              />
-            ) : (
-              <MapUnavailable>지도 위치 선택은 웹에서 지원됩니다.</MapUnavailable>
-            )}
+            <KakaoLocationPickerMap
+              addressSearchRequest={addressSearchRequest}
+              height={300}
+              initialCenterAddress={initialMapAddress}
+              selectedCoordinate={pendingLocation}
+              style={{ borderRadius: 12 }}
+              onLocationError={setLocationError}
+              onLocationLoadingChange={setIsLocationLoading}
+              onLocationSelect={(nextLocation) => {
+                setPendingLocation(nextLocation);
+                setMapQuery(nextLocation.address);
+                setLocationError('');
+              }}
+            />
             {isLocationLoading ? (
               <MapLoading pointerEvents="none">
                 <ActivityIndicator color={colors.primary[700]} />
@@ -429,10 +421,6 @@ const MapLoading = styled.View({
   justifyContent: 'center',
   borderRadius: 18,
   backgroundColor: withAlpha('#FFFFFF', 0.9),
-});
-const MapUnavailable = styled.Text({
-  ...typography.body3.regular,
-  color: colors.gray[500],
 });
 const MapAddress = styled.Text({
   ...typography.body3.regular,

@@ -16,11 +16,11 @@ export function createGeneratedCourseId(regionId?: string) {
   return `${regionId ?? 'recommended'}-${Date.now()}`;
 }
 
-export function storeGeneratedCourse(
+export async function storeGeneratedCourse(
   queryClient: QueryClient,
   courseId: string,
   course: GeneratedCourseResponse,
 ) {
+  await persistGeneratedCourse(courseId, course);
   queryClient.setQueryData(generatedCourseQueryKey(courseId), course);
-  persistGeneratedCourse(courseId, course);
 }
