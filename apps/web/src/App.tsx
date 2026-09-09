@@ -72,7 +72,12 @@ function LoginRoute() {
   };
 
   return (
-    <LoginScreen isLoading={isLoading} errorMessage={errorMessage} onKakaoLogin={startKakaoLogin} />
+    <LoginScreen
+      isLoading={isLoading}
+      errorMessage={errorMessage}
+      onKakaoLogin={startKakaoLogin}
+      onGuestContinue={() => navigate('/', { replace: true })}
+    />
   );
 }
 

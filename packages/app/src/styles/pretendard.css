@@ -27,3 +27,12 @@
     local('Pretendard SemiBold'),
     url('../../assets/fonts/web/Pretendard-SemiBold.woff2') format('woff2');
 }
+
+@font-face {
+  font-family: 'TwayNalda';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_tway@1.0/twayfly.woff')
+    format('woff');
+}
