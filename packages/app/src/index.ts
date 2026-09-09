@@ -32,6 +32,7 @@ export {
   apiRequest,
   configureApiAccessToken,
   configureApiBaseUrl,
+  hasApiAccessToken,
   generateCourse,
   generateCourseByName,
   getSmallCities,

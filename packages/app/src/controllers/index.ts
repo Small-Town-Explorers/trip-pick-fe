@@ -3,6 +3,7 @@ export {
   apiRequest,
   configureApiAccessToken,
   configureApiBaseUrl,
+  hasApiAccessToken,
   type ApiErrorResponse,
 } from './apiClient';
 export {

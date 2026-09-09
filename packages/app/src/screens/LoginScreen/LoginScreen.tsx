@@ -1,9 +1,9 @@
 import styled from '@emotion/native';
-import KakaoIcon from '@assets/images/kakao.png';
 import LoginBackgroundImage from '@assets/images/login_background.png';
 import LoginBrandImage from '@assets/images/logo_button.png';
+import { KakaoButton } from '@components/Buttons';
 import { LinearGradient } from '@components/LinearGradient';
-import { ActivityIndicator, type ImageSourcePropType } from 'react-native';
+import { type ImageSourcePropType } from 'react-native';
 import { colors, fontFamilies, typography } from '@styles';
 
 type LoginScreenProps = {
@@ -49,25 +49,7 @@ export function LoginScreen({
         {errorMessage ? (
           <ErrorMessage accessibilityLiveRegion="assertive">{errorMessage}</ErrorMessage>
         ) : null}
-        <KakaoButton
-          accessibilityRole="button"
-          accessibilityLabel="카카오톡으로 시작하기"
-          disabled={isLoading}
-          onPress={onKakaoLogin}
-        >
-          {isLoading ? (
-            <ActivityIndicator size="small" color="#351B1D" />
-          ) : (
-            <KakaoLogo
-              source={KakaoIcon as ImageSourcePropType}
-              resizeMode="contain"
-              accessibilityIgnoresInvertColors
-            />
-          )}
-          <KakaoButtonText>
-            {isLoading ? '로그인하고 있어요' : '카카오톡으로 시작하기'}
-          </KakaoButtonText>
-        </KakaoButton>
+        <KakaoButton isLoading={isLoading} onPress={onKakaoLogin} />
         <GuestButton
           accessibilityRole="button"
           accessibilityLabel="비회원으로 이용하기"
@@ -167,27 +149,6 @@ const ErrorMessage = styled.Text({
   color: '#B8321A',
   ...typography.body3.regular,
   textAlign: 'center',
-});
-
-const KakaoButton = styled.Pressable({
-  width: '100%',
-  height: 48,
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 8,
-  borderRadius: 8,
-  backgroundColor: '#FEE500',
-});
-
-const KakaoLogo = styled.Image({
-  width: 32,
-  height: 32,
-});
-
-const KakaoButtonText = styled.Text({
-  color: '#000000',
-  ...typography.body2.semibold,
 });
 
 const GuestButton = styled.Pressable({

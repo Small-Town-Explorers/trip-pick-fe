@@ -1,10 +1,11 @@
 import { IconComponent } from '@components/Icons';
+import { KakaoButton } from '@components/Buttons';
 import { KakaoRouteMap } from '@components/KakaoMap';
 import { useMemo } from 'react';
 import styled from '@emotion/native';
 import { colors, typography } from '@styles';
 import { ActivityIndicator, Platform } from 'react-native';
-import { ApiError } from '../../controllers';
+import { ApiError, hasApiAccessToken } from '../../controllers';
 import { appRoutes, useAppNavigation } from '../../navigation';
 import { useHomeTripQuery } from '../../queries';
 
@@ -18,7 +19,8 @@ const formatDate = (dateString: string) => {
 
 export const HomeUpcomingTrip = () => {
   const { navigate } = useAppNavigation();
-  const { data: trip, error, isPending, refetch } = useHomeTripQuery();
+  const isAuthenticated = hasApiAccessToken();
+  const { data: trip, error, isPending, refetch } = useHomeTripQuery(isAuthenticated);
   const hasTrip = trip?.tripStatus !== 'NONE' && Boolean(trip?.id && trip.title);
   const sectionTitle = trip?.tripStatus === 'ONGOING' ? '진행 중인 내 여행' : '다가오는 내 여행';
   const markerCount =
@@ -53,14 +55,27 @@ export const HomeUpcomingTrip = () => {
         ) : null}
       </Header>
 
-      {isPending ? (
+      {!isAuthenticated ? (
+        <LoginPrompt>
+          <IconComponent name="profile" color={colors.primary[500]} size={28} />
+          <LoginPromptTitle>로그인하고 여행 코스를 만들어 보세요.</LoginPromptTitle>
+          <LoginPromptDescription>
+            AI가 취향에 맞게 추천한 코스와 스마트 동선 지도를{`\n`}언제든 꺼내볼 수 있습니다.
+          </LoginPromptDescription>
+          <LoginAction>
+            <KakaoButton onPress={() => navigate(appRoutes.login)} />
+          </LoginAction>
+        </LoginPrompt>
+      ) : null}
+
+      {isAuthenticated && isPending ? (
         <State>
           <ActivityIndicator color={colors.primary[700]} />
           <StateText>여행 일정을 불러오고 있어요.</StateText>
         </State>
       ) : null}
 
-      {error ? (
+      {isAuthenticated && error ? (
         <State>
           <StateText>
             {error instanceof ApiError ? error.message : '여행 일정을 불러오지 못했어요.'}
@@ -71,7 +86,7 @@ export const HomeUpcomingTrip = () => {
         </State>
       ) : null}
 
-      {!isPending && !error && !hasTrip ? (
+      {isAuthenticated && !isPending && !error && !hasTrip ? (
         <NoTrip>
           <IconComponent name="luggage" color={colors.primary[500]} size={28} />
           <NoTripText>예정되거나 진행 중인 여행이 없어요.</NoTripText>
@@ -81,7 +96,7 @@ export const HomeUpcomingTrip = () => {
         </NoTrip>
       ) : null}
 
-      {!isPending && !error && hasTrip ? (
+      {isAuthenticated && !isPending && !error && hasTrip ? (
         <>
           <Overview>
             <TripTitle>{trip?.title}</TripTitle>
@@ -153,10 +168,37 @@ const NoTripSubText = styled.Text({
   color: colors.gray[500],
 });
 
+const LoginPrompt = styled.View({
+  alignItems: 'center',
+  marginHorizontal: 20,
+  paddingVertical: 32,
+  paddingHorizontal: 20,
+  gap: 12,
+  borderRadius: 16,
+  backgroundColor: colors.gray[25],
+});
+
+const LoginPromptTitle = styled.Text({
+  ...typography.body1.medium,
+  color: colors.gray[800],
+  textAlign: 'center',
+});
+
+const LoginPromptDescription = styled.Text({
+  ...typography.body3.regular,
+  color: colors.gray[500],
+  textAlign: 'center',
+});
+
+const LoginAction = styled.View({
+  alignSelf: 'stretch',
+  paddingTop: 16,
+});
+
 const Section = styled.View({
   width: '100%',
   paddingTop: 24,
-  paddingBottom: 28,
+  paddingBottom: 40,
   gap: 24,
 });
 
