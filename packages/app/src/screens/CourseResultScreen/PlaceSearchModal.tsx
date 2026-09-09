@@ -146,11 +146,13 @@ export function CourseResultPlaceSearchModal({
                     selected={selected}
                     onPress={() => togglePlace(place)}
                   >
-                    <Thumbnail
-                      accessibilityLabel={place.name}
-                      resizeMode="cover"
-                      source={place.imageUrl ? { uri: place.imageUrl } : undefined}
-                    />
+                    {source === 'TOUR' ? (
+                      <Thumbnail
+                        accessibilityLabel={place.name}
+                        resizeMode="cover"
+                        source={place.imageUrl ? { uri: place.imageUrl } : undefined}
+                      />
+                    ) : null}
                     <ResultInfo>
                       <ResultHeading>
                         <ResultName numberOfLines={1}>{place.name}</ResultName>
