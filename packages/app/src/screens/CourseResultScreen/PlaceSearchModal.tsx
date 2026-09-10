@@ -1,5 +1,5 @@
 import KakaoMapIcon from '@assets/images/kakao_map.png';
-import { BottomSheetModal } from '@components/Modal';
+import { BottomSheetModal, ConfirmModal } from '@components/Modal';
 import styled from '@emotion/native';
 import { colors, createShadow, shadows, typography, withAlpha } from '@styles';
 import { useEffect, useMemo, useState } from 'react';
@@ -7,11 +7,13 @@ import { ActivityIndicator, FlatList, Platform, type ImageSourcePropType } from 
 import { IconComponent } from '@components/Icons';
 import { ApiError, type PlaceSearchItem, type PlaceSearchSource } from '../../controllers';
 import { useInfinitePlaceSearchQuery } from '../../queries';
+import { isAddressInCourseRegion, type CourseRegionForComparison } from './placeRegion';
 
 interface CourseResultPlaceSearchModalProps {
   visible: boolean;
   isAdding: boolean;
   addError?: string;
+  courseRegion: CourseRegionForComparison;
   onAdd: (places: PlaceSearchItem[]) => Promise<boolean>;
   onClose: () => void;
 }
@@ -20,6 +22,7 @@ export function CourseResultPlaceSearchModal({
   visible,
   isAdding,
   addError,
+  courseRegion,
   onAdd,
   onClose,
 }: CourseResultPlaceSearchModalProps) {
@@ -27,6 +30,7 @@ export function CourseResultPlaceSearchModal({
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [source, setSource] = useState<PlaceSearchSource>('KAKAO');
   const [selectedPlaces, setSelectedPlaces] = useState<Record<string, PlaceSearchItem>>({});
+  const [pendingPlaces, setPendingPlaces] = useState<PlaceSearchItem[] | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(query.trim()), 100);
@@ -65,6 +69,7 @@ export function CourseResultPlaceSearchModal({
 
   const reset = () => {
     setSelectedPlaces({});
+    setPendingPlaces(null);
     onClose();
   };
 
@@ -73,138 +78,181 @@ export function CourseResultPlaceSearchModal({
       ? '로그인이 만료되었어요. 다시 로그인해 주세요.'
       : '검색 결과를 불러오지 못했어요.';
 
+  const addSelectedPlaces = async (close: () => void) => {
+    if (selectedResults.length === 0 || isAdding) return;
+
+    const hasDifferentRegion = selectedResults.some(
+      (place) => !isAddressInCourseRegion(place.address, courseRegion),
+    );
+    if (hasDifferentRegion) {
+      setPendingPlaces(selectedResults);
+      return;
+    }
+
+    if (await onAdd(selectedResults)) close();
+  };
+
+  const confirmDifferentRegion = async () => {
+    if (!pendingPlaces || isAdding) return;
+    if (await onAdd(pendingPlaces)) reset();
+  };
+
   return (
-    <BottomSheetModal
-      baseHeight={760}
-      accessibilityLabel="여행지 검색 닫기"
-      visible={visible}
-      onClose={reset}
-    >
-      {({ close }) => (
-        <Content>
-          <SearchArea>
-            <SearchBox>
-              <SearchIcon>⌕</SearchIcon>
-              <SearchInput
-                accessibilityLabel="여행지 검색"
-                placeholder="장소명 또는 키워드 검색"
-                placeholderTextColor={colors.gray[300]}
-                returnKeyType="search"
-                value={query}
-                onChangeText={changeQuery}
-              />
-            </SearchBox>
-            <Sources>
-              <SourceButton active={source === 'TOUR'} onPress={() => changeSource('TOUR')}>
-                <SourceLabel active={source === 'TOUR'}>관광 API</SourceLabel>
-              </SourceButton>
-              <SourceButton active={source === 'KAKAO'} onPress={() => changeSource('KAKAO')}>
-                <SourceLabel active={source === 'KAKAO'}>카카오맵</SourceLabel>
-              </SourceButton>
-            </Sources>
-          </SearchArea>
+    <>
+      <BottomSheetModal
+        baseHeight={760}
+        accessibilityLabel="여행지 검색 닫기"
+        visible={visible}
+        onClose={reset}
+      >
+        {({ close }) => (
+          <Content>
+            <SearchArea>
+              <SearchBox>
+                <SearchIcon>⌕</SearchIcon>
+                <SearchInput
+                  accessibilityLabel="여행지 검색"
+                  placeholder="장소명 또는 키워드 검색"
+                  placeholderTextColor={colors.gray[300]}
+                  returnKeyType="search"
+                  value={query}
+                  onChangeText={changeQuery}
+                />
+              </SearchBox>
+              <Sources>
+                <SourceButton active={source === 'TOUR'} onPress={() => changeSource('TOUR')}>
+                  <SourceLabel active={source === 'TOUR'}>관광 API</SourceLabel>
+                </SourceButton>
+                <SourceButton active={source === 'KAKAO'} onPress={() => changeSource('KAKAO')}>
+                  <SourceLabel active={source === 'KAKAO'}>카카오맵</SourceLabel>
+                </SourceButton>
+              </Sources>
+            </SearchArea>
 
-          {debouncedQuery.length === 0 ? (
-            <EmptyState>검색어를 입력해 주세요.</EmptyState>
-          ) : isPending ? (
-            <LoadingState accessibilityLiveRegion="polite">
-              <ActivityIndicator color={colors.primary[700]} />
-              <StateText>여행지를 검색하고 있어요.</StateText>
-            </LoadingState>
-          ) : error ? (
-            <LoadingState>
-              <StateText>{errorMessage}</StateText>
-              <RetryButton accessibilityRole="button" onPress={() => refetch()}>
-                <RetryText>다시 시도</RetryText>
-              </RetryButton>
-            </LoadingState>
-          ) : (
-            <FlatList
-              style={resultsStyle}
-              contentContainerStyle={resultsContentStyle}
-              data={results}
-              keyExtractor={placeKey}
-              onEndReachedThreshold={0.4}
-              onEndReached={() => {
-                if (hasNextPage && !isFetchingNextPage) fetchNextPage();
-              }}
-              ListEmptyComponent={<EmptyState>검색 결과가 없어요.</EmptyState>}
-              ListFooterComponent={
-                isFetchingNextPage ? (
-                  <PageLoading accessibilityLabel="다음 검색 결과 불러오는 중">
-                    <ActivityIndicator color={colors.primary[700]} />
-                  </PageLoading>
-                ) : null
-              }
-              renderItem={({ item: place }) => {
-                const key = placeKey(place);
-                const selected = key in selectedPlaces;
-                return (
-                  <ResultCard
-                    accessibilityRole="button"
-                    accessibilityState={{ selected }}
-                    selected={selected}
-                    onPress={() => togglePlace(place)}
-                  >
-                    {source === 'TOUR' ? (
-                      <Thumbnail
-                        accessibilityLabel={place.name}
-                        resizeMode="cover"
-                        source={place.imageUrl ? { uri: place.imageUrl } : undefined}
-                      />
-                    ) : null}
-                    <ResultInfo>
-                      <ResultHeading>
-                        <ResultName numberOfLines={1}>{place.name}</ResultName>
-                        <MapIcon
-                          accessibilityLabel="카카오맵"
+            {debouncedQuery.length === 0 ? (
+              <EmptyState>검색어를 입력해 주세요.</EmptyState>
+            ) : isPending ? (
+              <LoadingState accessibilityLiveRegion="polite">
+                <ActivityIndicator color={colors.primary[700]} />
+                <StateText>여행지를 검색하고 있어요.</StateText>
+              </LoadingState>
+            ) : error ? (
+              <LoadingState>
+                <StateText>{errorMessage}</StateText>
+                <RetryButton accessibilityRole="button" onPress={() => refetch()}>
+                  <RetryText>다시 시도</RetryText>
+                </RetryButton>
+              </LoadingState>
+            ) : (
+              <FlatList
+                style={resultsStyle}
+                contentContainerStyle={resultsContentStyle}
+                data={results}
+                keyExtractor={placeKey}
+                onEndReachedThreshold={0.4}
+                onEndReached={() => {
+                  if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+                }}
+                ListEmptyComponent={<EmptyState>검색 결과가 없어요.</EmptyState>}
+                ListFooterComponent={
+                  isFetchingNextPage ? (
+                    <PageLoading accessibilityLabel="다음 검색 결과 불러오는 중">
+                      <ActivityIndicator color={colors.primary[700]} />
+                    </PageLoading>
+                  ) : null
+                }
+                renderItem={({ item: place }) => {
+                  const key = placeKey(place);
+                  const selected = key in selectedPlaces;
+                  return (
+                    <ResultCard
+                      accessibilityRole="button"
+                      accessibilityState={{ selected }}
+                      selected={selected}
+                      onPress={() => togglePlace(place)}
+                    >
+                      {source === 'TOUR' ? (
+                        <Thumbnail
+                          accessibilityLabel={place.name}
                           resizeMode="cover"
-                          source={KakaoMapIcon as unknown as ImageSourcePropType}
+                          source={place.imageUrl ? { uri: place.imageUrl } : undefined}
                         />
-                      </ResultHeading>
-                      <Address numberOfLines={1}>{place.address}</Address>
-                    </ResultInfo>
-                  </ResultCard>
-                );
-              }}
-            />
-          )}
+                      ) : null}
+                      <ResultInfo>
+                        <ResultHeading>
+                          <ResultName numberOfLines={1}>{place.name}</ResultName>
+                          <MapIcon
+                            accessibilityLabel="카카오맵"
+                            resizeMode="cover"
+                            source={KakaoMapIcon as unknown as ImageSourcePropType}
+                          />
+                        </ResultHeading>
+                        <Address numberOfLines={1}>{place.address}</Address>
+                      </ResultInfo>
+                    </ResultCard>
+                  );
+                }}
+              />
+            )}
 
-          <Actions>
-            <CancelButton accessibilityRole="button" onPress={close}>
-              <CancelLabel>취소</CancelLabel>
-            </CancelButton>
-            <AddButton
-              accessibilityRole="button"
-              disabled={selectedResults.length === 0 || isAdding}
-              onPress={async () => {
-                if (await onAdd(selectedResults)) close();
-              }}
-            >
-              {isAdding ? (
-                <ActivityIndicator color="#FFFFFF" />
-              ) : (
-                <>
-                  <AddIcon>
-                    <IconComponent
-                      name="add_location"
-                      color={selectedResults.length === 0 ? colors.gray[200] : colors.primary[300]}
-                    />
-                  </AddIcon>
-                  <AddLabel disabled={selectedResults.length === 0}>선택 장소 추가</AddLabel>
-                  <Count disabled={selectedResults.length === 0}>({selectedResults.length})</Count>
-                </>
-              )}
-            </AddButton>
-          </Actions>
-          {addError ? <AddError accessibilityLiveRegion="polite">{addError}</AddError> : null}
-        </Content>
-      )}
-    </BottomSheetModal>
+            <Actions>
+              <CancelButton accessibilityRole="button" onPress={close}>
+                <CancelLabel>취소</CancelLabel>
+              </CancelButton>
+              <AddButton
+                accessibilityRole="button"
+                disabled={selectedResults.length === 0 || isAdding}
+                onPress={() => void addSelectedPlaces(close)}
+              >
+                {isAdding ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <>
+                    <AddIcon>
+                      <IconComponent
+                        name="add_location"
+                        color={
+                          selectedResults.length === 0 ? colors.gray[200] : colors.primary[300]
+                        }
+                      />
+                    </AddIcon>
+                    <AddLabel disabled={selectedResults.length === 0}>선택 장소 추가</AddLabel>
+                    <Count disabled={selectedResults.length === 0}>
+                      ({selectedResults.length})
+                    </Count>
+                  </>
+                )}
+              </AddButton>
+            </Actions>
+            {addError ? <AddError accessibilityLiveRegion="polite">{addError}</AddError> : null}
+          </Content>
+        )}
+      </BottomSheetModal>
+
+      <ConfirmModal
+        cancelText="다시 선택"
+        confirmText="추가"
+        disabled={isAdding}
+        title="현재 여행지와 지역이 다릅니다."
+        visible={pendingPlaces !== null}
+        onCancel={() => setPendingPlaces(null)}
+        onConfirm={confirmDifferentRegion}
+      >
+        <RegionWarningDescription>
+          다른 지역 장소를 추가하면 이동 경로가 멀어질 수 있어요.{`\n`}그래도 추가하시겠어요?
+        </RegionWarningDescription>
+      </ConfirmModal>
+    </>
   );
 }
 
 const Content = styled.View({ flex: 1, width: '100%' });
+
+const RegionWarningDescription = styled.Text({
+  ...typography.body2.regular,
+  color: colors.gray[600],
+  textAlign: 'center',
+});
 
 const SearchArea = styled.View({
   paddingHorizontal: 20,

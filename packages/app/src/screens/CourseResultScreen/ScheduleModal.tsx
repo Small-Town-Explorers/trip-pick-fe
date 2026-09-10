@@ -87,7 +87,7 @@ export function CourseResultScheduleModal({
 const Content = styled.View({
   flex: 1,
   width: '100%',
-  paddingTop: 16,
+  paddingTop: 8,
   paddingHorizontal: 20,
   paddingBottom: Platform.OS === 'web' ? 96 : 34,
   gap: 24,

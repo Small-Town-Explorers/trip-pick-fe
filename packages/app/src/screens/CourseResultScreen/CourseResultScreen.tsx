@@ -507,6 +507,7 @@ function CourseResultContent({
         visible={isPlaceSearchVisible}
         isAdding={isAddingPlace}
         addError={placeAddError}
+        courseRegion={course.region}
         onAdd={addPlaces}
         onClose={closeModals}
       />
@@ -514,6 +515,7 @@ function CourseResultContent({
         visible={isDirectPlaceVisible}
         isAdding={isAddingPlace}
         addError={placeAddError}
+        courseRegion={course.region}
         initialMapAddress={`${course.region.province} ${course.region.name}`.trim()}
         onAdd={addManualPlace}
         onClose={closeModals}

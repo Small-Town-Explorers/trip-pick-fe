@@ -10,11 +10,13 @@ import { colors, typography, withAlpha } from '@styles';
 import { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, Platform } from 'react-native';
 import type { ManualCourseItem } from '../../controllers';
+import { isAddressInCourseRegion, type CourseRegionForComparison } from './placeRegion';
 
 interface CourseResultDirectPlaceModalProps {
   visible: boolean;
   isAdding: boolean;
   addError?: string;
+  courseRegion: CourseRegionForComparison;
   initialMapAddress: string;
   onAdd: (place: ManualCourseItem) => Promise<boolean>;
   onClose: () => void;
@@ -24,6 +26,7 @@ export function CourseResultDirectPlaceModal({
   visible,
   isAdding,
   addError,
+  courseRegion,
   initialMapAddress,
   onAdd,
   onClose,
@@ -38,6 +41,7 @@ export function CourseResultDirectPlaceModal({
     useState<KakaoMapAddressSearchRequest | null>(null);
   const [locationError, setLocationError] = useState('');
   const [isLocationLoading, setIsLocationLoading] = useState(false);
+  const [pendingPlace, setPendingPlace] = useState<ManualCourseItem>();
   const addressRequestIdRef = useRef(0);
 
   const reset = useCallback(() => {
@@ -50,6 +54,7 @@ export function CourseResultDirectPlaceModal({
     setLocationError('');
     setIsLocationLoading(false);
     setIsMapVisible(false);
+    setPendingPlace(undefined);
     onClose();
   }, [onClose]);
 
@@ -85,6 +90,23 @@ export function CourseResultDirectPlaceModal({
     }
     addressRequestIdRef.current += 1;
     setAddressSearchRequest({ address, requestId: addressRequestIdRef.current });
+  };
+
+  const createPlace = (): ManualCourseItem => ({
+    name: name.trim(),
+    ...(memo.trim() ? { memo: memo.trim() } : {}),
+    ...(location
+      ? {
+          address: location.address,
+          lat: location.lat,
+          lng: location.lng,
+        }
+      : {}),
+  });
+
+  const confirmDifferentRegion = async () => {
+    if (!pendingPlace || isAdding) return;
+    if (await onAdd(pendingPlace)) reset();
   };
 
   return (
@@ -158,17 +180,13 @@ export function CourseResultDirectPlaceModal({
                 onPress={async () => {
                   if (!name.trim()) return;
 
-                  const added = await onAdd({
-                    name: name.trim(),
-                    ...(memo.trim() ? { memo: memo.trim() } : {}),
-                    ...(location
-                      ? {
-                          address: location.address,
-                          lat: location.lat,
-                          lng: location.lng,
-                        }
-                      : {}),
-                  });
+                  const place = createPlace();
+                  if (location && !isAddressInCourseRegion(location.address, courseRegion)) {
+                    setPendingPlace(place);
+                    return;
+                  }
+
+                  const added = await onAdd(place);
                   if (added) close();
                 }}
               >
@@ -250,6 +268,20 @@ export function CourseResultDirectPlaceModal({
             <MapError accessibilityLiveRegion="polite">{locationError}</MapError>
           ) : null}
         </MapInfo>
+      </ConfirmModal>
+
+      <ConfirmModal
+        cancelText="다시 선택"
+        confirmText="추가"
+        disabled={isAdding}
+        title="현재 여행지와 지역이 다릅니다."
+        visible={Boolean(pendingPlace)}
+        onCancel={() => setPendingPlace(undefined)}
+        onConfirm={confirmDifferentRegion}
+      >
+        <RegionWarningDescription>
+          다른 지역 장소를 추가하면 이동 경로가 멀어질 수 있어요.{`\n`}그래도 추가하시겠어요?
+        </RegionWarningDescription>
       </ConfirmModal>
     </>
   );
@@ -361,6 +393,11 @@ const MapInfo = styled.View({
   gap: 12,
 });
 const MapDescription = styled.Text({
+  ...typography.body2.regular,
+  color: colors.gray[600],
+  textAlign: 'center',
+});
+const RegionWarningDescription = styled.Text({
   ...typography.body2.regular,
   color: colors.gray[600],
   textAlign: 'center',
