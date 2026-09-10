@@ -3,12 +3,13 @@ import { IconComponent } from '@components/Icons';
 import { appRoutes, type MyPageSectionRoute, useAppNavigation } from '../../navigation';
 import styled from '@emotion/native';
 import { colors, createShadow, typography, withAlpha } from '@styles';
-import {
-  useAccountInfoQuery,
-  useNotificationSettingsQuery,
-  useUpdateNotificationSettingsMutation,
-} from '../../queries';
+import { useAccountInfoQuery } from '../../queries';
 import { useState } from 'react';
+import {
+  getLocationPreferenceSnapshot,
+  saveLocationPreference,
+} from '../../storage/myPagePreferences';
+import { useNotificationPreferences } from './useNotificationPreferences';
 
 const menus: {
   type: string;
@@ -37,15 +38,30 @@ const menus: {
   },
 ];
 
-export const MyPageMenus = () => {
+export const MyPageMenus = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
   const { navigate } = useAppNavigation();
-  const { data: account } = useAccountInfoQuery();
-  const { data: notificationSettings } = useNotificationSettingsQuery();
-  const updateNotifications = useUpdateNotificationSettingsMutation();
-  const providerLabel = account?.provider === 'KAKAO' ? '카카오 로그인됨' : '로그인 정보 확인 중';
-  const [locationPermissionStatus, setLocationPermissionStatus] = useState<boolean>(
-    Boolean(localStorage.getItem('locationPermissionStatus') === 'true'),
+  const { data: account } = useAccountInfoQuery(isAuthenticated);
+  const notifications = useNotificationPreferences(isAuthenticated);
+  const providerLabel = !isAuthenticated
+    ? '비회원 이용 중'
+    : account?.provider === 'KAKAO'
+      ? '카카오 로그인됨'
+      : '로그인 정보 확인 중';
+  const [locationPermissionStatus, setLocationPermissionStatus] = useState<boolean>(() =>
+    getLocationPreferenceSnapshot(!isAuthenticated),
   );
+  const [storageError, setStorageError] = useState('');
+
+  const toggleLocationPreference = async () => {
+    const next = !locationPermissionStatus;
+    try {
+      await saveLocationPreference(next);
+      setLocationPermissionStatus(next);
+      setStorageError('');
+    } catch {
+      setStorageError('위치 설정을 저장하지 못했어요. 다시 시도해 주세요.');
+    }
+  };
 
   return menus.map((menu, menuIdx) => (
     <Menu key={menuIdx}>
@@ -55,46 +71,50 @@ export const MyPageMenus = () => {
           <MenuItem
             key={`${menuIdx} ${itemIdx}`}
             onPress={() => {
-              if (item.route === undefined) return;
+              if (item.route === undefined || (!isAuthenticated && item.route === 'account')) {
+                return;
+              }
               navigate(appRoutes.myPageSection(item.route));
             }}
-            disabled={item.route === undefined}
+            disabled={item.route === undefined || (!isAuthenticated && item.route === 'account')}
           >
             <MenuItemLabel>{item.label}</MenuItemLabel>
             <MenuItemRight>
               {item.route === 'account' ? (
-                <MenuItemAccountSub>{providerLabel}</MenuItemAccountSub>
+                <MenuItemAccountSub isGuest={!isAuthenticated}>{providerLabel}</MenuItemAccountSub>
               ) : item.route === 'notifications' ? (
                 <ToggleButton
-                  value={notificationSettings?.pushEnabled ?? false}
+                  value={notifications.settings?.pushEnabled ?? false}
                   onToggle={() => {
-                    if (!notificationSettings || updateNotifications.isPending) return;
-                    updateNotifications.mutate({
-                      pushEnabled: !notificationSettings.pushEnabled,
+                    if (!notifications.settings || notifications.isUpdating) return;
+                    void notifications.update({
+                      pushEnabled: !notifications.settings.pushEnabled,
                     });
                   }}
                 />
               ) : null}
-              {item.route ? (
+              {item.route && (isAuthenticated || item.route !== 'account') ? (
                 <IconComponent name="carousel_right" size={14} color={colors.gray[500]} />
               ) : item.label === '앱 버전' ? (
                 <MenuItemVersionSub>1.2.0</MenuItemVersionSub>
-              ) : (
+              ) : item.label === '위치 권한' ? (
                 <ToggleButton
                   value={locationPermissionStatus}
-                  onToggle={() =>
-                    setLocationPermissionStatus((prev) => {
-                      const newStatus = !prev;
-                      localStorage.setItem('locationPermissionStatus', String(newStatus));
-                      return newStatus;
-                    })
-                  }
+                  onToggle={() => void toggleLocationPreference()}
                 />
-              )}
+              ) : null}
             </MenuItemRight>
           </MenuItem>
         ))}
       </MenuInner>
+      {menuIdx === 0 && (storageError || notifications.mutationError) ? (
+        <MenuItemLabel accessibilityLiveRegion="polite">
+          {storageError ||
+            (notifications.mutationError instanceof Error
+              ? notifications.mutationError.message
+              : '알림 설정을 변경하지 못했어요.')}
+        </MenuItemLabel>
+      ) : null}
     </Menu>
   ));
 };
@@ -138,10 +158,10 @@ const MenuItemRight = styled.View({
   gap: 8,
 });
 
-const MenuItemAccountSub = styled.Text({
+const MenuItemAccountSub = styled.Text<{ isGuest: boolean }>(({ isGuest }) => ({
   ...typography.body3.medium,
-  color: colors.gray[600],
-});
+  color: isGuest ? colors.gray[200] : colors.gray[600],
+}));
 
 const MenuItemVersionSub = styled.Text({
   ...typography.body2.regular,

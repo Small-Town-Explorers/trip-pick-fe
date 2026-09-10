@@ -26,6 +26,19 @@ export interface KakaoRouteMapProps extends KakaoMapBaseProps {
   coordinates: readonly (readonly KakaoMapCoordinate[])[];
 }
 
+export interface KakaoRegionMarker {
+  id: string;
+  label: string;
+  lat: number;
+  lng: number;
+}
+
+export interface KakaoRegionMapProps extends KakaoMapBaseProps {
+  markers: readonly KakaoRegionMarker[];
+  selectedId?: string | null;
+  onMarkerPress: (id: string) => void;
+}
+
 export interface KakaoLocationPickerMapProps extends KakaoMapBaseProps {
   /** 선택된 위치가 없을 때 지도의 초기 중심을 찾는 지역 주소입니다. */
   initialCenterAddress?: string;

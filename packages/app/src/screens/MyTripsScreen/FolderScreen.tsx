@@ -1,5 +1,3 @@
-import Landscape1 from '@assets/images/mock/landscape/landscape1.png';
-import Landscape2 from '@assets/images/mock/landscape/landscape2.png';
 import { CourseCreateButton } from '@components/Buttons';
 import { DeleteActionButton } from '@components/DeleteActionButton';
 import { Header } from '@components/Header';
@@ -9,7 +7,7 @@ import styled from '@emotion/native';
 import { colors, shadows, typography } from '@styles';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { ActivityIndicator, type ImageSourcePropType } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 import { ApiError, getMyCourseDetail, type MyCourseSummary } from '../../controllers';
 import { appRoutes, useAppNavigation } from '../../navigation';
 import {
@@ -22,8 +20,6 @@ import {
 interface MyTripFolderScreenProps {
   folderId: string;
 }
-
-const courseImages = [Landscape1, Landscape2] as ImageSourcePropType[];
 
 const getToday = () => {
   const today = new Date();
@@ -39,11 +35,6 @@ const formatPeriod = ({ startDate, endDate }: MyCourseSummary) => {
   if (!startDate) return '날짜 미정';
   if (!endDate || startDate === endDate) return formatDate(startDate);
   return `${formatDate(startDate)} - ${formatDate(endDate)}`;
-};
-
-const getCourseImage = (courseId: string) => {
-  const imageIndex = [...courseId].reduce((total, character) => total + character.charCodeAt(0), 0);
-  return courseImages[imageIndex % courseImages.length];
 };
 
 export function MyTripFolderScreen({ folderId }: MyTripFolderScreenProps) {
@@ -114,7 +105,7 @@ export function MyTripFolderScreen({ folderId }: MyTripFolderScreenProps) {
         void openCourse(course);
       }}
     >
-      <CourseImage source={getCourseImage(course.id)} resizeMode="cover" />
+      <CourseImage source={{ uri: course.imageUrl ?? undefined }} resizeMode="cover" />
       <CourseBody>
         <CourseHeader>
           <CourseTitle numberOfLines={1}>{course.title}</CourseTitle>
@@ -155,7 +146,7 @@ export function MyTripFolderScreen({ folderId }: MyTripFolderScreenProps) {
 
   return (
     <Screen testID={`my-trip-folder-${folderId}`}>
-      <Header title={folder?.name ?? '보관함'} sub={`(${courses.length})`} />
+      <Header title={folder?.name ?? '보관함'} sub={`(${folder?.courseCount ?? 0})`} />
       <Scroll contentContainerStyle={contentStyle}>
         {isPending ? (
           <Status>

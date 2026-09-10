@@ -85,6 +85,7 @@ export type MyCourseSummary = {
   themes: string[];
   terrains: string[];
   createdAt: string;
+  imageUrl: string | null;
 };
 
 export type MyCourseDetail = {

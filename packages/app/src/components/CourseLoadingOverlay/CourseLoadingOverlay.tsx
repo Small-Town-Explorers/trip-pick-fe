@@ -4,6 +4,7 @@ import styled from '@emotion/native';
 import { colors, MAX_SCREEN_SIZE, typography } from '@styles';
 import { useCallback, useEffect, useRef } from 'react';
 import { Modal, Platform, type ImageSourcePropType } from 'react-native';
+import { RotatingStatus } from './RotatingStatus';
 
 interface CourseLoadingOverlayProps {
   visible: boolean;
@@ -14,6 +15,54 @@ interface CourseLoadingOverlayProps {
   onCancel: () => void;
   onComplete: () => void;
 }
+
+const GENERATING_STATUS_MESSAGES = [
+  '숨겨진 소도시를 발굴하는 중…',
+  '현지인만 아는 명소를 찾는 중…',
+  '골목골목을 둘러보는 중…',
+  '특별한 여행지를 탐색하는 중…',
+  '아직 많이 알려지지 않은 스팟을 찾는 중…',
+  '여행의 보석 같은 장소를 찾는 중…',
+  '지도 밖의 매력을 발견하는 중…',
+  '숨겨진 비밀 맛집을 찾는 중…',
+  '현지인이 추천하는 맛집을 찾는 중…',
+  '줄 서서 먹는 맛집을 탐색하는 중…',
+  '여행의 한 끼를 고민하는 중…',
+  '오래 기억될 맛집을 찾는 중…',
+  '로컬 맛집을 수집하는 중…',
+  '감성 카페를 찾아다니는 중…',
+  '사진 찍기 좋은 장소를 찾는 중…',
+  '인생샷 명소를 탐색하는 중…',
+  '분위기 좋은 장소를 발견하는 중…',
+  '감성 가득한 공간을 찾는 중…',
+  '조용한 힐링 스팟을 찾는 중…',
+  '아름다운 풍경을 담는 중…',
+  '산책하기 좋은 곳을 찾는 중…',
+  '자연 속 쉼터를 탐색하는 중…',
+  '여유를 즐길 장소를 찾는 중…',
+  'AI가 여행 코스를 조합하는 중…',
+  '여행 데이터를 분석하는 중…',
+  '가장 어울리는 스팟을 고르는 중…',
+  '숨은 명소를 선별하는 중…',
+  '여행 취향을 분석하는 중…',
+  '최고의 조합을 만드는 중…',
+  '특별한 코스를 완성하는 중…',
+  '여행 고수에게 물어보는 중…',
+  '현지 주민을 몰래 따라가는 중…',
+  '발품 대신 AI가 뛰는 중…',
+  '길 잃은 여행자를 구하는 중…',
+  '오늘의 숨은 보물을 찾는 중…',
+  '여행 버킷리스트를 채우는 중…',
+  '지도에 별표를 찍는 중…',
+  '여행 설렘을 모으는 중…',
+] as const;
+
+const REGENERATING_STATUS_MESSAGES = [
+  '새로운 동선을 그리고 있어요...',
+  '더 어울리는 장소를 찾는 중...',
+  '여행 순서를 다시 맞추는 중...',
+  '코스를 더 알차게 다듬는 중...',
+] as const;
 
 export function CourseLoadingOverlay({
   visible,
@@ -102,6 +151,7 @@ export function CourseLoadingOverlay({
 
   const isGenerating = mode === 'generate';
   const image = isGenerating ? CourseGeneratingImage : CourseRegeneratingImage;
+  const statusMessages = isGenerating ? GENERATING_STATUS_MESSAGES : REGENERATING_STATUS_MESSAGES;
 
   return (
     <Modal animationType="none" onRequestClose={cancel} visible={visible} transparent>
@@ -125,9 +175,7 @@ export function CourseLoadingOverlay({
               <>조금만 기다려주세요,{`\n`}더 나은 코스를 준비 중이에요</>
             )}
           </Heading>
-          <Status accessibilityLiveRegion="polite">
-            {isGenerating ? '숨겨진 명소 찾는 중...' : '새로운 동선을 그리고 있어요...'}
-          </Status>
+          <RotatingStatus key={`${mode}-${visible}`} messages={statusMessages} visible={visible} />
         </Screen>
       </Overlay>
     </Modal>
@@ -154,10 +202,5 @@ const Illustration = styled.Image({ width: 231, height: 344, marginBottom: 32 })
 const Heading = styled.Text({
   ...typography.heading4.semibold,
   color: colors.gray[1000],
-  textAlign: 'center',
-});
-const Status = styled.Text({
-  ...typography.body2.regular,
-  color: colors.gray[600],
   textAlign: 'center',
 });

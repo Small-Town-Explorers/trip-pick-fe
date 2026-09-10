@@ -2,6 +2,7 @@ import type { TextStyle } from 'react-native';
 
 export const fontFamilies = {
   pretendard: 'Pretendard',
+  twayNalda: 'TwayNalda',
 } as const;
 
 export const fontWeights = {

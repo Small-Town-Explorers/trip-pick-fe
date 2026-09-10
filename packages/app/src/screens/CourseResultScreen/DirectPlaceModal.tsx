@@ -10,11 +10,13 @@ import { colors, typography, withAlpha } from '@styles';
 import { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, Platform } from 'react-native';
 import type { ManualCourseItem } from '../../controllers';
+import { isAddressInCourseRegion, type CourseRegionForComparison } from './placeRegion';
 
 interface CourseResultDirectPlaceModalProps {
   visible: boolean;
   isAdding: boolean;
   addError?: string;
+  courseRegion: CourseRegionForComparison;
   initialMapAddress: string;
   onAdd: (place: ManualCourseItem) => Promise<boolean>;
   onClose: () => void;
@@ -24,6 +26,7 @@ export function CourseResultDirectPlaceModal({
   visible,
   isAdding,
   addError,
+  courseRegion,
   initialMapAddress,
   onAdd,
   onClose,
@@ -38,6 +41,7 @@ export function CourseResultDirectPlaceModal({
     useState<KakaoMapAddressSearchRequest | null>(null);
   const [locationError, setLocationError] = useState('');
   const [isLocationLoading, setIsLocationLoading] = useState(false);
+  const [pendingPlace, setPendingPlace] = useState<ManualCourseItem>();
   const addressRequestIdRef = useRef(0);
 
   const reset = useCallback(() => {
@@ -50,6 +54,7 @@ export function CourseResultDirectPlaceModal({
     setLocationError('');
     setIsLocationLoading(false);
     setIsMapVisible(false);
+    setPendingPlace(undefined);
     onClose();
   }, [onClose]);
 
@@ -72,16 +77,12 @@ export function CourseResultDirectPlaceModal({
   };
 
   const addLocation = () => {
-    if (!pendingLocation || isLocationLoading) return;
+    if (!pendingLocation || isLocationLoading || locationError) return;
     setLocation(pendingLocation);
     closeMap();
   };
 
   const searchAddress = () => {
-    if (Platform.OS !== 'web') {
-      setLocationError('지도 위치 선택은 웹에서 지원됩니다.');
-      return;
-    }
     const address = mapQuery.trim();
     if (!address) {
       setLocationError('검색할 주소를 입력해 주세요.');
@@ -91,12 +92,30 @@ export function CourseResultDirectPlaceModal({
     setAddressSearchRequest({ address, requestId: addressRequestIdRef.current });
   };
 
+  const createPlace = (): ManualCourseItem => ({
+    name: name.trim(),
+    ...(memo.trim() ? { memo: memo.trim() } : {}),
+    ...(location
+      ? {
+          address: location.address,
+          lat: location.lat,
+          lng: location.lng,
+        }
+      : {}),
+  });
+
+  const confirmDifferentRegion = async () => {
+    if (!pendingPlace || isAdding) return;
+    if (await onAdd(pendingPlace)) reset();
+  };
+
   return (
     <>
       <BottomSheetModal
+        baseHeight={680}
         accessibilityLabel="여행지 직접 추가 닫기"
+        isExpandable={false}
         avoidKeyboard
-        sheetStyle={directSheetStyle}
         visible={visible}
         onClose={reset}
         title="여행지 직접 추가하기"
@@ -161,17 +180,13 @@ export function CourseResultDirectPlaceModal({
                 onPress={async () => {
                   if (!name.trim()) return;
 
-                  const added = await onAdd({
-                    name: name.trim(),
-                    ...(memo.trim() ? { memo: memo.trim() } : {}),
-                    ...(location
-                      ? {
-                          address: location.address,
-                          lat: location.lat,
-                          lng: location.lng,
-                        }
-                      : {}),
-                  });
+                  const place = createPlace();
+                  if (location && !isAddressInCourseRegion(location.address, courseRegion)) {
+                    setPendingPlace(place);
+                    return;
+                  }
+
+                  const added = await onAdd(place);
                   if (added) close();
                 }}
               >
@@ -226,24 +241,20 @@ export function CourseResultDirectPlaceModal({
             />
           </MapSearch>
           <MapPreview>
-            {Platform.OS === 'web' ? (
-              <KakaoLocationPickerMap
-                addressSearchRequest={addressSearchRequest}
-                height={300}
-                initialCenterAddress={initialMapAddress}
-                selectedCoordinate={pendingLocation}
-                style={{ borderRadius: 12 }}
-                onLocationError={setLocationError}
-                onLocationLoadingChange={setIsLocationLoading}
-                onLocationSelect={(nextLocation) => {
-                  setPendingLocation(nextLocation);
-                  setMapQuery(nextLocation.address);
-                  setLocationError('');
-                }}
-              />
-            ) : (
-              <MapUnavailable>지도 위치 선택은 웹에서 지원됩니다.</MapUnavailable>
-            )}
+            <KakaoLocationPickerMap
+              addressSearchRequest={addressSearchRequest}
+              height={300}
+              initialCenterAddress={initialMapAddress}
+              selectedCoordinate={pendingLocation}
+              style={{ borderRadius: 12 }}
+              onLocationError={setLocationError}
+              onLocationLoadingChange={setIsLocationLoading}
+              onLocationSelect={(nextLocation) => {
+                setPendingLocation(nextLocation);
+                setMapQuery(nextLocation.address);
+                setLocationError('');
+              }}
+            />
             {isLocationLoading ? (
               <MapLoading pointerEvents="none">
                 <ActivityIndicator color={colors.primary[700]} />
@@ -258,17 +269,23 @@ export function CourseResultDirectPlaceModal({
           ) : null}
         </MapInfo>
       </ConfirmModal>
+
+      <ConfirmModal
+        cancelText="다시 선택"
+        confirmText="추가"
+        disabled={isAdding}
+        title="현재 여행지와 지역이 다릅니다."
+        visible={Boolean(pendingPlace)}
+        onCancel={() => setPendingPlace(undefined)}
+        onConfirm={confirmDifferentRegion}
+      >
+        <RegionWarningDescription>
+          다른 지역 장소를 추가하면 이동 경로가 멀어질 수 있어요.{`\n`}그래도 추가하시겠어요?
+        </RegionWarningDescription>
+      </ConfirmModal>
     </>
   );
 }
-
-const directSheetStyle = {
-  maxWidth: 480,
-  height: 680,
-  maxHeight: '90%',
-  borderTopLeftRadius: 20,
-  borderTopRightRadius: 20,
-} as const;
 
 const Content = styled.View({ flex: 1, width: '100%' });
 const Form = styled.ScrollView({ flex: 1, width: '100%' });
@@ -380,6 +397,11 @@ const MapDescription = styled.Text({
   color: colors.gray[600],
   textAlign: 'center',
 });
+const RegionWarningDescription = styled.Text({
+  ...typography.body2.regular,
+  color: colors.gray[600],
+  textAlign: 'center',
+});
 const MapSearch = styled.View({
   width: '100%',
   height: 48,
@@ -429,10 +451,6 @@ const MapLoading = styled.View({
   justifyContent: 'center',
   borderRadius: 18,
   backgroundColor: withAlpha('#FFFFFF', 0.9),
-});
-const MapUnavailable = styled.Text({
-  ...typography.body3.regular,
-  color: colors.gray[500],
 });
 const MapAddress = styled.Text({
   ...typography.body3.regular,

@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import { localDataStorage } from './localDataStorage';
 
 export interface CourseSaveNotice {
   title: string;
@@ -8,32 +8,35 @@ const STORAGE_KEY = 'trip-pick:course-save-complete';
 const listeners = new Set<() => void>();
 let memoryNotice: CourseSaveNotice | null = null;
 
-const getWebStorage = () => {
-  if (Platform.OS !== 'web' || typeof window === 'undefined') return null;
-  return window.localStorage;
-};
-
-export const setCourseSaveNotice = (notice: CourseSaveNotice) => {
+export const setCourseSaveNotice = async (notice: CourseSaveNotice) => {
   memoryNotice = notice;
-  getWebStorage()?.setItem(STORAGE_KEY, JSON.stringify(notice));
+  // The server save has already succeeded; failure to persist a toast must not
+  // turn that success into a retryable save error (which could create duplicates).
+  await localDataStorage.setItem(STORAGE_KEY, JSON.stringify(notice)).catch(() => {});
   listeners.forEach((listener) => listener());
 };
 
 export const takeCourseSaveNotice = () => {
   let notice = memoryNotice;
-  const storage = getWebStorage();
-  const storedNotice = storage?.getItem(STORAGE_KEY);
+  const storedNotice = localDataStorage.getItemSnapshot(STORAGE_KEY);
 
   if (!notice && storedNotice) {
     try {
-      notice = JSON.parse(storedNotice) as CourseSaveNotice;
+      const parsed: unknown = JSON.parse(storedNotice);
+      notice =
+        parsed &&
+        typeof parsed === 'object' &&
+        'title' in parsed &&
+        typeof parsed.title === 'string'
+          ? { title: parsed.title }
+          : null;
     } catch {
       notice = null;
     }
   }
 
   memoryNotice = null;
-  storage?.removeItem(STORAGE_KEY);
+  void localDataStorage.removeItem(STORAGE_KEY).catch(() => {});
   return notice;
 };
 

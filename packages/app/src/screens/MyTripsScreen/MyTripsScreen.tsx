@@ -1,12 +1,12 @@
+import { KakaoButton } from '@components/Buttons';
 import { Header } from '@components/Header';
 import { IconComponent } from '@components/Icons';
 import { ConfirmModal } from '@components/Modal';
-import { DeleteActionButton } from '@components/DeleteActionButton';
 import styled from '@emotion/native';
 import { colors, createShadow, shadows, typography, withAlpha } from '@styles';
 import { useState } from 'react';
 import { ActivityIndicator, Platform } from 'react-native';
-import { ApiError, type Folder as FolderData } from '../../controllers';
+import { ApiError, hasApiAccessToken, type Folder as FolderData } from '../../controllers';
 import { appRoutes, useAppNavigation } from '../../navigation';
 import {
   useCreateFolderMutation,
@@ -22,9 +22,20 @@ const getFolderErrorMessage = (error: unknown, fallback: string) => {
   return error instanceof ApiError ? error.message : fallback;
 };
 
-export function MyTripsScreen() {
+interface MyTripsScreenProps {
+  headerTitle?: string;
+  showCourseCount?: boolean;
+  showSectionTitle?: boolean;
+}
+
+export function MyTripsScreen({
+  headerTitle = '내 여행',
+  showCourseCount = false,
+  showSectionTitle = true,
+}: MyTripsScreenProps = {}) {
   const { navigate } = useAppNavigation();
-  const { data: folders = [], error, isPending, refetch } = useFoldersQuery();
+  const isAuthenticated = hasApiAccessToken();
+  const { data: folders = [], error, isPending, refetch } = useFoldersQuery(isAuthenticated);
   const createFolderMutation = useCreateFolderMutation();
   const renameFolderMutation = useRenameFolderMutation();
   const deleteFolderMutation = useDeleteFolderMutation();
@@ -35,6 +46,27 @@ export function MyTripsScreen() {
   const [renameName, setRenameName] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<FolderData>();
   const [formError, setFormError] = useState('');
+  const savedCourseCount = folders.reduce((total, folder) => total + folder.courseCount, 0);
+
+  if (!isAuthenticated) {
+    return (
+      <Screen>
+        <Header title={headerTitle} />
+        <UnauthenticatedContent>
+          <LoginPrompt>
+            <IconComponent name="profile" color={colors.primary[500]} size={28} />
+            <LoginPromptTitle>{'로그인하고 여행 코스를 내 보관함에\n저장하세요.'}</LoginPromptTitle>
+            <LoginPromptDescription>
+              {
+                '발굴한 여행 코스를 테마별로 정리하고,\n언제든 꺼내어 여행 계획을 편집하거나 볼 수 있어요.'
+              }
+            </LoginPromptDescription>
+          </LoginPrompt>
+          <KakaoButton onPress={() => navigate(appRoutes.login)} />
+        </UnauthenticatedContent>
+      </Screen>
+    );
+  }
 
   const closeCreateModal = () => {
     setIsCreateVisible(false);
@@ -88,9 +120,9 @@ export function MyTripsScreen() {
 
   return (
     <Screen>
-      <Header title="내 여행" />
+      <Header title={headerTitle} sub={showCourseCount ? `(${savedCourseCount})` : undefined} />
       <Scroll contentContainerStyle={contentStyle}>
-        <SectionTitle>내 여행 보관함</SectionTitle>
+        {showSectionTitle ? <SectionTitle>내 여행 보관함</SectionTitle> : null}
         {error ? (
           <Status>
             <StatusText>보관함을 불러오지 못했어요.</StatusText>
@@ -128,7 +160,7 @@ export function MyTripsScreen() {
                   navigate(appRoutes.myTripFolder(folder.id));
                 }}
               >
-                <FolderImage source={undefined} resizeMode="cover" />
+                <FolderImage source={{ uri: folder.imageUrl }} resizeMode="cover" />
                 <FolderInfo>
                   <FolderInfoHeader>
                     <FolderName numberOfLines={1}>{folder.name}</FolderName>
@@ -161,16 +193,19 @@ export function MyTripsScreen() {
                       <MenuText>이름 변경</MenuText>
                       <IconComponent name="pencil" color={colors.gray[600]} size={20} />
                     </MenuButton>
-                    <DeleteActionButton
+                    <MenuButton
+                      accessibilityRole="button"
                       accessibilityLabel={`${folder.name} 삭제`}
-                      fullWidth
                       onPress={(event) => {
                         event.stopPropagation();
                         setOpenedMenuId(null);
                         setFormError('');
                         setDeleteTarget(folder);
                       }}
-                    />
+                    >
+                      <MenuText>삭제</MenuText>
+                      <IconComponent name="delete" color={colors.semantic.warning} size={20} />
+                    </MenuButton>
                   </FolderMenu>
                 ) : null}
               </Folder>
@@ -244,6 +279,37 @@ export function MyTripsScreen() {
 }
 
 const Screen = styled.View({ flex: 1, width: '100%', backgroundColor: '#FFFFFF' });
+
+const UnauthenticatedContent = styled.View({
+  flex: 1,
+  width: '100%',
+  paddingHorizontal: 20,
+  paddingTop: 24,
+  gap: 20,
+});
+
+const LoginPrompt = styled.View({
+  width: '100%',
+  alignItems: 'center',
+  paddingHorizontal: 20,
+  paddingVertical: 32,
+  gap: 12,
+  borderRadius: 16,
+  backgroundColor: colors.gray[25],
+});
+
+const LoginPromptTitle = styled.Text({
+  ...typography.body1.medium,
+  color: colors.gray[800],
+  textAlign: 'center',
+});
+
+const LoginPromptDescription = styled.Text({
+  ...typography.body3.regular,
+  color: colors.gray[500],
+  textAlign: 'center',
+});
+
 const Scroll = styled.ScrollView({ position: 'relative', flex: 1 });
 const contentStyle = { padding: 20, gap: 20 } as const;
 const SectionTitle = styled.Text({ ...typography.heading2.medium, color: colors.gray[1000] });
@@ -295,7 +361,6 @@ const FolderMenu = styled.View({
   right: -10,
   bottom: -70,
   zIndex: 30,
-  minWidth: 132,
   overflow: 'hidden',
   backgroundColor: '#FFFFFF',
   borderRadius: 10,

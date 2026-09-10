@@ -1,12 +1,26 @@
+import { KakaoButton } from '@components/Buttons';
 import { IconComponent } from '@components/Icons';
 import styled from '@emotion/native';
-import { colors, typography } from '@styles';
+import { colors, createShadow, typography, withAlpha } from '@styles';
 import { useState } from 'react';
 import { ActivityIndicator, Platform } from 'react-native';
 import { ApiError } from '../../controllers';
+import { appRoutes, useAppNavigation } from '../../navigation';
 import { useMyPageSummaryQuery, useUpdateNicknameMutation } from '../../queries';
 
+export const MyPageGuestProfile = ({ onLogin }: { onLogin: () => void }) => (
+  <GuestProfile>
+    <GuestMessage>
+      <IconComponent name="profile" size={28} color={colors.gray[200]} />
+      <GuestTitle>로그인하고 소도시 여행을 시작해 보세요.</GuestTitle>
+      <GuestDescription>로그인하고 나만의 맞춤 코스와 여행 기록을 모아보세요</GuestDescription>
+    </GuestMessage>
+    <KakaoButton onPress={onLogin} />
+  </GuestProfile>
+);
+
 export const MyPageProfile = () => {
+  const { navigate } = useAppNavigation();
   const { data: summary, error, isPending, refetch } = useMyPageSummaryQuery();
   const updateNickname = useUpdateNicknameMutation();
   const [editingName, setEditingName] = useState('');
@@ -73,10 +87,10 @@ export const MyPageProfile = () => {
   }
 
   const indicators = [
-    { label: '지난 여정', value: summary.pastTripCount },
-    { label: '저장한 코스', value: summary.savedCourseCount },
-    { label: '방문한 지역', value: summary.discoveredRegionCount },
-  ];
+    { label: '지난 여정', value: summary.pastTripCount, route: 'past-trips' },
+    { label: '저장한 코스', value: summary.savedCourseCount, route: 'saved-courses' },
+    { label: '방문한 지역', value: summary.discoveredRegionCount, route: 'visited-regions' },
+  ] as const;
 
   return (
     <Profile>
@@ -118,7 +132,12 @@ export const MyPageProfile = () => {
       </ProfileHeader>
       <ProfileIndicators>
         {indicators.map((item, index) => (
-          <ProfileIndicatorItem key={index}>
+          <ProfileIndicatorItem
+            key={index}
+            accessibilityRole="button"
+            accessibilityLabel={`${item.label} ${item.value}개 보기`}
+            onPress={() => navigate(appRoutes.myPageSection(item.route))}
+          >
             <ProfileIndicatorItemLabel>{item.label}</ProfileIndicatorItemLabel>
             <ProfileIndicatorItemValue>{item.value}</ProfileIndicatorItemValue>
           </ProfileIndicatorItem>
@@ -133,6 +152,34 @@ const Profile = styled.View({
   paddingVertical: 24,
   gap: 28,
   backgroundColor: '#FFFFFF',
+});
+
+const GuestProfile = styled.View({
+  width: '100%',
+  alignItems: 'center',
+  paddingHorizontal: 20,
+  paddingVertical: 24,
+  gap: 24,
+  backgroundColor: '#FFFFFF',
+  ...createShadow(0, 0, 28, 0, withAlpha(colors.gray[1000], 0.1)),
+});
+
+const GuestMessage = styled.View({
+  width: '100%',
+  alignItems: 'center',
+  gap: 10,
+});
+
+const GuestTitle = styled.Text({
+  ...typography.body1.medium,
+  color: colors.gray[800],
+  textAlign: 'center',
+});
+
+const GuestDescription = styled.Text({
+  ...typography.body3.regular,
+  color: colors.gray[500],
+  textAlign: 'center',
 });
 
 const ProfileHeader = styled.View({
@@ -197,7 +244,7 @@ const ProfileIndicators = styled.View({
   gap: 16,
 });
 
-const ProfileIndicatorItem = styled.View({
+const ProfileIndicatorItem = styled.Pressable({
   flex: 1,
   padding: 16,
   gap: 4,

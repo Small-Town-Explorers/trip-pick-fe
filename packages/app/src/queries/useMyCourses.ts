@@ -35,10 +35,11 @@ export function useMyCourseDetailQuery(courseId: string, enabled = true) {
   });
 }
 
-export function useHomeTripQuery() {
+export function useHomeTripQuery(enabled = true) {
   return useQuery({
     queryKey: homeTripQueryKey,
     queryFn: getHomeTrip,
+    enabled,
     staleTime: 60_000,
   });
 }

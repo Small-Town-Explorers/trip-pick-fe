@@ -31,6 +31,10 @@ export function configureApiAccessToken(getAccessToken: () => string | null) {
   accessTokenGetter = getAccessToken;
 }
 
+export function hasApiAccessToken() {
+  return Boolean(accessTokenGetter?.());
+}
+
 type ApiRequestOptions = {
   allowEmptyResponse?: boolean;
 };

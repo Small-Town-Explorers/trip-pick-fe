@@ -26,6 +26,7 @@
     },
     "plugins": [
       "expo-router",
+      ["expo-notifications", { "defaultChannel": "travel", "color": "#155744" }],
       [
         "expo-font",
         {

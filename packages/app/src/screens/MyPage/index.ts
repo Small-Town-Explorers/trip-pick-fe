@@ -8,3 +8,6 @@ export * from './Faq/Screen';
 export * from './Terms/Screen';
 export * from './Privacy/Screen';
 export * from './Notices/Detail/Screen';
+export * from './Trips/PastTripsScreen';
+export * from './Trips/SavedCoursesScreen';
+export * from './Trips/VisitedRegionsScreen';

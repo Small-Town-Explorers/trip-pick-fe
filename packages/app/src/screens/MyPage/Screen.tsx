@@ -1,34 +1,57 @@
 import styled from '@emotion/native';
 import { colors, typography } from '@styles';
 import { Header } from '@components/Header';
-import { MyPageProfile } from './Profile';
+import { MyPageGuestProfile, MyPageProfile } from './Profile';
 import { MyPageMenus } from './Menus';
+import { localDataStorage } from '../../storage';
+import { appRoutes, useAppNavigation } from '../../navigation';
+import { hasApiAccessToken } from '../../controllers';
+import { useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 
 const ACCESS_TOKEN_KEY = 'trip-pick.access-token';
 const ACCESS_TOKEN_EXPIRES_AT_KEY = 'trip-pick.access-token-expires-at';
 
-const clearAccessToken = () => {
-  localStorage.removeItem(ACCESS_TOKEN_KEY);
-  localStorage.removeItem(ACCESS_TOKEN_EXPIRES_AT_KEY);
+const clearAccessToken = async () => {
+  await localDataStorage.removeItem(ACCESS_TOKEN_KEY);
+  await localDataStorage.removeItem(ACCESS_TOKEN_EXPIRES_AT_KEY);
 };
 
 export function MyPageScreen() {
-  const handleLogout = () => {
-    clearAccessToken();
-    window.location.href = '/';
+  const { navigate, replace } = useAppNavigation();
+  const queryClient = useQueryClient();
+  const [logoutError, setLogoutError] = useState('');
+  const isAuthenticated = hasApiAccessToken();
+  const handleLogout = async () => {
+    try {
+      await clearAccessToken();
+      queryClient.clear();
+      replace('/');
+    } catch {
+      setLogoutError('로그아웃 정보를 저장하지 못했어요. 다시 시도해 주세요.');
+    }
   };
 
   return (
     <Screen>
       <Header title="마이페이지" />
       <Content>
-        <MyPageProfile />
-        <MyPageMenus />
-        <Logout>
-          <LogoutButton onPress={handleLogout}>
-            <LogoutButtonText>로그아웃</LogoutButtonText>
-          </LogoutButton>
-        </Logout>
+        {isAuthenticated ? (
+          <MyPageProfile />
+        ) : (
+          <MyPageGuestProfile onLogin={() => navigate(appRoutes.login)} />
+        )}
+        <MyPageMenus isAuthenticated={isAuthenticated} />
+        {isAuthenticated ? (
+          <Logout>
+            <LogoutButton onPress={handleLogout}>
+              <LogoutButtonText>로그아웃</LogoutButtonText>
+            </LogoutButton>
+            {logoutError ? (
+              <LogoutButtonText accessibilityLiveRegion="polite">{logoutError}</LogoutButtonText>
+            ) : null}
+          </Logout>
+        ) : null}
       </Content>
     </Screen>
   );

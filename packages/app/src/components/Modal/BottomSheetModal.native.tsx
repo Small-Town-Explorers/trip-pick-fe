@@ -1,7 +1,7 @@
 import styled from '@emotion/native';
 import { IconComponent } from '@components/Icons';
 import { colors, typography, withAlpha } from '@styles';
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
+import { type ReactNode, useCallback, useMemo, useState } from 'react';
 import {
   Animated,
   KeyboardAvoidingView,
@@ -23,18 +23,19 @@ interface BottomSheetModalProps {
   children: (controls: { close: () => void }) => ReactNode;
   accessibilityLabel?: string;
   avoidKeyboard?: boolean;
+  baseHeight?: number;
   sheetStyle?: StyleProp<ViewStyle>;
 }
 
-const DEFAULT_EXPANDED_OFFSET = -120;
+const DEFAULT_BASE_HEIGHT = 480;
 const CLOSE_OFFSET = 700;
 const CLOSE_THRESHOLD = 120;
 const FADE_DURATION = 200;
 const SLIDE_DURATION = 280;
 const SHEET_TOP_GAP = 16;
 
-const clampOffset = (offset: number, expandedOffset: number) =>
-  Math.min(CLOSE_OFFSET, Math.max(expandedOffset, offset));
+const clamp = (value: number, minimum: number, maximum: number) =>
+  Math.min(maximum, Math.max(minimum, value));
 
 export function BottomSheetModal({
   visible,
@@ -43,28 +44,47 @@ export function BottomSheetModal({
   children,
   accessibilityLabel = '모달 닫기',
   avoidKeyboard = false,
+  baseHeight = DEFAULT_BASE_HEIGHT,
   sheetStyle,
 }: BottomSheetModalProps) {
   const { height: screenHeight } = useWindowDimensions();
   const [opacity] = useState(() => new Animated.Value(0));
   const [offset] = useState(() => new Animated.Value(CLOSE_OFFSET));
-  const [settledOffset, setSettledOffset] = useState(0);
+  const [currentHeight, setCurrentHeight] = useState<number | null>(null);
   const [isClosing, setIsClosing] = useState(false);
-  const [sheetHeight, setSheetHeight] = useState(0);
-  const expandedOffset =
-    sheetHeight === 0
-      ? DEFAULT_EXPANDED_OFFSET
-      : Math.min(0, sheetHeight - (screenHeight - SHEET_TOP_GAP));
+  const [sheetHeight, setSheetHeight] = useState(baseHeight);
+  const [dragStartHeight, setDragStartHeight] = useState(baseHeight);
+  const minimumHeight = Math.max(0, baseHeight);
+  const maximumHeight = Math.max(minimumHeight, screenHeight - SHEET_TOP_GAP);
 
   const handleSheetLayout = useCallback((event: LayoutChangeEvent) => {
     setSheetHeight(event.nativeEvent.layout.height);
   }, []);
 
+  const handleShow = useCallback(() => {
+    setCurrentHeight(null);
+    setSheetHeight(minimumHeight);
+    setDragStartHeight(minimumHeight);
+    opacity.setValue(0);
+    offset.setValue(CLOSE_OFFSET);
+    Animated.parallel([
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: FADE_DURATION,
+        useNativeDriver: true,
+      }),
+      Animated.timing(offset, {
+        toValue: 0,
+        duration: SLIDE_DURATION,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [minimumHeight, offset, opacity]);
+
   const close = useCallback(() => {
     if (isClosing) return;
 
     setIsClosing(true);
-    setSettledOffset(CLOSE_OFFSET);
     Animated.parallel([
       Animated.timing(opacity, {
         toValue: 0,
@@ -79,7 +99,7 @@ export function BottomSheetModal({
     ]).start(({ finished }) => {
       setIsClosing(false);
       if (finished) {
-        setSettledOffset(0);
+        setCurrentHeight(null);
         onClose();
       }
     });
@@ -95,21 +115,27 @@ export function BottomSheetModal({
         onMoveShouldSetPanResponderCapture: (_, gesture) =>
           Math.abs(gesture.dy) > 8 && Math.abs(gesture.dy) > Math.abs(gesture.dx),
         onPanResponderTerminationRequest: () => false,
-        onPanResponderMove: (_, gesture) =>
-          offset.setValue(clampOffset(settledOffset + gesture.dy, expandedOffset)),
-        onPanResponderRelease: (_, gesture) => {
-          const nextOffset = clampOffset(settledOffset + gesture.dy, expandedOffset);
+        onPanResponderGrant: () => {
+          offset.stopAnimation();
+          setDragStartHeight(Math.max(minimumHeight, sheetHeight));
+        },
+        onPanResponderMove: (_, gesture) => {
+          if (gesture.dy < 0) {
+            offset.setValue(0);
+            setCurrentHeight(clamp(dragStartHeight - gesture.dy, minimumHeight, maximumHeight));
+            return;
+          }
 
-          if (nextOffset > CLOSE_THRESHOLD || gesture.vy > 0.8) {
+          offset.setValue(Math.min(CLOSE_OFFSET, gesture.dy));
+        },
+        onPanResponderRelease: (_, gesture) => {
+          if (gesture.dy > 0 && (gesture.dy > CLOSE_THRESHOLD || gesture.vy > 0.8)) {
             close();
             return;
           }
 
-          const snapOffset =
-            nextOffset < expandedOffset / 2 || gesture.vy < -0.5 ? expandedOffset : 0;
-          setSettledOffset(snapOffset);
           Animated.spring(offset, {
-            toValue: snapOffset,
+            toValue: 0,
             useNativeDriver: true,
             damping: 20,
             stiffness: 220,
@@ -117,39 +143,21 @@ export function BottomSheetModal({
         },
         onPanResponderTerminate: () => {
           Animated.spring(offset, {
-            toValue: settledOffset,
+            toValue: 0,
             useNativeDriver: true,
             damping: 20,
             stiffness: 220,
           }).start();
         },
       }),
-    [close, expandedOffset, offset, settledOffset],
+    [close, dragStartHeight, maximumHeight, minimumHeight, offset, sheetHeight],
   );
-
-  useEffect(() => {
-    if (!visible) return;
-
-    opacity.setValue(0);
-    offset.setValue(CLOSE_OFFSET);
-    Animated.parallel([
-      Animated.timing(opacity, {
-        toValue: 1,
-        duration: FADE_DURATION,
-        useNativeDriver: true,
-      }),
-      Animated.timing(offset, {
-        toValue: 0,
-        duration: SLIDE_DURATION,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [offset, opacity, visible]);
 
   return (
     <Modal
       animationType="none"
       onRequestClose={close}
+      onShow={handleShow}
       statusBarTranslucent
       transparent
       visible={visible}
@@ -167,11 +175,14 @@ export function BottomSheetModal({
           />
         </Animated.View>
         <Animated.View style={{ transform: [{ translateY: offset }] }}>
-          <Sheet onLayout={handleSheetLayout} style={sheetStyle}>
-            <SheetFill
-              pointerEvents="none"
-              style={{ bottom: expandedOffset, height: -expandedOffset }}
-            />
+          <Sheet
+            onLayout={handleSheetLayout}
+            style={[
+              sheetStyle,
+              { minHeight: minimumHeight },
+              currentHeight === null ? undefined : { height: currentHeight },
+            ]}
+          >
             <DragHandle {...panResponder.panHandlers}>
               <Handle />
             </DragHandle>
@@ -211,13 +222,6 @@ const Sheet = styled.View({
   backgroundColor: '#FFFFFF',
   borderTopLeftRadius: 24,
   borderTopRightRadius: 24,
-});
-
-const SheetFill = styled.View({
-  position: 'absolute',
-  left: 0,
-  right: 0,
-  backgroundColor: '#FFFFFF',
 });
 
 const DragHandle = styled.View({

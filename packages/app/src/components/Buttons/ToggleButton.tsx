@@ -9,7 +9,10 @@ export const ToggleButton = ({ value, onToggle }: ToggleButtonProps) => {
   return (
     <Button
       isOn={value}
-      onPress={onToggle}
+      onPress={(event) => {
+        event.stopPropagation();
+        onToggle();
+      }}
       accessibilityRole="switch"
       accessibilityState={{ checked: value }}
     >

@@ -2,7 +2,16 @@ import { createContext, type PropsWithChildren, useContext } from 'react';
 import { QueryProvider } from '../providers/QueryProvider';
 
 export type MyPageSection =
-  'account' | 'notifications' | 'notices' | 'faq' | 'terms' | 'privacy' | 'location';
+  | 'account'
+  | 'notifications'
+  | 'notices'
+  | 'faq'
+  | 'terms'
+  | 'privacy'
+  | 'location'
+  | 'saved-courses'
+  | 'past-trips'
+  | 'visited-regions';
 export type MyPageSectionRoute = MyPageSection;
 
 export type AppRoute =

@@ -6,6 +6,9 @@ import { MyPageNoticesScreen } from './Notices/Screen';
 import { MyPageNotificationsScreen } from './Notifications/Screen';
 import { MyPagePrivacyScreen } from './Privacy/Screen';
 import { MyPageTermsScreen } from './Terms/Screen';
+import { MyPagePastTripsScreen } from './Trips/PastTripsScreen';
+import { MyPageSavedCoursesScreen } from './Trips/SavedCoursesScreen';
+import { MyPageVisitedRegionsScreen } from './Trips/VisitedRegionsScreen';
 
 const sections = {
   account: MyPageAccountScreen,
@@ -15,6 +18,9 @@ const sections = {
   faq: MyPageFaqScreen,
   terms: MyPageTermsScreen,
   privacy: MyPagePrivacyScreen,
+  'saved-courses': MyPageSavedCoursesScreen,
+  'past-trips': MyPagePastTripsScreen,
+  'visited-regions': MyPageVisitedRegionsScreen,
 } satisfies Record<MyPageSection, React.ComponentType>;
 
 export function MyPageSectionScreen({ section }: { section: MyPageSection }) {

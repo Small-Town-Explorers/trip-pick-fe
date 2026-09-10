@@ -53,7 +53,8 @@ export function PlaceDetailScreen({ placeId }: Props) {
       const course = await generateCourse.mutateAsync({ regionId: placeId });
       if (sequence !== requestSequence.current) return;
       const courseId = createGeneratedCourseId(placeId);
-      storeGeneratedCourse(queryClient, courseId, course);
+      await storeGeneratedCourse(queryClient, courseId, course);
+      if (sequence !== requestSequence.current) return;
       setGeneratedCourseId(courseId);
     } catch (error) {
       if (sequence !== requestSequence.current) return;

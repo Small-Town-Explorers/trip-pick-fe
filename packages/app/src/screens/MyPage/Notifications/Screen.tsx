@@ -3,25 +3,25 @@ import styled from '@emotion/native';
 import { colors, createShadow, typography, withAlpha } from '@styles';
 import { ActivityIndicator } from 'react-native';
 import { MyPageSectionLayout } from '../SectionLayout';
-import type { NotificationSettings } from '../../../controllers';
-import {
-  useNotificationSettingsQuery,
-  useUpdateNotificationSettingsMutation,
-} from '../../../queries';
+import { NotificationPermissionCard } from '../../../components/NotificationPermissionCard/NotificationPermissionCard';
+import { hasApiAccessToken, type NotificationSettings } from '../../../controllers';
+import { useNotificationPreferences } from '../useNotificationPreferences';
 
 export function MyPageNotificationsScreen() {
-  const { data: settings, error, isPending, refetch } = useNotificationSettingsQuery();
-  const updateNotifications = useUpdateNotificationSettingsMutation();
+  const isAuthenticated = hasApiAccessToken();
+  const notifications = useNotificationPreferences(isAuthenticated);
+  const { settings, error, isPending, refetch } = notifications;
 
   const toggle = (field: keyof NotificationSettings) => {
-    if (!settings || updateNotifications.isPending) return;
-    updateNotifications.mutate({ [field]: !settings[field] });
+    if (!settings || notifications.isUpdating) return;
+    void notifications.update({ [field]: !settings[field] });
   };
 
   return (
     <MyPageSectionLayout title="알림 설정">
       <NotificationContent>
         <Guide>앱에서 수신할 알림 종류를 선택할 수 있습니다.</Guide>
+        <NotificationPermissionCard />
         {isPending ? (
           <StateCard accessibilityLiveRegion="polite">
             <ActivityIndicator color={colors.primary[700]} />
@@ -69,10 +69,10 @@ export function MyPageNotificationsScreen() {
             </Card>
           </CardList>
         )}
-        {updateNotifications.error ? (
+        {notifications.mutationError ? (
           <MutationError>
-            {updateNotifications.error instanceof Error
-              ? updateNotifications.error.message
+            {notifications.mutationError instanceof Error
+              ? notifications.mutationError.message
               : '알림 설정을 변경하지 못했어요.'}
           </MutationError>
         ) : null}

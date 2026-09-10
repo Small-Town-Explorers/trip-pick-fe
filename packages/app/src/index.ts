@@ -1,11 +1,14 @@
 export {
   KakaoLocationPickerMap,
+  KakaoRegionMap,
   KakaoRouteMap,
   type KakaoLocationPickerMapProps,
   type KakaoMapAddressSearchRequest,
   type KakaoMapCoordinate,
   type KakaoMapLocation,
   type KakaoRouteMapProps,
+  type KakaoRegionMapProps,
+  type KakaoRegionMarker,
 } from './components/KakaoMap';
 export {
   colors,
@@ -32,6 +35,7 @@ export {
   apiRequest,
   configureApiAccessToken,
   configureApiBaseUrl,
+  hasApiAccessToken,
   generateCourse,
   generateCourseByName,
   getSmallCities,
@@ -90,3 +94,6 @@ export {
 } from './screens/MyPage';
 export { PlaceDetailScreen } from './screens/PlaceDetailScreen/PlaceDetailScreen';
 export { TripDetailScreen } from './screens/TripDetailScreen';
+export { localDataStorage, loadLocalData, saveLocalData, removeLocalData } from './storage';
+export { LocalStorageGate } from './providers/LocalStorageGate';
+export { configureNativeKakaoMaps } from './components/KakaoMap/config';
