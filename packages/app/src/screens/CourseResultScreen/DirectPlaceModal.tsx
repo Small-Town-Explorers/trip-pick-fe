@@ -92,6 +92,7 @@ export function CourseResultDirectPlaceModal({
       <BottomSheetModal
         baseHeight={680}
         accessibilityLabel="여행지 직접 추가 닫기"
+        isExpandable={false}
         avoidKeyboard
         visible={visible}
         onClose={reset}
