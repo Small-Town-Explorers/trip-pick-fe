@@ -206,11 +206,11 @@ export function CourseResultRoutine({
           </DateRow>
 
           <List>
-            {places[dayIndex].length === 0 ? (
+            {!Boolean(places[dayIndex]?.length) ? (
               <EmptyList>
                 <EmptyListText>등록된 여행지가 없습니다.</EmptyListText>
                 <EmptyListSubText>
-                  {'1일차 일정이 모두 비어있어요.\n새로운 여행지를 코스에 추가해 보세요!'}
+                  {`${dayIndex + 1}일차 일정이 모두 비어있어요.\n새로운 여행지를 코스에 추가해 보세요!`}
                 </EmptyListSubText>
               </EmptyList>
             ) : null}
