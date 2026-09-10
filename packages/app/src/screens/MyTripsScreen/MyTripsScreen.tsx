@@ -1,7 +1,6 @@
 import { Header } from '@components/Header';
 import { IconComponent } from '@components/Icons';
 import { ConfirmModal } from '@components/Modal';
-import { DeleteActionButton } from '@components/DeleteActionButton';
 import styled from '@emotion/native';
 import { colors, createShadow, shadows, typography, withAlpha } from '@styles';
 import { useState } from 'react';
@@ -161,16 +160,19 @@ export function MyTripsScreen() {
                       <MenuText>이름 변경</MenuText>
                       <IconComponent name="pencil" color={colors.gray[600]} size={20} />
                     </MenuButton>
-                    <DeleteActionButton
+                    <MenuButton
+                      accessibilityRole="button"
                       accessibilityLabel={`${folder.name} 삭제`}
-                      fullWidth
                       onPress={(event) => {
                         event.stopPropagation();
                         setOpenedMenuId(null);
                         setFormError('');
                         setDeleteTarget(folder);
                       }}
-                    />
+                    >
+                      <MenuText>삭제</MenuText>
+                      <IconComponent name="delete" color={colors.semantic.warning} size={20} />
+                    </MenuButton>
                   </FolderMenu>
                 ) : null}
               </Folder>
@@ -295,7 +297,6 @@ const FolderMenu = styled.View({
   right: -10,
   bottom: -70,
   zIndex: 30,
-  minWidth: 132,
   overflow: 'hidden',
   backgroundColor: '#FFFFFF',
   borderRadius: 10,
