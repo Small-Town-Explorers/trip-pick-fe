@@ -88,6 +88,7 @@ export function CourseResultChatModal({
     <BottomSheetModal
       title="코스 챗봇 편집"
       accessibilityLabel="챗봇 수정 닫기"
+      baseHeight={760}
       avoidKeyboard
       sheetStyle={chatSheetStyle}
       visible={visible}

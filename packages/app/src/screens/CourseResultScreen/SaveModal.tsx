@@ -75,8 +75,8 @@ export function CourseResultSaveModal({
         visible={visible}
         title="코스 저장"
         onClose={onClose}
-        baseHeight={440}
-        isExpandable={false}
+        baseHeight={isAuthenticated ? 760 : 440}
+        isExpandable={isAuthenticated}
       >
         {({ close }) =>
           !isAuthenticated ? (

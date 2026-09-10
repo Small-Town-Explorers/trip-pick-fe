@@ -75,8 +75,8 @@ export function CourseResultPlaceSearchModal({
 
   return (
     <BottomSheetModal
+      baseHeight={760}
       accessibilityLabel="여행지 검색 닫기"
-      sheetStyle={searchSheetStyle}
       visible={visible}
       onClose={reset}
     >
@@ -204,18 +204,11 @@ export function CourseResultPlaceSearchModal({
   );
 }
 
-const searchSheetStyle = {
-  maxWidth: 480,
-  height: '88%',
-  borderTopLeftRadius: 20,
-  borderTopRightRadius: 20,
-} as const;
-
 const Content = styled.View({ flex: 1, width: '100%' });
 
 const SearchArea = styled.View({
   paddingHorizontal: 20,
-  paddingTop: 16,
+  paddingTop: 4,
   paddingBottom: 20,
   gap: 14,
 });

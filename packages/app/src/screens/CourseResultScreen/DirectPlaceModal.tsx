@@ -90,9 +90,9 @@ export function CourseResultDirectPlaceModal({
   return (
     <>
       <BottomSheetModal
+        baseHeight={680}
         accessibilityLabel="여행지 직접 추가 닫기"
         avoidKeyboard
-        sheetStyle={directSheetStyle}
         visible={visible}
         onClose={reset}
         title="여행지 직접 추가하기"
@@ -253,14 +253,6 @@ export function CourseResultDirectPlaceModal({
     </>
   );
 }
-
-const directSheetStyle = {
-  maxWidth: 480,
-  height: 680,
-  maxHeight: '90%',
-  borderTopLeftRadius: 20,
-  borderTopRightRadius: 20,
-} as const;
 
 const Content = styled.View({ flex: 1, width: '100%' });
 const Form = styled.ScrollView({ flex: 1, width: '100%' });
