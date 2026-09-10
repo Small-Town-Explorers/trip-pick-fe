@@ -1,3 +1,4 @@
+import { KakaoButton } from '@components/Buttons';
 import { Header } from '@components/Header';
 import { IconComponent } from '@components/Icons';
 import { ConfirmModal } from '@components/Modal';
@@ -5,7 +6,7 @@ import styled from '@emotion/native';
 import { colors, createShadow, shadows, typography, withAlpha } from '@styles';
 import { useState } from 'react';
 import { ActivityIndicator, Platform } from 'react-native';
-import { ApiError, type Folder as FolderData } from '../../controllers';
+import { ApiError, hasApiAccessToken, type Folder as FolderData } from '../../controllers';
 import { appRoutes, useAppNavigation } from '../../navigation';
 import {
   useCreateFolderMutation,
@@ -23,7 +24,8 @@ const getFolderErrorMessage = (error: unknown, fallback: string) => {
 
 export function MyTripsScreen() {
   const { navigate } = useAppNavigation();
-  const { data: folders = [], error, isPending, refetch } = useFoldersQuery();
+  const isAuthenticated = hasApiAccessToken();
+  const { data: folders = [], error, isPending, refetch } = useFoldersQuery(isAuthenticated);
   const createFolderMutation = useCreateFolderMutation();
   const renameFolderMutation = useRenameFolderMutation();
   const deleteFolderMutation = useDeleteFolderMutation();
@@ -34,6 +36,26 @@ export function MyTripsScreen() {
   const [renameName, setRenameName] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<FolderData>();
   const [formError, setFormError] = useState('');
+
+  if (!isAuthenticated) {
+    return (
+      <Screen>
+        <Header title="내 여행" />
+        <UnauthenticatedContent>
+          <LoginPrompt>
+            <IconComponent name="profile" color={colors.primary[500]} size={28} />
+            <LoginPromptTitle>{'로그인하고 여행 코스를 내 보관함에\n저장하세요.'}</LoginPromptTitle>
+            <LoginPromptDescription>
+              {
+                '발굴한 여행 코스를 테마별로 정리하고,\n언제든 꺼내어 여행 계획을 편집하거나 볼 수 있어요.'
+              }
+            </LoginPromptDescription>
+          </LoginPrompt>
+          <KakaoButton onPress={() => navigate(appRoutes.login)} />
+        </UnauthenticatedContent>
+      </Screen>
+    );
+  }
 
   const closeCreateModal = () => {
     setIsCreateVisible(false);
@@ -246,6 +268,37 @@ export function MyTripsScreen() {
 }
 
 const Screen = styled.View({ flex: 1, width: '100%', backgroundColor: '#FFFFFF' });
+
+const UnauthenticatedContent = styled.View({
+  flex: 1,
+  width: '100%',
+  paddingHorizontal: 20,
+  paddingTop: 24,
+  gap: 20,
+});
+
+const LoginPrompt = styled.View({
+  width: '100%',
+  alignItems: 'center',
+  paddingHorizontal: 20,
+  paddingVertical: 32,
+  gap: 12,
+  borderRadius: 16,
+  backgroundColor: colors.gray[25],
+});
+
+const LoginPromptTitle = styled.Text({
+  ...typography.body1.medium,
+  color: colors.gray[800],
+  textAlign: 'center',
+});
+
+const LoginPromptDescription = styled.Text({
+  ...typography.body3.regular,
+  color: colors.gray[500],
+  textAlign: 'center',
+});
+
 const Scroll = styled.ScrollView({ position: 'relative', flex: 1 });
 const contentStyle = { padding: 20, gap: 20 } as const;
 const SectionTitle = styled.Text({ ...typography.heading2.medium, color: colors.gray[1000] });

@@ -1,10 +1,11 @@
 import styled from '@emotion/native';
 import { colors, typography } from '@styles';
 import { Header } from '@components/Header';
-import { MyPageProfile } from './Profile';
+import { MyPageGuestProfile, MyPageProfile } from './Profile';
 import { MyPageMenus } from './Menus';
 import { localDataStorage } from '../../storage';
-import { useAppNavigation } from '../../navigation';
+import { appRoutes, useAppNavigation } from '../../navigation';
+import { hasApiAccessToken } from '../../controllers';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
@@ -17,9 +18,10 @@ const clearAccessToken = async () => {
 };
 
 export function MyPageScreen() {
-  const { replace } = useAppNavigation();
+  const { navigate, replace } = useAppNavigation();
   const queryClient = useQueryClient();
   const [logoutError, setLogoutError] = useState('');
+  const isAuthenticated = hasApiAccessToken();
   const handleLogout = async () => {
     try {
       await clearAccessToken();
@@ -34,16 +36,22 @@ export function MyPageScreen() {
     <Screen>
       <Header title="마이페이지" />
       <Content>
-        <MyPageProfile />
-        <MyPageMenus />
-        <Logout>
-          <LogoutButton onPress={handleLogout}>
-            <LogoutButtonText>로그아웃</LogoutButtonText>
-          </LogoutButton>
-          {logoutError ? (
-            <LogoutButtonText accessibilityLiveRegion="polite">{logoutError}</LogoutButtonText>
-          ) : null}
-        </Logout>
+        {isAuthenticated ? (
+          <MyPageProfile />
+        ) : (
+          <MyPageGuestProfile onLogin={() => navigate(appRoutes.login)} />
+        )}
+        <MyPageMenus isAuthenticated={isAuthenticated} />
+        {isAuthenticated ? (
+          <Logout>
+            <LogoutButton onPress={handleLogout}>
+              <LogoutButtonText>로그아웃</LogoutButtonText>
+            </LogoutButton>
+            {logoutError ? (
+              <LogoutButtonText accessibilityLiveRegion="polite">{logoutError}</LogoutButtonText>
+            ) : null}
+          </Logout>
+        ) : null}
       </Content>
     </Screen>
   );

@@ -14,11 +14,12 @@ export const myPageSummaryQueryKey = ['users', 'me'] as const;
 export const accountInfoQueryKey = ['users', 'me', 'account'] as const;
 export const notificationSettingsQueryKey = ['users', 'me', 'notifications'] as const;
 
-export function useMyPageSummaryQuery() {
+export function useMyPageSummaryQuery(enabled = true) {
   return useQuery({
     queryKey: myPageSummaryQueryKey,
     queryFn: getMyPageSummary,
     staleTime: 5 * 60 * 1_000,
+    enabled,
   });
 }
 
@@ -34,19 +35,21 @@ export function useUpdateNicknameMutation() {
   });
 }
 
-export function useAccountInfoQuery() {
+export function useAccountInfoQuery(enabled = true) {
   return useQuery({
     queryKey: accountInfoQueryKey,
     queryFn: getAccountInfo,
     staleTime: 10 * 60 * 1_000,
+    enabled,
   });
 }
 
-export function useNotificationSettingsQuery() {
+export function useNotificationSettingsQuery(enabled = true) {
   return useQuery({
     queryKey: notificationSettingsQueryKey,
     queryFn: getNotificationSettings,
     staleTime: 5 * 60 * 1_000,
+    enabled,
   });
 }
 

@@ -1,10 +1,22 @@
+import { KakaoButton } from '@components/Buttons';
 import { IconComponent } from '@components/Icons';
 import styled from '@emotion/native';
-import { colors, typography } from '@styles';
+import { colors, createShadow, typography, withAlpha } from '@styles';
 import { useState } from 'react';
 import { ActivityIndicator, Platform } from 'react-native';
 import { ApiError } from '../../controllers';
 import { useMyPageSummaryQuery, useUpdateNicknameMutation } from '../../queries';
+
+export const MyPageGuestProfile = ({ onLogin }: { onLogin: () => void }) => (
+  <GuestProfile>
+    <GuestMessage>
+      <IconComponent name="profile" size={28} color={colors.gray[200]} />
+      <GuestTitle>로그인하고 소도시 여행을 시작해 보세요.</GuestTitle>
+      <GuestDescription>로그인하고 나만의 맞춤 코스와 여행 기록을 모아보세요</GuestDescription>
+    </GuestMessage>
+    <KakaoButton onPress={onLogin} />
+  </GuestProfile>
+);
 
 export const MyPageProfile = () => {
   const { data: summary, error, isPending, refetch } = useMyPageSummaryQuery();
@@ -133,6 +145,34 @@ const Profile = styled.View({
   paddingVertical: 24,
   gap: 28,
   backgroundColor: '#FFFFFF',
+});
+
+const GuestProfile = styled.View({
+  width: '100%',
+  alignItems: 'center',
+  paddingHorizontal: 20,
+  paddingVertical: 24,
+  gap: 24,
+  backgroundColor: '#FFFFFF',
+  ...createShadow(0, 0, 28, 0, withAlpha(colors.gray[1000], 0.1)),
+});
+
+const GuestMessage = styled.View({
+  width: '100%',
+  alignItems: 'center',
+  gap: 10,
+});
+
+const GuestTitle = styled.Text({
+  ...typography.body1.medium,
+  color: colors.gray[800],
+  textAlign: 'center',
+});
+
+const GuestDescription = styled.Text({
+  ...typography.body3.regular,
+  color: colors.gray[500],
+  textAlign: 'center',
 });
 
 const ProfileHeader = styled.View({
