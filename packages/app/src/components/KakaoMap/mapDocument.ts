@@ -15,7 +15,7 @@ export function createMapDocument(javascriptKey: string) {
 </head><body><div id="map" aria-label="카카오 지도"></div><div id="status" role="status">지도를 불러오는 중이에요.</div>
 <script>
 (function(){
-  var maps, map, geocoder, marker, overlays=[], lines=[], sequence=0, lastSearch=null, lastCenter='', selectedKey='';
+  var maps, map, geocoder, marker, overlays=[], lines=[], sequence=0, lastSearch=null, lastCenter='', selectedKey='',regionSignature='';
   var status=document.getElementById('status');
   var current={mode:'route',coordinates:[]};
   var ready=false, failed=false;
@@ -47,6 +47,28 @@ export function createMapDocument(javascriptKey: string) {
     if(places.some(function(p){return p.lat!==places[0].lat||p.lng!==places[0].lng;}))map.setBounds(bounds,40,40,40,40);
     else {map.setCenter(point(places[0]));map.setLevel(3);}
   }
+  function renderRegions(regions,selectedId){
+    clearRoute();var validRegions=(regions||[]).filter(valid);
+    if(!validRegions.length){message('표시할 방문 지역이 없습니다.');return;}
+    message('');var nextSignature=validRegions.map(function(region){return region.id+':'+region.lat+','+region.lng;}).join('|');
+    validRegions.forEach(function(region){
+      var position=point(region);
+      var label=document.createElement('button');var selected=region.id===selectedId;
+      label.type='button';label.textContent=region.label;
+      label.setAttribute('aria-label',region.label+' 여행 코스 보기');
+      label.setAttribute('aria-pressed',String(selected));
+      label.style.cssText='border:0;border-radius:9999px;padding:7px 12px;white-space:nowrap;color:white;font:600 13px/1.2 sans-serif;background:'+(selected?'#155744':'#349653')+';box-shadow:0 3px 10px rgba(8,25,29,.22);';
+      label.onclick=function(){send({type:'regionPress',id:region.id});};
+      overlays.push(new maps.CustomOverlay({map:map,position:position,content:label,xAnchor:.5,yAnchor:1,zIndex:selected?2:1}));
+    });
+    map.relayout();
+    if(nextSignature!==regionSignature){
+      var bounds=new maps.LatLngBounds(),latSum=0,lngSum=0;
+      validRegions.forEach(function(region){bounds.extend(point(region));latSum+=region.lat;lngSum+=region.lng;});
+      if(validRegions.length>1)map.setBounds(bounds,48,48,48,48);else map.setLevel(8);
+      map.setCenter(new maps.LatLng(latSum/validRegions.length,lngSum/validRegions.length));regionSignature=nextSignature;
+    }
+  }
   function searchAddress(request){
     if(!request||!request.address.trim()||lastSearch===request.requestId)return;
     lastSearch=request.requestId;var id=++sequence;loading(true);locationError('');
@@ -63,6 +85,7 @@ export function createMapDocument(javascriptKey: string) {
     current=value;if(!ready)return;
     try{
       if(value.mode==='route'){renderRoute(value.coordinates||[]);return;}
+      if(value.mode==='regions'){renderRegions(value.markers||[],value.selectedId);return;}
       message('');
       if(valid(value.selectedCoordinate)&&selectedKey!==value.selectedCoordinate.lat+','+value.selectedCoordinate.lng){select(value.selectedCoordinate);map.setLevel(3);}
       if(!value.selectedCoordinate&&selectedKey){if(marker)marker.setMap(null);marker=null;selectedKey='';}
@@ -101,7 +124,7 @@ export function createMapDocument(javascriptKey: string) {
             location.address=address;send({type:'location',location:location});
           });
         });
-        window.addEventListener('resize',function(){map.relayout();if(current.mode==='route')renderRoute(current.coordinates||[]);});
+        window.addEventListener('resize',function(){map.relayout();if(current.mode==='route')renderRoute(current.coordinates||[]);if(current.mode==='regions')renderRegions(current.markers||[],current.selectedId);});
         ready=true;clearTimeout(timer);message('');send({type:'ready'});
       }catch(e){fail();}
     });

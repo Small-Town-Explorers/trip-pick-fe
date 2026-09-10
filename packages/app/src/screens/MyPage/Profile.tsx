@@ -5,6 +5,7 @@ import { colors, createShadow, typography, withAlpha } from '@styles';
 import { useState } from 'react';
 import { ActivityIndicator, Platform } from 'react-native';
 import { ApiError } from '../../controllers';
+import { appRoutes, useAppNavigation } from '../../navigation';
 import { useMyPageSummaryQuery, useUpdateNicknameMutation } from '../../queries';
 
 export const MyPageGuestProfile = ({ onLogin }: { onLogin: () => void }) => (
@@ -19,6 +20,7 @@ export const MyPageGuestProfile = ({ onLogin }: { onLogin: () => void }) => (
 );
 
 export const MyPageProfile = () => {
+  const { navigate } = useAppNavigation();
   const { data: summary, error, isPending, refetch } = useMyPageSummaryQuery();
   const updateNickname = useUpdateNicknameMutation();
   const [editingName, setEditingName] = useState('');
@@ -85,10 +87,10 @@ export const MyPageProfile = () => {
   }
 
   const indicators = [
-    { label: '지난 여정', value: summary.pastTripCount },
-    { label: '저장한 코스', value: summary.savedCourseCount },
-    { label: '방문한 지역', value: summary.discoveredRegionCount },
-  ];
+    { label: '지난 여정', value: summary.pastTripCount, route: 'past-trips' },
+    { label: '저장한 코스', value: summary.savedCourseCount, route: 'saved-courses' },
+    { label: '방문한 지역', value: summary.discoveredRegionCount, route: 'visited-regions' },
+  ] as const;
 
   return (
     <Profile>
@@ -130,7 +132,12 @@ export const MyPageProfile = () => {
       </ProfileHeader>
       <ProfileIndicators>
         {indicators.map((item, index) => (
-          <ProfileIndicatorItem key={index}>
+          <ProfileIndicatorItem
+            key={index}
+            accessibilityRole="button"
+            accessibilityLabel={`${item.label} ${item.value}개 보기`}
+            onPress={() => navigate(appRoutes.myPageSection(item.route))}
+          >
             <ProfileIndicatorItemLabel>{item.label}</ProfileIndicatorItemLabel>
             <ProfileIndicatorItemValue>{item.value}</ProfileIndicatorItemValue>
           </ProfileIndicatorItem>
@@ -237,7 +244,7 @@ const ProfileIndicators = styled.View({
   gap: 16,
 });
 
-const ProfileIndicatorItem = styled.View({
+const ProfileIndicatorItem = styled.Pressable({
   flex: 1,
   padding: 16,
   gap: 4,

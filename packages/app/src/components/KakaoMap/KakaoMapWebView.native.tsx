@@ -4,13 +4,16 @@ import { WebView } from 'react-native-webview';
 import type {
   KakaoLocationPickerMapProps,
   KakaoMapLocation,
+  KakaoRegionMapProps,
   KakaoRouteMapProps,
 } from './KakaoMap.types';
 import { getNativeKakaoMapConfig } from './config';
 import { createMapDocument, serializeMapData } from './mapDocument';
 
 type Props =
-  (KakaoRouteMapProps & { mode: 'route' }) | (KakaoLocationPickerMapProps & { mode: 'picker' });
+  | (KakaoRouteMapProps & { mode: 'route' })
+  | (KakaoLocationPickerMapProps & { mode: 'picker' })
+  | (KakaoRegionMapProps & { mode: 'regions' });
 
 function isLocation(value: unknown): value is KakaoMapLocation {
   if (!value || typeof value !== 'object') return false;
@@ -30,7 +33,6 @@ function isLocation(value: unknown): value is KakaoMapLocation {
 export function KakaoMapWebView(props: Props) {
   const webView = useRef<WebView>(null);
   const callbacks = useRef(props);
-  callbacks.current = props;
   const [ready, setReady] = useState(false);
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
@@ -47,16 +49,22 @@ export function KakaoMapWebView(props: Props) {
         : undefined,
     [javascriptKey, baseUrl],
   );
+
+  useEffect(() => {
+    callbacks.current = props;
+  }, [props]);
   const payload = serializeMapData(
     props.mode === 'route'
       ? { mode: 'route', coordinates: props.coordinates }
-      : {
-          mode: 'picker',
-          initialCenterAddress: props.initialCenterAddress,
-          selectedCoordinate: props.selectedCoordinate,
-          addressSearchRequest: props.addressSearchRequest,
-          canSelect: Boolean(props.onLocationSelect),
-        },
+      : props.mode === 'regions'
+        ? { mode: 'regions', markers: props.markers, selectedId: props.selectedId }
+        : {
+            mode: 'picker',
+            initialCenterAddress: props.initialCenterAddress,
+            selectedCoordinate: props.selectedCoordinate,
+            addressSearchRequest: props.addressSearchRequest,
+            canSelect: Boolean(props.onLocationSelect),
+          },
   );
 
   useEffect(() => {
@@ -96,7 +104,13 @@ export function KakaoMapWebView(props: Props) {
           ref={webView}
           source={source}
           style={{ flex: 1, backgroundColor: '#f5f5f5' }}
-          accessibilityLabel={props.mode === 'route' ? '카카오맵 여행 경로' : '카카오맵 위치 선택'}
+          accessibilityLabel={
+            props.mode === 'route'
+              ? '카카오맵 여행 경로'
+              : props.mode === 'regions'
+                ? '방문한 지역 지도'
+                : '카카오맵 위치 선택'
+          }
           javaScriptEnabled
           domStorageEnabled
           scrollEnabled={false}
@@ -123,6 +137,15 @@ export function KakaoMapWebView(props: Props) {
                 return;
               }
               const current = callbacks.current;
+              if (
+                current.mode === 'regions' &&
+                message.type === 'regionPress' &&
+                'id' in message &&
+                typeof message.id === 'string'
+              ) {
+                current.onMarkerPress(message.id);
+                return;
+              }
               if (current.mode !== 'picker') return;
               if (
                 message.type === 'location' &&

@@ -1,11 +1,14 @@
 export {
   KakaoLocationPickerMap,
+  KakaoRegionMap,
   KakaoRouteMap,
   type KakaoLocationPickerMapProps,
   type KakaoMapAddressSearchRequest,
   type KakaoMapCoordinate,
   type KakaoMapLocation,
   type KakaoRouteMapProps,
+  type KakaoRegionMapProps,
+  type KakaoRegionMarker,
 } from './components/KakaoMap';
 export {
   colors,

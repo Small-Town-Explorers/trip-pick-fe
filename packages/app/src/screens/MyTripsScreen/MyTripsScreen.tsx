@@ -22,7 +22,17 @@ const getFolderErrorMessage = (error: unknown, fallback: string) => {
   return error instanceof ApiError ? error.message : fallback;
 };
 
-export function MyTripsScreen() {
+interface MyTripsScreenProps {
+  headerTitle?: string;
+  showCourseCount?: boolean;
+  showSectionTitle?: boolean;
+}
+
+export function MyTripsScreen({
+  headerTitle = '내 여행',
+  showCourseCount = false,
+  showSectionTitle = true,
+}: MyTripsScreenProps = {}) {
   const { navigate } = useAppNavigation();
   const isAuthenticated = hasApiAccessToken();
   const { data: folders = [], error, isPending, refetch } = useFoldersQuery(isAuthenticated);
@@ -36,11 +46,12 @@ export function MyTripsScreen() {
   const [renameName, setRenameName] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<FolderData>();
   const [formError, setFormError] = useState('');
+  const savedCourseCount = folders.reduce((total, folder) => total + folder.courseCount, 0);
 
   if (!isAuthenticated) {
     return (
       <Screen>
-        <Header title="내 여행" />
+        <Header title={headerTitle} />
         <UnauthenticatedContent>
           <LoginPrompt>
             <IconComponent name="profile" color={colors.primary[500]} size={28} />
@@ -109,9 +120,9 @@ export function MyTripsScreen() {
 
   return (
     <Screen>
-      <Header title="내 여행" />
+      <Header title={headerTitle} sub={showCourseCount ? `(${savedCourseCount})` : undefined} />
       <Scroll contentContainerStyle={contentStyle}>
-        <SectionTitle>내 여행 보관함</SectionTitle>
+        {showSectionTitle ? <SectionTitle>내 여행 보관함</SectionTitle> : null}
         {error ? (
           <Status>
             <StatusText>보관함을 불러오지 못했어요.</StatusText>
