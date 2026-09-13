@@ -48,7 +48,7 @@ export const createCoursePlacesFromResponse = (course: GeneratedCourseResponse):
         id,
         externalId,
         name: item.title,
-        tag: item.slot,
+        tag: item.categoryLabel,
         summary: item.reason ?? item.address ?? item.title,
         image: item.imageUrl,
         lat: item.lat,
