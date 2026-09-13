@@ -7,8 +7,8 @@ declare module '*.svg' {
 }
 
 declare module '*?react' {
-  import type { FC } from 'react';
+  import type { FC, SVGProps } from 'react';
 
-  const SvgComponent: FC<{ height?: number | string; width?: number | string }>;
+  const SvgComponent: FC<SVGProps<SVGSVGElement>>;
   export default SvgComponent;
 }

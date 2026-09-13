@@ -20,6 +20,7 @@ import {
 } from '../../queries';
 import type { GenerateCourseRequest, SmallCity } from '../../controllers';
 import { CourseCreateDensity } from './Density';
+import { TmpLoadingAnimated } from '@components/CourseLoadingOverlay/TmpLoadingAnimated';
 
 export function CourseCreateScreen() {
   const { replace } = useAppNavigation();
