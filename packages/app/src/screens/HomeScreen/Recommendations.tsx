@@ -1,20 +1,30 @@
 import styled from '@emotion/native';
 import { colors, typography, withAlpha } from '@styles';
+import { useState } from 'react';
 import { Platform } from 'react-native';
 import { appRoutes, useAppNavigation } from '../../navigation';
 import { useFeaturedRegionsQuery } from '../../queries';
+import { pickHomeRecommendationCopy } from './recommendationCopy';
 
 const getImageUrl = (imageUrl: string) => imageUrl.replace(/^http:/, 'https:');
 
 export const HomeRecommendations = () => {
   const { navigate } = useAppNavigation();
   const { data: recommendations = [], isPending, isError, refetch } = useFeaturedRegionsQuery();
+  const [copy, setCopy] = useState(pickHomeRecommendationCopy);
+
+  const openRegion = (regionId: string) => {
+    const detailRoute = appRoutes.placeDetail(regionId, copy.title);
+
+    setCopy(pickHomeRecommendationCopy(copy.title));
+    navigate(detailRoute);
+  };
 
   return (
     <Section>
       <Header>
-        <Title>숨겨진 소도시의 고요한 발견</Title>
-        <Desc>바쁜 일상을 뒤로하고, 자연의 속도에 맞춰 걷는 여행을 제안합니다.</Desc>
+        <Title>{copy.title}</Title>
+        <Desc>{copy.description}</Desc>
       </Header>
       {isPending ? (
         <Status accessibilityLiveRegion="polite">추천 소도시를 찾고 있어요.</Status>
@@ -32,7 +42,7 @@ export const HomeRecommendations = () => {
           contentContainerStyle={carouselStyle}
         >
           {recommendations.map((city) => (
-            <Card key={city.id} onPress={() => navigate(appRoutes.placeDetail(city.id))}>
+            <Card key={city.id} onPress={() => openRegion(city.id)}>
               <Image
                 source={{ uri: getImageUrl(city.imageUrl) }}
                 accessibilityLabel={city.shortName}

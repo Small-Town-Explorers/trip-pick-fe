@@ -93,12 +93,18 @@ function TripDetailRoute() {
 
 function PlaceDetailRoute() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
 
   if (!id) {
     return <Navigate to="/" replace />;
   }
 
-  return <PlaceDetailScreen placeId={id} />;
+  return (
+    <PlaceDetailScreen
+      placeId={id}
+      discoveryTitle={searchParams.get('discoveryTitle') ?? undefined}
+    />
+  );
 }
 
 function CourseResultRoute() {

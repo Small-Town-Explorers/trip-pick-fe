@@ -34,7 +34,11 @@ export const appRoutes = {
   home: '/' as const,
   designSystemColors: '/design-system/colors' as const,
   tripDetail: (id: string) => `/trip-detail/${encodeURIComponent(id)}` as const,
-  placeDetail: (id: string) => `/place-detail/${encodeURIComponent(id)}` as const,
+  placeDetail: (id: string, discoveryTitle?: string): AppRoute => {
+    const path = `/place-detail/${encodeURIComponent(id)}` as const;
+
+    return discoveryTitle ? `${path}?discoveryTitle=${encodeURIComponent(discoveryTitle)}` : path;
+  },
   courseCreate: '/course-create' as const,
   login: '/login' as const,
   courseResult: (id: string) => `/course-result/${encodeURIComponent(id)}` as const,

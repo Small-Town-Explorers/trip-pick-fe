@@ -1,10 +1,9 @@
-import CourseGeneratingImage from '@assets/images/course_generating.png';
-import CourseRegeneratingImage from '@assets/images/course_regenerating.png';
 import styled from '@emotion/native';
 import { colors, MAX_SCREEN_SIZE, typography } from '@styles';
 import { useCallback, useEffect, useRef } from 'react';
-import { Modal, Platform, type ImageSourcePropType } from 'react-native';
+import { Modal, Platform } from 'react-native';
 import { RotatingStatus } from './RotatingStatus';
+import { TmpLoadingAnimated } from './TmpLoadingAnimated';
 
 interface CourseLoadingOverlayProps {
   visible: boolean;
@@ -150,21 +149,19 @@ export function CourseLoadingOverlay({
   }, [complete, completed, visible]);
 
   const isGenerating = mode === 'generate';
-  const image = isGenerating ? CourseGeneratingImage : CourseRegeneratingImage;
   const statusMessages = isGenerating ? GENERATING_STATUS_MESSAGES : REGENERATING_STATUS_MESSAGES;
 
   return (
     <Modal animationType="none" onRequestClose={cancel} visible={visible} transparent>
       <Overlay>
         <Screen>
-          <Illustration
+          <TmpLoadingAnimated
+            variant={mode}
             accessibilityLabel={
               isGenerating
                 ? '숨겨진 여행지를 탐색하는 돋보기'
                 : '더 나은 여행 코스를 탐색하는 돋보기'
             }
-            resizeMode="contain"
-            source={image as unknown as ImageSourcePropType}
           />
           <Heading>
             {isGenerating ? (
@@ -198,7 +195,6 @@ const Screen = styled.View({
   backgroundColor: 'white',
 });
 
-const Illustration = styled.Image({ width: 231, height: 344, marginBottom: 32 });
 const Heading = styled.Text({
   ...typography.heading4.semibold,
   color: colors.gray[1000],

@@ -20,9 +20,12 @@ import {
 
 type Props = {
   placeId: string;
+  discoveryTitle?: string;
 };
 
-export function PlaceDetailScreen({ placeId }: Props) {
+const DEFAULT_DISCOVERY_TITLE = '숨겨진 소도시의 고요한 발견';
+
+export function PlaceDetailScreen({ placeId, discoveryTitle }: Props) {
   const { replace } = useAppNavigation();
   const queryClient = useQueryClient();
   const { data: detail, error, isPending, refetch } = useRegionDetailQuery(placeId);
@@ -33,6 +36,7 @@ export function PlaceDetailScreen({ placeId }: Props) {
   const [generationError, setGenerationError] = useState('');
   const title = detail?.shortName ?? '';
   const summary = detail?.summary ?? '';
+  const headerTitle = discoveryTitle || DEFAULT_DISCOVERY_TITLE;
 
   const finishGeneration = useCallback(() => {
     if (generatedCourseId) replace(appRoutes.courseResult(generatedCourseId));
@@ -66,7 +70,7 @@ export function PlaceDetailScreen({ placeId }: Props) {
   if (isPending) {
     return (
       <Screen testID={`place-detail-${placeId}`}>
-        <Header title="숨겨진 소도시의 고요한 발견" />
+        <Header title={headerTitle} />
         <State accessibilityLiveRegion="polite">
           <ActivityIndicator color={colors.primary[700]} />
           <StateText>소도시 이야기를 불러오고 있어요.</StateText>
@@ -78,7 +82,7 @@ export function PlaceDetailScreen({ placeId }: Props) {
   if (error || !detail) {
     return (
       <Screen testID={`place-detail-${placeId}`}>
-        <Header title="숨겨진 소도시의 고요한 발견" />
+        <Header title={headerTitle} />
         <State>
           <StateText>
             {error instanceof Error ? error.message : '소도시 상세 정보를 불러오지 못했어요.'}
@@ -93,7 +97,7 @@ export function PlaceDetailScreen({ placeId }: Props) {
 
   return (
     <Screen testID={`place-detail-${placeId}`}>
-      <Header title="숨겨진 소도시의 고요한 발견" />
+      <Header title={headerTitle} />
       <Scroll>
         <PlaceDetailHero
           title={detail.shortName}

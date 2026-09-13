@@ -33,6 +33,7 @@ export type GeneratedCourseItem = {
   order: number;
   seatId: string;
   slot: string;
+  categoryLabel: string;
   startTime: string;
   stayMinutes: number;
   travelMinutesFromPrevious: number | null;
