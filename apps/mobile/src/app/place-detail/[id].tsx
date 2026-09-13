@@ -2,11 +2,14 @@ import { PlaceDetailScreen } from '@trip-pick/app';
 import { useLocalSearchParams } from 'expo-router';
 
 export default function PlaceDetailRoute() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, discoveryTitle } = useLocalSearchParams<{
+    id: string;
+    discoveryTitle?: string;
+  }>();
 
   if (!id) {
     return null;
   }
 
-  return <PlaceDetailScreen placeId={id} />;
+  return <PlaceDetailScreen placeId={id} discoveryTitle={discoveryTitle} />;
 }
