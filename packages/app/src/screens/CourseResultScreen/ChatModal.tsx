@@ -138,7 +138,7 @@ export function CourseResultChatModal({
             {isSending ? (
               <Thinking accessibilityLiveRegion="polite">
                 <ActivityIndicator size="small" color={colors.primary[600]} />
-                <ThinkingText>코스를 수정하고 있어요.</ThinkingText>
+                <ThinkingText>생각 중</ThinkingText>
               </Thinking>
             ) : null}
           </ChatScroll>
@@ -165,7 +165,7 @@ export function CourseResultChatModal({
               <IconComponent
                 name="send"
                 size={20}
-                color={draft.trim() && !isSending ? colors.primary[700] : colors.gray[200]}
+                color={draft.trim() && !isSending ? colors.primary[800] : colors.gray[200]}
               />
             </SendButton>
           </Composer>
@@ -249,11 +249,11 @@ const Input = styled.TextInput({
   ...Platform.select({ web: { outlineStyle: 'none' as never } }),
 });
 
-const SendButton = styled.Pressable({
+const SendButton = styled.Pressable(({ disabled }) => ({
   width: 32,
   height: 32,
   alignItems: 'center',
   justifyContent: 'center',
-  backgroundColor: colors.gray[50],
+  backgroundColor: !disabled ? withAlpha(colors.primary[500], 0.15) : colors.gray[50],
   borderRadius: 9999,
-});
+}));

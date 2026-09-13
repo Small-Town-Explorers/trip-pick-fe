@@ -145,7 +145,15 @@ export type AddManualCourseItemRequest = {
 
 export type EditCourseWithChatRequest = {
   message: string;
+  editSessionId: string;
+  pendingActionId?: string;
   course: GeneratedCourseResponse;
+};
+
+export type CourseChatPendingAction = {
+  pendingActionId: string;
+  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'EXPIRED';
+  expiresAt: string;
 };
 
 export type EditCourseWithChatResponse = {
@@ -153,6 +161,7 @@ export type EditCourseWithChatResponse = {
   modified: boolean;
   course: GeneratedCourseResponse;
   warnings: string[];
+  pendingAction: CourseChatPendingAction | null;
 };
 
 export function generateCourse(request: GenerateCourseRequest) {
