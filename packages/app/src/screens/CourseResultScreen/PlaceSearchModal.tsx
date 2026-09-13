@@ -13,6 +13,7 @@ interface CourseResultPlaceSearchModalProps {
   visible: boolean;
   isAdding: boolean;
   addError?: string;
+  regionId: string;
   courseRegion: CourseRegionForComparison;
   onAdd: (places: PlaceSearchItem[]) => Promise<boolean>;
   onClose: () => void;
@@ -22,6 +23,7 @@ export function CourseResultPlaceSearchModal({
   visible,
   isAdding,
   addError,
+  regionId,
   courseRegion,
   onAdd,
   onClose,
@@ -41,6 +43,7 @@ export function CourseResultPlaceSearchModal({
     useInfinitePlaceSearchQuery({
       keyword: debouncedQuery,
       source,
+      regionId,
       enabled: visible,
     });
   const results = useMemo(() => data?.pages.flatMap((page) => page.items) ?? [], [data]);

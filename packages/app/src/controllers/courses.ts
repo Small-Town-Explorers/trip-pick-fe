@@ -21,6 +21,7 @@ export type GenerateCourseByNameRequest = Omit<
 };
 
 export type GeneratedCourseRegion = {
+  id: string;
   name: string;
   province: string;
   areaCode: string;

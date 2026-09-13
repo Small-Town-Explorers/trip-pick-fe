@@ -19,7 +19,7 @@ export type PlaceSearchResponse = { items: PlaceSearchItem[] };
 export type SearchPlacesParams = {
   keyword: string;
   source: PlaceSearchSource;
-  regionId?: string;
+  regionId: string;
   page?: number;
   size?: number;
 };
@@ -34,11 +34,10 @@ export function searchPlaces({
   const query = new URLSearchParams({
     keyword,
     source,
+    regionId,
     page: String(page),
     size: String(size),
   });
-
-  if (regionId) query.set('regionId', regionId);
 
   return apiRequest<PlaceSearchResponse>(`/api/v1/places/search?${query.toString()}`);
 }

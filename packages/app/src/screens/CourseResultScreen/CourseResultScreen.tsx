@@ -507,6 +507,7 @@ function CourseResultContent({
         visible={isPlaceSearchVisible}
         isAdding={isAddingPlace}
         addError={placeAddError}
+        regionId={course.region.id}
         courseRegion={course.region}
         onAdd={addPlaces}
         onClose={closeModals}
