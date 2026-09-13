@@ -4,6 +4,8 @@ import {
   getAccountInfo,
   getMyPageSummary,
   getNotificationSettings,
+  getPastTrips,
+  getVisitedRegions,
   updateNickname,
   updateNotificationSettings,
   type MyPageSummary,
@@ -13,12 +15,30 @@ import {
 export const myPageSummaryQueryKey = ['users', 'me'] as const;
 export const accountInfoQueryKey = ['users', 'me', 'account'] as const;
 export const notificationSettingsQueryKey = ['users', 'me', 'notifications'] as const;
+export const pastTripsQueryKey = ['users', 'me', 'past-trips'] as const;
+export const visitedRegionsQueryKey = ['users', 'me', 'visited-regions'] as const;
 
 export function useMyPageSummaryQuery(enabled = true) {
   return useQuery({
     queryKey: myPageSummaryQueryKey,
     queryFn: getMyPageSummary,
     staleTime: 5 * 60 * 1_000,
+    enabled,
+  });
+}
+
+export function usePastTripsQuery(enabled = true) {
+  return useQuery({
+    queryKey: pastTripsQueryKey,
+    queryFn: getPastTrips,
+    enabled,
+  });
+}
+
+export function useVisitedRegionsQuery(enabled = true) {
+  return useQuery({
+    queryKey: visitedRegionsQueryKey,
+    queryFn: getVisitedRegions,
     enabled,
   });
 }

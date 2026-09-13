@@ -1,13 +1,13 @@
 import styled from '@emotion/native';
 import { colors, shadows, typography } from '@styles';
-import type { MockPastTrip } from './mockTrips';
+import type { PastTrip } from '../../../controllers';
 
 const formatDate = (date: string) => date.split('-').map(Number).join('.');
 
-export function TripSummaryCard({ trip }: { trip: MockPastTrip }) {
+export function TripSummaryCard({ trip, onPress }: { trip: PastTrip; onPress?: () => void }) {
   return (
-    <Card>
-      <Thumbnail source={trip.image} resizeMode="cover" />
+    <Card accessibilityRole={onPress ? 'button' : undefined} onPress={onPress}>
+      <Thumbnail source={{ uri: trip.imageUrl ?? undefined }} resizeMode="cover" />
       <Body>
         <Title numberOfLines={1}>{trip.title}</Title>
         <Period>
@@ -19,7 +19,7 @@ export function TripSummaryCard({ trip }: { trip: MockPastTrip }) {
   );
 }
 
-const Card = styled.View({
+const Card = styled.Pressable({
   width: '100%',
   minHeight: 111,
   padding: 16,

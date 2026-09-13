@@ -9,11 +9,15 @@ export {
   accountInfoQueryKey,
   myPageSummaryQueryKey,
   notificationSettingsQueryKey,
+  pastTripsQueryKey,
+  visitedRegionsQueryKey,
   useAccountInfoQuery,
   useMyPageSummaryQuery,
   useNotificationSettingsQuery,
+  usePastTripsQuery,
   useUpdateNicknameMutation,
   useUpdateNotificationSettingsMutation,
+  useVisitedRegionsQuery,
 } from './useMyPageQueries';
 export {
   noticeDetailQueryKey,

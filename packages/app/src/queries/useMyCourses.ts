@@ -9,7 +9,11 @@ import {
   type MyCourseDetail,
   type MyCourseSummary,
 } from '../controllers';
-import { myPageSummaryQueryKey } from './useMyPageQueries';
+import {
+  myPageSummaryQueryKey,
+  pastTripsQueryKey,
+  visitedRegionsQueryKey,
+} from './useMyPageQueries';
 
 export const myCourseListsQueryKey = ['my-courses', 'list'] as const;
 export const homeTripQueryKey = ['my-courses', 'home'] as const;
@@ -53,6 +57,9 @@ export function useSaveMyCourseMutation() {
       queryClient.setQueryData<MyCourseDetail>(myCourseDetailQueryKey(savedCourse.id), savedCourse);
       void queryClient.invalidateQueries({ queryKey: myCourseListsQueryKey });
       void queryClient.invalidateQueries({ queryKey: homeTripQueryKey });
+      void queryClient.invalidateQueries({ queryKey: myPageSummaryQueryKey });
+      void queryClient.invalidateQueries({ queryKey: pastTripsQueryKey });
+      void queryClient.invalidateQueries({ queryKey: visitedRegionsQueryKey });
     },
   });
 }
@@ -70,6 +77,8 @@ export function useUpdateMyCourseMutation() {
       void queryClient.invalidateQueries({ queryKey: myCourseListsQueryKey });
       void queryClient.invalidateQueries({ queryKey: homeTripQueryKey });
       void queryClient.invalidateQueries({ queryKey: myPageSummaryQueryKey });
+      void queryClient.invalidateQueries({ queryKey: pastTripsQueryKey });
+      void queryClient.invalidateQueries({ queryKey: visitedRegionsQueryKey });
     },
   });
 }
@@ -88,6 +97,8 @@ export function useDeleteMyCourseMutation() {
       void queryClient.invalidateQueries({ queryKey: myCourseListsQueryKey });
       void queryClient.invalidateQueries({ queryKey: homeTripQueryKey });
       void queryClient.invalidateQueries({ queryKey: myPageSummaryQueryKey });
+      void queryClient.invalidateQueries({ queryKey: pastTripsQueryKey });
+      void queryClient.invalidateQueries({ queryKey: visitedRegionsQueryKey });
     },
   });
 }
