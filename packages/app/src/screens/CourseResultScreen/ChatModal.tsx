@@ -155,6 +155,9 @@ export function CourseResultChatModal({
               returnKeyType="send"
               value={draft}
               onChangeText={setDraft}
+              onFocus={() =>
+                requestAnimationFrame(() => chatScrollRef.current?.scrollToEnd({ animated: true }))
+              }
               onSubmitEditing={send}
             />
             <SendButton
@@ -225,6 +228,7 @@ const Thinking = styled.View({ flexDirection: 'row', alignItems: 'center', gap: 
 const ThinkingText = styled.Text({ ...typography.body2.regular, color: colors.primary[600] });
 
 const Composer = styled.View({
+  ...Platform.select({ android: { marginBottom: 72 } }),
   marginHorizontal: 20,
   marginVertical: 18,
   height: 52,

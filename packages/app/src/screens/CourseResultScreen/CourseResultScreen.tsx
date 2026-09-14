@@ -2,7 +2,7 @@ import { type CalendarRange } from '@components/Calendar';
 import { CourseLoadingOverlay } from '@components/CourseLoadingOverlay';
 import styled from '@emotion/native';
 import { useCallback, useRef, useState } from 'react';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, Platform } from 'react-native';
 import { useAppNavigation } from '../../navigation';
 import { setCourseSaveNotice } from '../../storage/courseSaveNotice';
 import { TripDetailActions } from '../TripDetailScreen/Bottom';
@@ -597,7 +597,7 @@ const Scroll = styled.ScrollView({
 });
 
 const scrollContentStyle = {
-  paddingBottom: 160,
+  ...Platform.select({ web: { paddingBottom: 120 }, android: { paddingBottom: 172 } }),
 } as const;
 
 const ShareButton = styled.Pressable({

@@ -180,11 +180,15 @@ export function CourseLoadingOverlay({
 }
 
 const Overlay = styled.View({
-  left: '50%',
+  ...Platform.select({
+    web: {
+      left: '50%',
+      transform: 'translateX(-50%);',
+    },
+  }),
   height: '100%',
   width: '100%',
   maxWidth: MAX_SCREEN_SIZE,
-  transform: 'translateX(-50%);',
 });
 
 const Screen = styled.View({

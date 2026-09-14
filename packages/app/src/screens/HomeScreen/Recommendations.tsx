@@ -1,7 +1,7 @@
 import styled from '@emotion/native';
 import { colors, typography, withAlpha } from '@styles';
 import { useState } from 'react';
-import { Platform } from 'react-native';
+import { FlatList, Platform, View } from 'react-native';
 import { appRoutes, useAppNavigation } from '../../navigation';
 import { useFeaturedRegionsQuery } from '../../queries';
 import { pickHomeRecommendationCopy } from './recommendationCopy';
@@ -12,6 +12,7 @@ export const HomeRecommendations = () => {
   const { navigate } = useAppNavigation();
   const { data: recommendations = [], isPending, isError, refetch } = useFeaturedRegionsQuery();
   const [copy, setCopy] = useState(pickHomeRecommendationCopy);
+  const [visibleCount, setVisibleCount] = useState(5);
 
   const openRegion = (regionId: string) => {
     const detailRoute = appRoutes.placeDetail(regionId, copy.title);
@@ -36,13 +37,12 @@ export const HomeRecommendations = () => {
           </RetryButton>
         </ErrorArea>
       ) : (
-        <Carousel
+        <FlatList
+          data={recommendations.slice(0, visibleCount)}
           horizontal
-          showsHorizontalScrollIndicator={Platform.OS === 'web'}
-          contentContainerStyle={carouselStyle}
-        >
-          {recommendations.map((city) => (
-            <Card key={city.id} onPress={() => openRegion(city.id)}>
+          keyExtractor={(city) => city.id}
+          renderItem={({ item: city }) => (
+            <Card onPress={() => openRegion(city.id)}>
               <Image
                 source={{ uri: getImageUrl(city.imageUrl) }}
                 accessibilityLabel={city.shortName}
@@ -53,8 +53,20 @@ export const HomeRecommendations = () => {
                 <CardDesc>{city.summary}</CardDesc>
               </Content>
             </Card>
-          ))}
-        </Carousel>
+          )}
+          ItemSeparatorComponent={CardSeparator}
+          initialNumToRender={5}
+          maxToRenderPerBatch={5}
+          windowSize={5}
+          removeClippedSubviews={false}
+          getItemLayout={(_, index) => ({ length: 216, offset: 216 * index, index })}
+          onEndReached={() =>
+            setVisibleCount((count) => Math.min(count + 5, recommendations.length))
+          }
+          onEndReachedThreshold={0.5}
+          showsHorizontalScrollIndicator={Platform.OS === 'web'}
+          contentContainerStyle={carouselStyle}
+        />
       )}
     </Section>
   );
@@ -82,14 +94,11 @@ const Desc = styled.Text({
   color: colors.gray[700],
 });
 
-const Carousel = styled.ScrollView({
-  width: '100%',
-});
-
 const carouselStyle = {
-  gap: 16,
   paddingHorizontal: 20,
 } as const;
+
+const CardSeparator = () => <View style={{ width: 16 }} />;
 
 const Card = styled.Pressable({
   width: 200,

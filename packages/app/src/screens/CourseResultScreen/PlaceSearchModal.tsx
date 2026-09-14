@@ -361,6 +361,7 @@ const LoadingState = styled.View({
   alignItems: 'center',
   justifyContent: 'center',
   paddingHorizontal: 20,
+  paddingBottom: 92,
   gap: 12,
 });
 
@@ -396,7 +397,7 @@ const Actions = styled.View({
   flexDirection: 'row',
   paddingHorizontal: 20,
   paddingTop: 18,
-  paddingBottom: Platform.OS === 'web' ? 24 : 34,
+  paddingBottom: Platform.OS === 'web' ? 24 : 72,
   gap: 10,
   backgroundColor: withAlpha('#FFFFFF', 0.7),
   borderTopColor: '#FFFFFF',

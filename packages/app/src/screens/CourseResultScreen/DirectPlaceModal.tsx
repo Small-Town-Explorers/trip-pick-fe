@@ -360,7 +360,7 @@ const BottomAction = styled.View({
   left: 0,
   paddingHorizontal: 20,
   paddingTop: 18,
-  paddingBottom: Platform.OS === 'web' ? 24 : 34,
+  paddingBottom: Platform.OS === 'web' ? 24 : 72,
   backgroundColor: withAlpha('#FFFFFF', 0.94),
 });
 const ConfirmButton = styled.Pressable<{ enabled: boolean }>(({ enabled }) => ({

@@ -43,6 +43,7 @@ export const TripDetailActions = ({
 };
 
 const Bar = styled.View({
+  ...Platform.select({ android: { paddingBottom: 72 } }),
   left: 0,
   right: 0,
   bottom: 0,

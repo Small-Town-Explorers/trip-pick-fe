@@ -228,7 +228,9 @@ export function EditTripSpotCard({
       />
       <Info>
         <Header>
-          <Name numberOfLines={1}>{name}</Name>
+          <Name numberOfLines={1} ellipsizeMode="tail">
+            {name}
+          </Name>
           <RemoveButton
             accessibilityRole="button"
             accessibilityLabel={`${name} 삭제`}
@@ -247,7 +249,7 @@ const Card = styled(Animated.View)<{ committing: boolean; dragging: boolean }>(
   ({ committing, dragging }) => ({
     flex: 1,
     minWidth: 0,
-    height: 93,
+    minHeight: 93,
     padding: 16,
     flexDirection: 'row',
     gap: 16,
@@ -291,19 +293,27 @@ const Info = styled.View({
 });
 
 const Header = styled.View({
+  width: '100%',
   flexDirection: 'row',
-  justifyContent: 'space-between',
+  alignItems: 'center',
+  gap: 4,
 });
 
 const Name = styled.Text({
   ...typography.body2.medium,
   color: colors.gray[1000],
+  flex: 1,
+  flexShrink: 1,
+  minWidth: 0,
 });
 
 const RemoveButton = styled.Pressable({
+  width: 24,
+  height: 24,
   zIndex: 2,
   alignItems: 'center',
   justifyContent: 'center',
+  flexShrink: 0,
 });
 
 const Description = styled.Text({

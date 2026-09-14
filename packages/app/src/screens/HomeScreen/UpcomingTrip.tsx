@@ -198,7 +198,7 @@ const LoginAction = styled.View({
 const Section = styled.View({
   width: '100%',
   paddingTop: 24,
-  paddingBottom: 40,
+  paddingBottom: 64,
   gap: 24,
 });
 

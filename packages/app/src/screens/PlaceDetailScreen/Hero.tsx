@@ -20,11 +20,12 @@ export function PlaceDetailHero({
 }: PlaceDetailHeroProps) {
   return (
     <Section>
-      <ImageBackground
-        source={{ uri: imageUrl.replace(/^http:/, 'https:') }}
-        resizeMode="cover"
-        accessibilityLabel={`${title} 대표 풍경`}
-      >
+      <Card>
+        <CardImage
+          source={{ uri: imageUrl.replace(/^http:/, 'https:') }}
+          resizeMode="cover"
+          accessibilityLabel={`${title} 대표 풍경`}
+        />
         <LinearGradient
           colors={['rgba(0, 0, 0, 0)', 'rgba(0, 0, 0, 0.5)']}
           locations={[0, 1]}
@@ -38,7 +39,7 @@ export function PlaceDetailHero({
           <Title>{title}</Title>
           <Subtitle>{summary}</Subtitle>
         </Heading>
-      </ImageBackground>
+      </Card>
 
       <Introduction>
         <Quote>
@@ -53,10 +54,18 @@ const Section = styled.View({
   width: '100%',
 });
 
-const ImageBackground = styled.ImageBackground({
-  position: 'relative',
+const CardImage = styled.Image({
+  position: 'absolute',
+  left: 0,
+  top: 0,
+  right: 0,
+  bottom: 0,
+});
+
+const Card = styled.View({
   width: '100%',
   aspectRatio: 1,
+  position: 'relative',
   justifyContent: 'flex-end',
   alignItems: 'flex-start',
   padding: 28,
@@ -64,13 +73,17 @@ const ImageBackground = styled.ImageBackground({
   overflow: 'hidden',
 });
 
-const gradientStyle = {
+const Credit = styled.Text({
   position: 'absolute',
-  top: 0,
-  right: 0,
-  bottom: 0,
-  left: 0,
-} as const;
+  top: 12,
+  right: 12,
+  paddingHorizontal: 8,
+  paddingVertical: 4,
+  backgroundColor: withAlpha('#000000', 0.42),
+  borderRadius: 6,
+  ...typography.caption3.regular,
+  color: '#FFFFFF',
+});
 
 const Tag = styled.Text({
   paddingHorizontal: 12,
@@ -86,18 +99,6 @@ const Tag = styled.Text({
       backdropFilter: 'blur(6px)',
     },
   }),
-});
-
-const Credit = styled.Text({
-  position: 'absolute',
-  top: 12,
-  right: 12,
-  paddingHorizontal: 8,
-  paddingVertical: 4,
-  backgroundColor: withAlpha('#000000', 0.42),
-  borderRadius: 6,
-  ...typography.caption3.regular,
-  color: '#FFFFFF',
 });
 
 const Heading = styled.View({
@@ -117,6 +118,14 @@ const Subtitle = styled.Text({
   ...typography.heading2.medium,
   color: withAlpha('#FFFFFF', 0.9),
 });
+
+const gradientStyle = {
+  position: 'absolute',
+  top: 0,
+  right: 0,
+  bottom: 0,
+  left: 0,
+} as const;
 
 const Introduction = styled.View({
   width: '100%',

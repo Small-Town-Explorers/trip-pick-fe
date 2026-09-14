@@ -33,7 +33,7 @@ export function TripSpotCard({ image, type, name, description, mapUrl }: TripSpo
       />
       <Info>
         <Meta>
-          <Type>{type}</Type>
+          <Type>{type ?? '자율'}</Type>
           {mapUrl ? (
             <MapButton
               accessibilityRole="link"
@@ -48,6 +48,7 @@ export function TripSpotCard({ image, type, name, description, mapUrl }: TripSpo
             </MapButton>
           ) : null}
         </Meta>
+
         <Name numberOfLines={1}>{name}</Name>
         <Description numberOfLines={2}>{description}</Description>
       </Info>
@@ -58,12 +59,13 @@ export function TripSpotCard({ image, type, name, description, mapUrl }: TripSpo
 const Card = styled.View({
   flex: 1,
   minWidth: 0,
-  height: 120,
+  minHeight: 120,
   padding: 16,
   flexDirection: 'row',
   gap: 16,
   backgroundColor: '#FFFFFF',
   borderRadius: 12,
+  alignItems: 'center',
 
   ...shadows[2],
 });

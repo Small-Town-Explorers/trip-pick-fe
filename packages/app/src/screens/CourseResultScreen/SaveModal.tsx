@@ -75,7 +75,7 @@ export function CourseResultSaveModal({
         visible={visible}
         title="코스 저장"
         onClose={onClose}
-        baseHeight={isAuthenticated ? 760 : 440}
+        baseHeight={isAuthenticated ? 760 : Platform.OS === 'web' ? 440 : 480}
         isExpandable={isAuthenticated}
       >
         {({ close }) =>
@@ -187,9 +187,14 @@ export function CourseResultSaveModal({
 }
 
 const Unauthenticated = styled.View({
+  ...Platform.select({
+    android: { paddingBottom: 72 },
+    web: {
+      paddingBottom: 40,
+    },
+  }),
   gap: 20,
   paddingHorizontal: 20,
-  paddingBottom: 40,
   flex: 1,
   justifyContent: 'space-between',
 });
