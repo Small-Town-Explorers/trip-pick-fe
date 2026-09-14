@@ -11,13 +11,12 @@ const getImageUrl = (imageUrl: string) => imageUrl.replace(/^http:/, 'https:');
 export const HomeRecommendations = () => {
   const { navigate } = useAppNavigation();
   const { data: recommendations = [], isPending, isError, refetch } = useFeaturedRegionsQuery();
-  const [copy, setCopy] = useState(pickHomeRecommendationCopy);
+  const [copy] = useState(pickHomeRecommendationCopy);
   const [visibleCount, setVisibleCount] = useState(5);
 
   const openRegion = (regionId: string) => {
     const detailRoute = appRoutes.placeDetail(regionId, copy.title);
 
-    setCopy(pickHomeRecommendationCopy(copy.title));
     navigate(detailRoute);
   };
 

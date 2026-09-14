@@ -51,7 +51,7 @@ export default function RootLayout() {
             back: () => router.back(),
           }}
         >
-          <Stack screenOptions={{ headerShown: false, animation: 'none' }} />
+          <Stack screenOptions={{ headerShown: false }} />
         </NavigationProvider>
       </LocalStorageGate>
     </>
