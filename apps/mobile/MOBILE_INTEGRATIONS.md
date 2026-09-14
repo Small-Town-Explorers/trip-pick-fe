@@ -34,6 +34,33 @@ EXPO_PUBLIC_KAKAO_MAP_BASE_URL=카카오에_등록한_웹_원본_URL
 - https://apis.map.kakao.com/web/documentation/
 - https://docs.expo.dev/versions/v57.0.0/sdk/webview/
 
+## 카카오 로그인
+
+모바일 로그인은 기존 서버의 `POST /api/v1/auth/kakao/login`을 재사용한다. 카카오 REST 로그인은 앱 스킴을 redirect URI로 받을 수 없으므로 다음 순서로 연결한다.
+
+1. 카카오 인증 후 배포된 웹의 `https://서비스주소/mobile-auth/kakao`로 돌아온다.
+2. 웹 콜백 화면이 인증 코드와 state를 `mobile://login`으로 전달한다.
+3. 앱이 state를 검증하고 인증 코드를 서버에 보내 액세스 토큰을 발급받는다.
+4. 토큰과 만료 시각은 기기 저장소에 보관되며 이후 API 요청에 자동으로 포함된다.
+
+`.env.local`에 다음 값을 추가한다.
+
+```
+EXPO_PUBLIC_API_BASE_URL=https://trippick.kro.kr
+EXPO_PUBLIC_KAKAO_REST_API_KEY=카카오_REST_API_키
+EXPO_PUBLIC_KAKAO_REDIRECT_URI=https://서비스주소/mobile-auth/kakao
+```
+
+`EXPO_PUBLIC_KAKAO_REDIRECT_URI`는 카카오 개발자 콘솔의 REST API 키용 Redirect URI에도 철자와 슬래시까지 동일하게 등록해야 한다. 웹 앱도 이 변경을 포함해 해당 HTTPS 주소에 배포되어 있어야 한다.
+
+Expo Go는 앱 고유 스킴을 고정할 수 없어 이 로그인 흐름의 실제 기기 테스트에 사용할 수 없다. `npm.cmd run android --workspace @trip-pick/mobile`로 설치한 개발 빌드에서 확인한다.
+
+공식 문서:
+
+- https://developers.kakao.com/docs/ko/kakaologin/rest-api
+- https://docs.expo.dev/guides/authentication/
+- https://docs.expo.dev/versions/latest/sdk/webbrowser/
+
 ## 카카오톡 공유
 
 사용자 요청에 따라 등록 도메인 확인 및 카카오톡 전용 공유 연결은 보류했다. 기존 일반 공유 기능을 유지한다.

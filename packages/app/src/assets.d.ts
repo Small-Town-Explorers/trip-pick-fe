@@ -4,3 +4,8 @@ declare module '*.png' {
   const source: ImageSourcePropType;
   export default source;
 }
+
+declare module '*.otf' {
+  const source: number;
+  export default source;
+}

@@ -106,9 +106,8 @@ const Heading = styled.View({
 });
 
 const Title = styled.Text({
-  fontFamily: 'Pretendard',
+  ...typography.heading1.semibold,
   fontSize: 32,
-  fontWeight: '700',
   lineHeight: 40,
   letterSpacing: -0.32,
   color: '#FFFFFF',

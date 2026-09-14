@@ -81,6 +81,40 @@ function LoginRoute() {
   );
 }
 
+function MobileKakaoCallbackRoute() {
+  const [searchParams] = useSearchParams();
+  const mobileParams = new URLSearchParams();
+
+  for (const key of ['code', 'state', 'error', 'error_description']) {
+    const value = searchParams.get(key);
+    if (value) mobileParams.set(key, value);
+  }
+
+  const appUrl = `mobile://login?${mobileParams.toString()}`;
+
+  useEffect(() => {
+    window.location.replace(appUrl);
+  }, [appUrl]);
+
+  return (
+    <main
+      style={{
+        minHeight: '100vh',
+        display: 'grid',
+        placeItems: 'center',
+        padding: 24,
+        textAlign: 'center',
+        fontFamily: 'Pretendard, sans-serif',
+      }}
+    >
+      <div>
+        <p>카카오 로그인을 완료하고 앱으로 돌아가는 중이에요.</p>
+        <a href={appUrl}>앱이 열리지 않으면 여기를 눌러 주세요.</a>
+      </div>
+    </main>
+  );
+}
+
 function TripDetailRoute() {
   const { id } = useParams<{ id: string }>();
 
@@ -150,6 +184,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomeScreen />} />
         <Route path="/login" element={<LoginRoute />} />
+        <Route path="/mobile-auth/kakao" element={<MobileKakaoCallbackRoute />} />
         <Route path="/design-system/colors" element={<ColorSystemScreen />} />
         <Route path="/design-system/typography" element={<TypographySystemScreen />} />
         <Route path="/design-system/components" element={<ComponentSystemScreen />} />
