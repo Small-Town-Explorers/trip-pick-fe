@@ -163,7 +163,8 @@ export function BottomSheetModal({
       visible={visible}
     >
       <KeyboardAvoidingView
-        behavior={avoidKeyboard && Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={avoidKeyboard ? (Platform.OS === 'ios' ? 'padding' : 'height') : undefined}
+        enabled={avoidKeyboard}
         style={styles.container}
       >
         <Animated.View style={[styles.backdrop, { opacity }]}>

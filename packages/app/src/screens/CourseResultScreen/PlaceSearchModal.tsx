@@ -13,6 +13,7 @@ interface CourseResultPlaceSearchModalProps {
   visible: boolean;
   isAdding: boolean;
   addError?: string;
+  regionId: string;
   courseRegion: CourseRegionForComparison;
   onAdd: (places: PlaceSearchItem[]) => Promise<boolean>;
   onClose: () => void;
@@ -22,6 +23,7 @@ export function CourseResultPlaceSearchModal({
   visible,
   isAdding,
   addError,
+  regionId,
   courseRegion,
   onAdd,
   onClose,
@@ -41,6 +43,7 @@ export function CourseResultPlaceSearchModal({
     useInfinitePlaceSearchQuery({
       keyword: debouncedQuery,
       source,
+      regionId,
       enabled: visible,
     });
   const results = useMemo(() => data?.pages.flatMap((page) => page.items) ?? [], [data]);
@@ -358,6 +361,7 @@ const LoadingState = styled.View({
   alignItems: 'center',
   justifyContent: 'center',
   paddingHorizontal: 20,
+  paddingBottom: 92,
   gap: 12,
 });
 
@@ -393,7 +397,7 @@ const Actions = styled.View({
   flexDirection: 'row',
   paddingHorizontal: 20,
   paddingTop: 18,
-  paddingBottom: Platform.OS === 'web' ? 24 : 34,
+  paddingBottom: Platform.OS === 'web' ? 24 : 72,
   gap: 10,
   backgroundColor: withAlpha('#FFFFFF', 0.7),
   borderTopColor: '#FFFFFF',

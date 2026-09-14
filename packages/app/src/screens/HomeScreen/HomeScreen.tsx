@@ -94,6 +94,7 @@ const Action = styled.View({
     default: {
       position: 'absolute',
       zIndex: 100,
+      paddingBottom: 64,
     },
   }),
 });

@@ -2,7 +2,7 @@ import styled from '@emotion/native';
 import logoImage from '@assets/images/logo.png';
 import { IconComponent } from '@components/Icons';
 import { colors, typography } from '@styles';
-import type { ImageSourcePropType } from 'react-native';
+import { Platform, type ImageSourcePropType } from 'react-native';
 import { appRoutes, useAppNavigation } from '../../navigation';
 
 export function HomeHeader() {
@@ -37,6 +37,12 @@ export function HomeHeader() {
 }
 
 const Bar = styled.View({
+  ...Platform.select({
+    ios: {},
+    android: {
+      paddingTop: 42,
+    },
+  }),
   width: '100%',
   display: 'flex',
   flexDirection: 'row',

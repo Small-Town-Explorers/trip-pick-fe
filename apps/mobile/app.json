@@ -26,7 +26,13 @@
     },
     "plugins": [
       "expo-router",
-      ["expo-notifications", { "defaultChannel": "travel", "color": "#155744" }],
+      [
+        "expo-notifications",
+        {
+          "defaultChannel": "travel",
+          "color": "#155744"
+        }
+      ],
       [
         "expo-font",
         {
@@ -67,7 +73,8 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

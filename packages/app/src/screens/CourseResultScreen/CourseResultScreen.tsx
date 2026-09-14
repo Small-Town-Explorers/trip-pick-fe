@@ -2,7 +2,7 @@ import { type CalendarRange } from '@components/Calendar';
 import { CourseLoadingOverlay } from '@components/CourseLoadingOverlay';
 import styled from '@emotion/native';
 import { useCallback, useRef, useState } from 'react';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, Platform } from 'react-native';
 import { useAppNavigation } from '../../navigation';
 import { setCourseSaveNotice } from '../../storage/courseSaveNotice';
 import { TripDetailActions } from '../TripDetailScreen/Bottom';
@@ -71,6 +71,18 @@ const formatDateInput = (date: Date) => {
   return `${year}-${month}-${day}`;
 };
 
+const createEditSessionId = () => {
+  if (typeof globalThis.crypto?.randomUUID === 'function') {
+    return globalThis.crypto.randomUUID();
+  }
+
+  const randomHex = (length: number) =>
+    Array.from({ length }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+  const variant = '89ab'.charAt(Math.floor(Math.random() * 4));
+
+  return `${randomHex(8)}-${randomHex(4)}-4${randomHex(3)}-${variant}${randomHex(3)}-${randomHex(12)}`;
+};
+
 const getPeriodDays = ({ startDate, endDate }: CalendarRange) => {
   if (!startDate || !endDate) return 1;
   const start = new Date(`${startDate}T00:00:00Z`).getTime();
@@ -97,6 +109,8 @@ const applyEditedPlacesToCourse = (
   places: CoursePlaces,
   period: CalendarRange,
 ): GeneratedCourseResponse => {
+  const days = getPeriodDays(period);
+
   // UIDs retain the original day when a place moves. Resolve against the entire
   // source course so cross-day moves keep all original item metadata.
   const itemsByUid = new Map(
@@ -109,13 +123,14 @@ const applyEditedPlacesToCourse = (
     ...course,
     startDate: period.startDate ?? course.startDate,
     endDate: period.endDate ?? course.endDate,
-    plan: course.plan.map((dayPlan, dayIndex) => {
+    days,
+    plan: Array.from({ length: days }, (_, dayIndex) => {
       const items = (places[dayIndex] ?? []).flatMap((place, index) => {
         const item = itemsByUid.get(place.uid);
         return item ? [{ ...item, order: index + 1 }] : [];
       });
 
-      return { ...dayPlan, items };
+      return { day: dayIndex + 1, items };
     }),
   };
 };
@@ -205,6 +220,8 @@ function CourseResultContent({
   const saveMyCourseMutation = useSaveMyCourseMutation();
   const updateMyCourseMutation = useUpdateMyCourseMutation();
   const regenerationSequence = useRef(0);
+  const [editSessionId] = useState(createEditSessionId);
+  const pendingActionIdRef = useRef<string | undefined>(undefined);
   const [title, setTitle] = useState(
     () => initialTitle ?? `${initialCourse.region.province} ${initialCourse.region.name} 여행`,
   );
@@ -327,8 +344,15 @@ function CourseResultContent({
     try {
       const response = await editCourseWithChatMutation.mutateAsync({
         message,
+        editSessionId,
+        ...(pendingActionIdRef.current ? { pendingActionId: pendingActionIdRef.current } : {}),
         course: applyEditedPlacesToCourse(course, places, period),
       });
+
+      pendingActionIdRef.current =
+        response.pendingAction?.status === 'PENDING'
+          ? response.pendingAction.pendingActionId
+          : undefined;
 
       if (response.modified) {
         const editedCourse = {
@@ -507,6 +531,7 @@ function CourseResultContent({
         visible={isPlaceSearchVisible}
         isAdding={isAddingPlace}
         addError={placeAddError}
+        regionId={course.region.id}
         courseRegion={course.region}
         onAdd={addPlaces}
         onClose={closeModals}
@@ -572,7 +597,7 @@ const Scroll = styled.ScrollView({
 });
 
 const scrollContentStyle = {
-  paddingBottom: 160,
+  ...Platform.select({ web: { paddingBottom: 120 }, android: { paddingBottom: 172 } }),
 } as const;
 
 const ShareButton = styled.Pressable({

@@ -3,6 +3,7 @@ import styled from '@emotion/native';
 import { colors, typography } from '@styles';
 import { useAppNavigation } from '../../navigation';
 import { type PropsWithChildren } from 'react';
+import { Platform } from 'react-native';
 
 interface HeaderProps {
   title: string;
@@ -26,6 +27,12 @@ export const Header = ({ title, sub, children }: PropsWithChildren<HeaderProps>)
 };
 
 const Bar = styled.View({
+  ...Platform.select({
+    ios: {},
+    android: {
+      paddingTop: 42,
+    },
+  }),
   width: '100%',
   flexDirection: 'row',
   justifyContent: 'space-between',

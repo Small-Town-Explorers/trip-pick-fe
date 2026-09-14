@@ -138,7 +138,7 @@ export function CourseResultChatModal({
             {isSending ? (
               <Thinking accessibilityLiveRegion="polite">
                 <ActivityIndicator size="small" color={colors.primary[600]} />
-                <ThinkingText>코스를 수정하고 있어요.</ThinkingText>
+                <ThinkingText>생각 중</ThinkingText>
               </Thinking>
             ) : null}
           </ChatScroll>
@@ -155,6 +155,9 @@ export function CourseResultChatModal({
               returnKeyType="send"
               value={draft}
               onChangeText={setDraft}
+              onFocus={() =>
+                requestAnimationFrame(() => chatScrollRef.current?.scrollToEnd({ animated: true }))
+              }
               onSubmitEditing={send}
             />
             <SendButton
@@ -165,7 +168,7 @@ export function CourseResultChatModal({
               <IconComponent
                 name="send"
                 size={20}
-                color={draft.trim() && !isSending ? colors.primary[700] : colors.gray[200]}
+                color={draft.trim() && !isSending ? colors.primary[800] : colors.gray[200]}
               />
             </SendButton>
           </Composer>
@@ -225,6 +228,7 @@ const Thinking = styled.View({ flexDirection: 'row', alignItems: 'center', gap: 
 const ThinkingText = styled.Text({ ...typography.body2.regular, color: colors.primary[600] });
 
 const Composer = styled.View({
+  ...Platform.select({ android: { marginBottom: 72 } }),
   marginHorizontal: 20,
   marginVertical: 18,
   height: 52,
@@ -249,11 +253,11 @@ const Input = styled.TextInput({
   ...Platform.select({ web: { outlineStyle: 'none' as never } }),
 });
 
-const SendButton = styled.Pressable({
+const SendButton = styled.Pressable(({ disabled }) => ({
   width: 32,
   height: 32,
   alignItems: 'center',
   justifyContent: 'center',
-  backgroundColor: colors.gray[50],
+  backgroundColor: !disabled ? withAlpha(colors.primary[500], 0.15) : colors.gray[50],
   borderRadius: 9999,
-});
+}));

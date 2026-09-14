@@ -298,7 +298,6 @@ const ScheduleLabel = styled.Text({
 
 const List = styled.View({
   width: '100%',
-  paddingBottom: 109,
 });
 
 const Item = styled.View({

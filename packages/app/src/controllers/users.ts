@@ -22,6 +22,35 @@ export type NotificationSettings = {
   marketingEnabled: boolean;
 };
 
+export type PastTrip = {
+  id: string;
+  title: string;
+  folderId: string | null;
+  regionName: string | null;
+  areaCode: string | null;
+  sigunguCode: string | null;
+  days: number;
+  itemCount: number;
+  startDate: string;
+  endDate: string;
+  themes: string[];
+  terrains: string[];
+  createdAt: string;
+  imageUrl: string | null;
+};
+
+export type VisitedRegion = {
+  regionId: string | null;
+  regionName: string | null;
+  province: string | null;
+  areaCode: string;
+  sigunguCode: string;
+  lat: number | null;
+  lng: number | null;
+  tripCount: number;
+  lastVisitedDate: string;
+};
+
 export type UpdateNotificationSettingsRequest = Partial<{
   pushEnabled: boolean | null;
   courseRecommendEnabled: boolean | null;
@@ -30,6 +59,14 @@ export type UpdateNotificationSettingsRequest = Partial<{
 
 export function getMyPageSummary() {
   return apiRequest<MyPageSummary>('/api/v1/users/me');
+}
+
+export function getPastTrips() {
+  return apiRequest<PastTrip[]>('/api/v1/users/me/past-trips');
+}
+
+export function getVisitedRegions() {
+  return apiRequest<VisitedRegion[]>('/api/v1/users/me/visited-regions');
 }
 
 export function updateNickname(nickname: string) {

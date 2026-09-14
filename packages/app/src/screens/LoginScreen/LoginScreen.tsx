@@ -3,7 +3,7 @@ import LoginBackgroundImage from '@assets/images/login_background.png';
 import LoginBrandImage from '@assets/images/logo_button.png';
 import { KakaoButton } from '@components/Buttons';
 import { LinearGradient } from '@components/LinearGradient';
-import { type ImageSourcePropType } from 'react-native';
+import { Platform, type ImageSourcePropType } from 'react-native';
 import { colors, fontFamilies, typography } from '@styles';
 
 type LoginScreenProps = {
@@ -83,7 +83,8 @@ const Introduction = styled.View({
 const Background = styled.Image({
   position: 'absolute',
   bottom: 0,
-  width: '100%',
+  left: 0,
+  right: 0,
   aspectRatio: 9 / 16,
   opacity: 0.25,
 });
@@ -93,7 +94,7 @@ const BackgroundFade = styled(LinearGradient)({
   top: 0,
   right: 0,
   left: 0,
-  height: '100%',
+  bottom: 0,
 });
 
 const Brand = styled.View({
@@ -136,7 +137,15 @@ const Description = styled.Text({
 const Actions = styled.View({
   paddingTop: 24,
   paddingHorizontal: 20,
-  paddingBottom: 28,
+
+  ...Platform.select({
+    web: {
+      paddingBottom: 28,
+    },
+    android: {
+      paddingBottom: 72,
+    },
+  }),
   gap: 20,
 });
 

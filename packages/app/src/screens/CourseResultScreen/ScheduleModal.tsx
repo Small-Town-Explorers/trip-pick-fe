@@ -67,7 +67,7 @@ export function CourseResultScheduleModal({
       accessibilityLabel="일정 변경 닫기"
       visible={visible}
       onClose={onClose}
-      baseHeight={640}
+      baseHeight={Platform.OS === 'web' ? 620 : 720}
       isExpandable={false}
     >
       {({ close }) => (
@@ -89,9 +89,9 @@ const Content = styled.View({
   width: '100%',
   paddingTop: 8,
   paddingHorizontal: 20,
-  paddingBottom: Platform.OS === 'web' ? 96 : 34,
   gap: 24,
 });
+
 const Period = styled.Text({ ...typography.body1.medium, color: colors.primary[700] });
 
 const Actions = styled.View({

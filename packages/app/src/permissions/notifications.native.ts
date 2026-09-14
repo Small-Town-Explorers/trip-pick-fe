@@ -1,11 +1,30 @@
-import * as Notifications from 'expo-notifications';
+import Constants, { AppOwnership } from 'expo-constants';
 import { Platform } from 'react-native';
 import type { NotificationPermissionState } from './notifications.types';
 
+type NotificationsModule = typeof import('expo-notifications');
+type NotificationPermissionsStatus = Awaited<
+  ReturnType<NotificationsModule['getPermissionsAsync']>
+>;
+
 let pendingRequest: Promise<NotificationPermissionState> | undefined;
+let notificationsModule: Promise<NotificationsModule | null> | undefined;
+
+const unsupportedPermission: NotificationPermissionState = {
+  status: 'denied',
+  canAskAgain: false,
+};
+
+/** Expo Go no longer includes Android remote notifications, so load them only when available. */
+function getNotificationsModule() {
+  if (Constants.appOwnership === AppOwnership.Expo) return Promise.resolve(null);
+  notificationsModule ??= import('expo-notifications').catch(() => null);
+  return notificationsModule;
+}
 
 function normalize(
-  permission: Notifications.NotificationPermissionsStatus,
+  permission: NotificationPermissionsStatus,
+  Notifications: NotificationsModule,
 ): NotificationPermissionState {
   const allowed =
     Platform.OS === 'ios'
@@ -20,10 +39,14 @@ function normalize(
 }
 
 export async function getNotificationPermission(): Promise<NotificationPermissionState> {
-  return normalize(await Notifications.getPermissionsAsync());
+  const Notifications = await getNotificationsModule();
+  if (!Notifications) return unsupportedPermission;
+  return normalize(await Notifications.getPermissionsAsync(), Notifications);
 }
 
-export function requestNotificationPermission(): Promise<NotificationPermissionState> {
+export async function requestNotificationPermission(): Promise<NotificationPermissionState> {
+  const Notifications = await getNotificationsModule();
+  if (!Notifications) return unsupportedPermission;
   pendingRequest ??= (async () => {
     // Android 13+ requires a channel before the runtime permission prompt.
     if (Platform.OS === 'android') {
@@ -38,6 +61,7 @@ export function requestNotificationPermission(): Promise<NotificationPermissionS
       await Notifications.requestPermissionsAsync({
         ios: { allowAlert: true, allowBadge: true, allowSound: true },
       }),
+      Notifications,
     );
   })().finally(() => {
     pendingRequest = undefined;
@@ -55,6 +79,8 @@ export async function ensureNotificationPermission() {
 }
 
 export async function initializeNotificationPermissions() {
+  const Notifications = await getNotificationsModule();
+  if (!Notifications) return;
   const current = await getNotificationPermission();
   // Do not repeat the startup prompt after the user has made a choice.
   if (current.status === 'undetermined') await requestNotificationPermission();

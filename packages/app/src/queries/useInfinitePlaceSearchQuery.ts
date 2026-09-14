@@ -6,7 +6,7 @@ const PAGE_SIZE = 15;
 type InfinitePlaceSearchParams = {
   keyword: string;
   source: PlaceSearchSource;
-  regionId?: string;
+  regionId: string;
   enabled?: boolean;
 };
 

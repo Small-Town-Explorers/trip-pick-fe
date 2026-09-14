@@ -1,5 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFolder, deleteFolder, getFolders, renameFolder, type Folder } from '../controllers';
+import { homeTripQueryKey, myCourseListsQueryKey } from './useMyCourses';
+import {
+  myPageSummaryQueryKey,
+  pastTripsQueryKey,
+  visitedRegionsQueryKey,
+} from './useMyPageQueries';
 
 export const foldersQueryKey = ['folders'] as const;
 
@@ -37,6 +43,11 @@ export function useDeleteFolderMutation() {
       queryClient.setQueryData<Folder[]>(foldersQueryKey, (folders = []) =>
         folders.filter((folder) => folder.id !== folderId),
       );
+      void queryClient.invalidateQueries({ queryKey: myCourseListsQueryKey });
+      void queryClient.invalidateQueries({ queryKey: homeTripQueryKey });
+      void queryClient.invalidateQueries({ queryKey: myPageSummaryQueryKey });
+      void queryClient.invalidateQueries({ queryKey: pastTripsQueryKey });
+      void queryClient.invalidateQueries({ queryKey: visitedRegionsQueryKey });
     },
   });
 }
