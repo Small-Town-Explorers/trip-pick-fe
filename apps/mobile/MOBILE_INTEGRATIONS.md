@@ -36,42 +36,48 @@ EXPO_PUBLIC_KAKAO_MAP_BASE_URL=카카오에_등록한_웹_원본_URL
 
 ## 카카오 로그인
 
-모바일 로그인은 기존 서버의 `POST /api/v1/auth/kakao/login`을 재사용한다. 카카오 REST 로그인은 앱 스킴을 redirect URI로 받을 수 없으므로 다음 순서로 연결한다.
+모바일 로그인은 카카오 네이티브 SDK와 서버의 `POST /api/v1/auth/kakao/mobile/login`을 사용한다.
 
-1. 카카오 인증 후 배포된 웹의 `https://서비스주소/mobile-auth/kakao`로 돌아온다.
-2. 웹 콜백 화면이 인증 코드와 state를 `mobile://login`으로 전달한다.
-3. 앱이 state를 검증하고 인증 코드를 서버에 보내 액세스 토큰을 발급받는다.
-4. 토큰과 만료 시각은 기기 저장소에 보관되며 이후 API 요청에 자동으로 포함된다.
+앱이 시작될 때 `_layout.tsx`에서 `initializeKakaoSDK`를 먼저 호출한다. 로그인과 공유를 포함한 모든 카카오 API는 이 초기화가 끝난 뒤 사용한다.
+
+1. `@react-native-kakao/user`가 카카오톡 또는 카카오 계정 로그인을 실행한다.
+2. 카카오 SDK가 발급한 access token을 백엔드에 보낸다.
+3. 백엔드가 카카오 토큰의 유효성과 발급 앱을 검증하고 서비스 access token을 발급한다.
+4. 서비스 토큰과 만료 시각은 기기 저장소에 보관되며 이후 API 요청에 자동으로 포함된다.
 
 `.env.local`에 다음 값을 추가한다.
 
 ```
 EXPO_PUBLIC_API_BASE_URL=https://trippick.kro.kr
-EXPO_PUBLIC_KAKAO_REST_API_KEY=카카오_REST_API_키
-EXPO_PUBLIC_KAKAO_REDIRECT_URI=https://서비스주소/mobile-auth/kakao
+EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY=카카오_Native_App_키
+EXPO_PUBLIC_SHARE_WEB_BASE_URL=https://sodosiro.netlify.app
 ```
 
-`EXPO_PUBLIC_KAKAO_REDIRECT_URI`는 카카오 개발자 콘솔의 REST API 키용 Redirect URI에도 철자와 슬래시까지 동일하게 등록해야 한다. 웹 앱도 이 변경을 포함해 해당 HTTPS 주소에 배포되어 있어야 한다.
+카카오 개발자 콘솔에서 Android 패키지명 `com.jadest13.mobile`과 키 해시를 같은 카카오 앱에 등록해야 한다. iOS 빌드를 사용할 때는 Bundle ID도 등록한다. 웹의 `/mobile-auth/kakao` 중간 콜백은 더 이상 사용하지 않는다.
 
-Expo Go는 앱 고유 스킴을 고정할 수 없어 이 로그인 흐름의 실제 기기 테스트에 사용할 수 없다. `npm.cmd run android --workspace @trip-pick/mobile`로 설치한 개발 빌드에서 확인한다.
+네이티브 모듈을 사용하므로 Expo Go에서는 테스트할 수 없다. Native App 키를 설정한 뒤 새 Development Build 또는 APK를 빌드해야 한다.
 
 공식 문서:
 
-- https://developers.kakao.com/docs/ko/kakaologin/rest-api
-- https://docs.expo.dev/guides/authentication/
-- https://docs.expo.dev/versions/latest/sdk/webbrowser/
+- https://trippick.kro.kr/docs/index.html#auth-kakao-mobile-login
+- https://rnkakao.mjstudio.net/docs/user/intro
 
 ## 카카오톡 공유
 
-사용자 요청에 따라 등록 도메인 확인 및 카카오톡 전용 공유 연결은 보류했다. 기존 일반 공유 기능을 유지한다.
+코스 데이터는 압축해 `https://웹주소/shared-course?data=...` 링크에 담는다. 공유 페이지는 별도 로그인이나 코스 조회 API 없이 읽기 전용으로 표시하며, 웹과 앱이 같은 경로를 처리한다. 이전 `#data=...` 웹 링크도 계속 열 수 있다.
 
-추후 `Kakao.Share` 연결 시 공유 링크용 웹 도메인 등록과 Android intent/iOS URL scheme 처리가 필요하다.
+모바일에서는 `@react-native-kakao/share`가 카카오톡의 친구·채팅방 선택 화면을 연다. 카카오톡이 설치되지 않은 경우에는 웹 공유 화면을 사용한다. `EXPO_PUBLIC_SHARE_WEB_BASE_URL`은 카카오 개발자 콘솔의 **제품 링크 관리 → 웹 도메인**에 등록된 주소와 일치해야 한다.
 
-- https://developers.kakao.com/docs/ko/kakaotalk-share/js-link
-- https://developers.kakao.com/docs/ko/javascript/hybrid
+웹에서는 같은 링크를 화면에 표시하고 클립보드에 복사한다. 링크 데이터는 수정될 수 있으므로 공유 페이지에서 형식, 길이, 장소 수와 좌표를 검증하며 서버 데이터로 신뢰하지 않는다.
+
+Android App Links를 위해 앱에는 `/shared-course` HTTPS intent filter가 있고 웹에는 `/.well-known/assetlinks.json`이 있다. 현재 파일에는 연결된 Development Build 인증서 지문이 등록되어 있다. 배포용 APK/AAB의 서명 인증서가 다르면 해당 SHA-256 지문도 배열에 추가해야 한다.
+
+- https://developers.kakao.com/docs/ko/kakaotalk-share/android-link
+- https://developers.kakao.com/docs/ko/kakaotalk-share/ios-link
+- https://rnkakao.mjstudio.net/docs/share/share-default-text
 
 ## 다음 네이티브 빌드
 
-이번 변경에서는 요청에 따라 테스트, prebuild, 빌드, 설치를 실행하지 않았다. 현재 에뮬레이터에 설치된 APK에는 이 변경이 포함되지 않는다.
+정적 타입 검사, 린트, Expo 설정 검사와 Android JavaScript 번들 생성까지 확인했다. 네이티브 `prebuild`, APK 빌드와 기기 설치는 실행하지 않았으므로 현재 에뮬레이터에 설치된 APK에는 이 변경이 포함되지 않는다.
 
 새 네이티브 의존성과 config plugin이 추가됐으므로 다음 빌드 전 `apps/mobile`에서 `npx expo prebuild`로 네이티브 설정을 갱신한다. 이전 로컬 작업의 Windows 경로 길이 우회용 Gradle init script는 생성된 Android 폴더에만 있으므로 별도로 유지해야 한다.

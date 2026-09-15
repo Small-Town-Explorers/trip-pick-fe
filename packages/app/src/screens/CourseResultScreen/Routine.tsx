@@ -147,14 +147,16 @@ interface CourseResultRoutineProps {
   title: string;
   period: CalendarRange;
   places: CoursePlaces;
-  onTitleChange: (title: string) => void;
-  onSchedulePress: () => void;
+  readOnly?: boolean;
+  onTitleChange?: (title: string) => void;
+  onSchedulePress?: () => void;
 }
 
 export function CourseResultRoutine({
   title,
   period,
   places,
+  readOnly = false,
   onTitleChange,
   onSchedulePress,
 }: CourseResultRoutineProps) {
@@ -164,7 +166,7 @@ export function CourseResultRoutine({
   return (
     <Section>
       <Heading>
-        {isTitleEditing ? (
+        {isTitleEditing && !readOnly ? (
           <TitleInputContainer>
             <TitleInput
               autoFocus
@@ -175,20 +177,22 @@ export function CourseResultRoutine({
               onSubmitEditing={() => setIsTitleEditing(false)}
               returnKeyType="done"
             />
-            <ClearButton accessibilityRole="button" onPress={() => onTitleChange('')}>
+            <ClearButton accessibilityRole="button" onPress={() => onTitleChange?.('')}>
               <IconComponent name="cancel" color="white" size={24} />
             </ClearButton>
           </TitleInputContainer>
         ) : (
           <>
             <Title>{title || '여행 코스 제목'}</Title>
-            <EditButton
-              accessibilityRole="button"
-              accessibilityLabel="코스 제목 편집"
-              onPress={() => setIsTitleEditing(true)}
-            >
-              <IconComponent name="pencil" color={colors.gray[400]} />
-            </EditButton>
+            {!readOnly ? (
+              <EditButton
+                accessibilityRole="button"
+                accessibilityLabel="코스 제목 편집"
+                onPress={() => setIsTitleEditing(true)}
+              >
+                <IconComponent name="pencil" color={colors.gray[400]} />
+              </EditButton>
+            ) : null}
           </>
         )}
       </Heading>
@@ -198,7 +202,7 @@ export function CourseResultRoutine({
           <DateRow>
             <DayLabel>Day {dayIndex + 1}</DayLabel>
             <DateText>{formatDate(date)}</DateText>
-            {dayIndex === 0 ? (
+            {dayIndex === 0 && !readOnly ? (
               <ScheduleButton accessibilityRole="button" onPress={onSchedulePress}>
                 <ScheduleLabel>일정 변경</ScheduleLabel>
               </ScheduleButton>

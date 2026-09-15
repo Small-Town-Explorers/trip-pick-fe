@@ -77,6 +77,7 @@ export {
 } from './screens/DesignSystems';
 export { CourseCreateScreen } from './screens/CourseCreateScreen/CourseCreateScreen';
 export { CourseResultScreen } from './screens/CourseResultScreen/CourseResultScreen';
+export { SharedCourseScreen } from './screens/SharedCourseScreen';
 export { HomeScreen } from './screens/HomeScreen';
 export { LoginScreen } from './screens/LoginScreen';
 export { MyTripsScreen, MyTripFolderScreen } from './screens/MyTripsScreen';
@@ -97,3 +98,4 @@ export { TripDetailScreen } from './screens/TripDetailScreen';
 export { localDataStorage, loadLocalData, saveLocalData, removeLocalData } from './storage';
 export { LocalStorageGate } from './providers/LocalStorageGate';
 export { configureNativeKakaoMaps } from './components/KakaoMap/config';
+export { configureCourseShareBaseUrl } from './sharing';

@@ -552,7 +552,13 @@ function CourseResultContent({
         onChange={setPeriod}
         onClose={closeModals}
       />
-      <CourseResultShareModal visible={isShareVisible} title={title} onClose={closeModals} />
+      <CourseResultShareModal
+        visible={isShareVisible}
+        title={title}
+        period={period}
+        places={places}
+        onClose={closeModals}
+      />
       {regenerationError ? <RegenerationError>{regenerationError}</RegenerationError> : null}
       <CourseResultRegenerateModal
         visible={isRegenerateVisible}

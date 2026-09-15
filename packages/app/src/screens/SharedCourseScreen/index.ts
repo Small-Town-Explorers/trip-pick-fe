@@ -1,0 +1,1 @@
+export { SharedCourseScreen } from './SharedCourseScreen';
