@@ -2,6 +2,7 @@ import { useEffect, useState, type PropsWithChildren } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { localDataStorage } from '../storage';
 import { initializeNotificationPermissions } from '../permissions/notifications';
+import { initializeCourseReminders } from '../notifications/courseReminders';
 
 /** Mount consumers only after native persistence has hydrated their synchronous snapshots. */
 export function LocalStorageGate({ children }: PropsWithChildren) {
@@ -16,7 +17,9 @@ export function LocalStorageGate({ children }: PropsWithChildren) {
         if (!active) return;
         setReady(true);
         // Permission failures must not block access to saved trips.
-        void initializeNotificationPermissions().catch(() => {});
+        void initializeNotificationPermissions()
+          .catch(() => {})
+          .finally(() => void initializeCourseReminders().catch(() => {}));
       })
       .catch(() => {
         if (active) setError('저장된 데이터를 불러오지 못했어요. 다시 시도해 주세요.');

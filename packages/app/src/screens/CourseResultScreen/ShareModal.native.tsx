@@ -1,10 +1,11 @@
 import { IconComponent } from '@components/Icons';
 import styled from '@emotion/native';
-import { shareTextTemplate } from '@react-native-kakao/share';
+import { shareFeedTemplate } from '@react-native-kakao/share';
 import { colors, createShadow, typography, withAlpha } from '@styles';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Modal } from 'react-native';
 import type { CalendarRange } from '../../components/Calendar';
+import { useMyPageSummaryQuery } from '../../queries';
 import { createCourseShareUrl } from '../../sharing';
 import type { CoursePlaces } from './Routine';
 
@@ -25,6 +26,7 @@ export function CourseResultShareModal({
 }: CourseResultShareModalProps) {
   const [isSharing, setIsSharing] = useState(false);
   const [shareError, setShareError] = useState('');
+  const { data: myPageSummary } = useMyPageSummaryQuery(visible);
   const shareUrlResult = useMemo(() => {
     try {
       return { url: createCourseShareUrl(title, period, places), error: '' };
@@ -47,14 +49,23 @@ export function CourseResultShareModal({
     setShareError('');
 
     try {
-      await shareTextTemplate({
+      const courseTitle = (title.trim() || '여행 코스').slice(0, 100);
+      const sharerName = (myPageSummary?.nickname.trim() || '사용자').slice(0, 30);
+      const link = { webUrl: shareUrlResult.url, mobileWebUrl: shareUrlResult.url };
+
+      await shareFeedTemplate({
         template: {
-          text: `${title.trim() || '여행 코스'} 여행 코스를 확인해 보세요.`,
-          link: { webUrl: shareUrlResult.url, mobileWebUrl: shareUrlResult.url },
+          content: {
+            title: `'${sharerName}'님이 생성한 '${courseTitle}' 여행 코스를 확인해보세요.`,
+            imageUrl: new URL('/logo_button.png', shareUrlResult.url).toString(),
+            imageWidth: 111,
+            imageHeight: 111,
+            link,
+          },
           buttons: [
             {
               title: '코스 확인하기',
-              link: { webUrl: shareUrlResult.url, mobileWebUrl: shareUrlResult.url },
+              link,
             },
           ],
         },

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ensureNotificationPermission } from '../permissions/notifications';
+import { setCourseRemindersEnabled } from '../notifications/courseReminders';
 import {
   getAccountInfo,
   getMyPageSummary,
@@ -67,7 +67,11 @@ export function useAccountInfoQuery(enabled = true) {
 export function useNotificationSettingsQuery(enabled = true) {
   return useQuery({
     queryKey: notificationSettingsQueryKey,
-    queryFn: getNotificationSettings,
+    queryFn: async () => {
+      const settings = await getNotificationSettings();
+      void setCourseRemindersEnabled(settings.pushEnabled).catch(() => {});
+      return settings;
+    },
     staleTime: 5 * 60 * 1_000,
     enabled,
   });
@@ -78,9 +82,6 @@ export function useUpdateNotificationSettingsMutation() {
   return useMutation({
     mutationFn: updateNotificationSettings,
     onMutate: async (changes) => {
-      if (Object.values(changes).some((value) => value === true)) {
-        await ensureNotificationPermission();
-      }
       await queryClient.cancelQueries({ queryKey: notificationSettingsQueryKey });
       const previousSettings = queryClient.getQueryData<NotificationSettings>(
         notificationSettingsQueryKey,
@@ -103,6 +104,7 @@ export function useUpdateNotificationSettingsMutation() {
     },
     onSuccess: (settings) => {
       queryClient.setQueryData(notificationSettingsQueryKey, settings);
+      void setCourseRemindersEnabled(settings.pushEnabled).catch(() => {});
     },
   });
 }

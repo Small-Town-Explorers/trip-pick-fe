@@ -4,6 +4,7 @@ import { colors, createShadow, typography, withAlpha } from '@styles';
 import { ActivityIndicator } from 'react-native';
 import { MyPageSectionLayout } from '../SectionLayout';
 import { NotificationPermissionCard } from '../../../components/NotificationPermissionCard/NotificationPermissionCard';
+import { TestNotificationButton } from '../../../components/TestNotificationButton/TestNotificationButton';
 import { hasApiAccessToken, type NotificationSettings } from '../../../controllers';
 import { useNotificationPreferences } from '../useNotificationPreferences';
 
@@ -22,6 +23,7 @@ export function MyPageNotificationsScreen() {
       <NotificationContent>
         <Guide>앱에서 수신할 알림 종류를 선택할 수 있습니다.</Guide>
         <NotificationPermissionCard />
+        <TestNotificationButton />
         {isPending ? (
           <StateCard accessibilityLiveRegion="polite">
             <ActivityIndicator color={colors.primary[700]} />
