@@ -3,7 +3,6 @@ import { BottomSheetModal } from '@components/Modal';
 import styled from '@emotion/native';
 import { colors, typography } from '@styles';
 import { useState } from 'react';
-import { Platform } from 'react-native';
 
 interface CourseResultScheduleModalProps {
   visible: boolean;
@@ -67,7 +66,7 @@ export function CourseResultScheduleModal({
       accessibilityLabel="일정 변경 닫기"
       visible={visible}
       onClose={onClose}
-      baseHeight={Platform.OS === 'web' ? 620 : 720}
+      baseHeight={620}
       isExpandable={false}
     >
       {({ close }) => (

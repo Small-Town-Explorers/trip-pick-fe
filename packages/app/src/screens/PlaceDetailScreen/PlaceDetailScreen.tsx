@@ -17,6 +17,7 @@ import {
   useGenerateCourseMutation,
   useRegionDetailQuery,
 } from '../../queries';
+import { ContentScroll } from '@components/ContentScroll';
 
 type Props = {
   placeId: string;
@@ -98,7 +99,7 @@ export function PlaceDetailScreen({ placeId, discoveryTitle }: Props) {
   return (
     <Screen testID={`place-detail-${placeId}`}>
       <Header title={headerTitle} />
-      <Scroll>
+      <ContentScroll>
         <PlaceDetailHero
           title={detail.shortName}
           summary={detail.summary}
@@ -111,7 +112,7 @@ export function PlaceDetailScreen({ placeId, discoveryTitle }: Props) {
         <PlaceDetailTravelTips tips={detail.tips} />
         {generationError ? <GenerationError>{generationError}</GenerationError> : null}
         <PlaceDetailCourseAction onCreate={createCourse} />
-      </Scroll>
+      </ContentScroll>
       <CourseLoadingOverlay
         visible={isGenerating}
         mode="generate"
@@ -156,11 +157,6 @@ const RetryButton = styled.Pressable({
 });
 
 const RetryText = styled.Text({ ...typography.body3.medium, color: colors.primary[800] });
-
-const Scroll = styled.ScrollView({
-  flex: 1,
-  width: '100%',
-});
 
 const GenerationError = styled.Text({
   paddingHorizontal: 20,

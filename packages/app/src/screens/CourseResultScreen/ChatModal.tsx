@@ -9,6 +9,7 @@ import {
   persistCourseChat,
   type CourseChatMessage,
 } from '../../storage/courseChat';
+import { LinearGradient } from '@components/LinearGradient';
 
 interface CourseResultChatModalProps {
   courseId: string;
@@ -88,9 +89,8 @@ export function CourseResultChatModal({
     <BottomSheetModal
       title="코스 챗봇 편집"
       accessibilityLabel="챗봇 수정 닫기"
-      baseHeight={760}
+      baseHeight={720}
       avoidKeyboard
-      sheetStyle={chatSheetStyle}
       visible={visible}
       onClose={onClose}
     >
@@ -146,49 +146,64 @@ export function CourseResultChatModal({
             <ThinkingText accessibilityLiveRegion="polite">{storageError}</ThinkingText>
           ) : null}
 
-          <Composer>
-            <Input
-              accessibilityLabel="AI에게 여행 코스 수정 요청"
-              editable={!isSending}
-              placeholder="AI에게 여행 코스 수정 요청하기"
-              placeholderTextColor={colors.gray[300]}
-              returnKeyType="send"
-              value={draft}
-              onChangeText={setDraft}
-              onFocus={() =>
-                requestAnimationFrame(() => chatScrollRef.current?.scrollToEnd({ animated: true }))
-              }
-              onSubmitEditing={send}
+          <Action>
+            <LinearGradient
+              colors={[
+                'rgba(255, 255, 255, 0)',
+                'rgba(255, 255, 255, 1)',
+                'rgba(255, 255, 255, 1)',
+              ]}
+              locations={[0, 0.5, 1]}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+              style={actionBackgroundStyle}
             />
-            <SendButton
-              accessibilityRole="button"
-              disabled={!draft.trim() || isSending}
-              onPress={send}
-            >
-              <IconComponent
-                name="send"
-                size={20}
-                color={draft.trim() && !isSending ? colors.primary[800] : colors.gray[200]}
+            <Composer>
+              <Input
+                accessibilityLabel="AI에게 여행 코스 수정 요청"
+                editable={!isSending}
+                placeholder="AI에게 여행 코스 수정 요청하기"
+                placeholderTextColor={colors.gray[300]}
+                returnKeyType="send"
+                value={draft}
+                onChangeText={setDraft}
+                onFocus={() =>
+                  requestAnimationFrame(() =>
+                    chatScrollRef.current?.scrollToEnd({ animated: true }),
+                  )
+                }
+                onSubmitEditing={send}
               />
-            </SendButton>
-          </Composer>
+              <SendButton
+                accessibilityRole="button"
+                disabled={!draft.trim() || isSending}
+                onPress={send}
+              >
+                <IconComponent
+                  name="send"
+                  size={20}
+                  color={draft.trim() && !isSending ? colors.primary[800] : colors.gray[200]}
+                />
+              </SendButton>
+            </Composer>
+          </Action>
         </Content>
       )}
     </BottomSheetModal>
   );
 }
 
-const chatSheetStyle = {
-  maxWidth: 480,
-  height: '82%',
-  minHeight: 620,
-  borderTopLeftRadius: 20,
-  borderTopRightRadius: 20,
-} as const;
+const Content = styled.View({
+  flex: 1,
+  width: '100%',
+});
 
-const Content = styled.View({ flex: 1, width: '100%' });
-const ChatScroll = styled.ScrollView({ flex: 1, width: '100%' });
-const chatContentStyle = { paddingHorizontal: 20, paddingBottom: 24, gap: 16 } as const;
+const ChatScroll = styled.ScrollView({
+  flex: 1,
+  width: '100%',
+});
+
+const chatContentStyle = { paddingHorizontal: 20, paddingBottom: 88, gap: 16 } as const;
 
 const AiBubble = styled.View({
   alignSelf: 'flex-start',
@@ -227,10 +242,29 @@ const UserText = styled.Text({ ...typography.body2.regular, color: '#FFFFFF', te
 const Thinking = styled.View({ flexDirection: 'row', alignItems: 'center', gap: 9 });
 const ThinkingText = styled.Text({ ...typography.body2.regular, color: colors.primary[600] });
 
+const Action = styled.View({
+  left: 0,
+  right: 0,
+  bottom: 0,
+  width: '100%',
+  paddingHorizontal: 20,
+  paddingVertical: 18,
+
+  ...Platform.select({
+    web: {
+      position: 'fixed' as never,
+      left: '50%',
+      maxWidth: 480,
+      transform: 'translateX(-50%)',
+      zIndex: 100,
+    },
+    default: {
+      position: 'absolute',
+      zIndex: 100,
+    },
+  }),
+});
 const Composer = styled.View({
-  ...Platform.select({ android: { marginBottom: 72 } }),
-  marginHorizontal: 20,
-  marginVertical: 18,
   height: 52,
   flexDirection: 'row',
   alignItems: 'center',
@@ -243,6 +277,14 @@ const Composer = styled.View({
   borderRadius: 9999,
   ...shadows[1],
 });
+
+const actionBackgroundStyle = {
+  position: 'absolute',
+  top: 0,
+  right: 0,
+  bottom: 0,
+  left: 0,
+} as const;
 
 const Input = styled.TextInput({
   flex: 1,

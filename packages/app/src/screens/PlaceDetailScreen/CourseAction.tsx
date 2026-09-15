@@ -20,7 +20,6 @@ const Section = styled.View({
   paddingHorizontal: 20,
   paddingVertical: 32,
   gap: 20,
-  paddingBottom: 72,
 });
 
 const Description = styled.Text({

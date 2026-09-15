@@ -1,7 +1,7 @@
-import KakaoMapIcon from '@assets/images/kakao_map.png';
+import { IconComponent } from '@components/Icons';
 import styled from '@emotion/native';
 import { colors, createShadow, typography, withAlpha } from '@styles';
-import { Linking, Modal, Share, type ImageSourcePropType } from 'react-native';
+import { Modal, Share } from 'react-native';
 
 interface CourseResultShareModalProps {
   visible: boolean;
@@ -10,7 +10,6 @@ interface CourseResultShareModalProps {
 }
 
 export function CourseResultShareModal({ visible, title, onClose }: CourseResultShareModalProps) {
-  const openKakaoMap = () => Linking.openURL('https://map.kakao.com/');
   const shareCourse = () => Share.share({ message: `${title} 여행 코스를 확인해 보세요.` });
 
   return (
@@ -24,17 +23,8 @@ export function CourseResultShareModal({ visible, title, onClose }: CourseResult
       <Backdrop accessibilityRole="button" accessibilityLabel="공유 창 닫기" onPress={onClose}>
         <Dialog accessibilityRole="alert" onPress={(event) => event.stopPropagation()}>
           <Title>여행 코스 내보내기</Title>
-          <KakaoMapButton accessibilityRole="button" onPress={openKakaoMap}>
-            <KakaoMapImage
-              source={KakaoMapIcon as unknown as ImageSourcePropType}
-              accessibilityLabel="카카오맵"
-            />
-            <DarkLabel>카카오맵 경로 보기</DarkLabel>
-          </KakaoMapButton>
           <KakaoTalkButton accessibilityRole="button" onPress={shareCourse}>
-            <TalkIcon>
-              <TalkTail />
-            </TalkIcon>
+            <IconComponent name="kakao" />
             <LightLabel>카카오톡 공유하기</LightLabel>
           </KakaoTalkButton>
           <CancelButton accessibilityRole="button" onPress={onClose}>
@@ -83,29 +73,8 @@ const ShareButton = styled.Pressable({
   borderRadius: 8,
 });
 
-const KakaoMapButton = styled(ShareButton)({ backgroundColor: '#F8DF00' });
 const KakaoTalkButton = styled(ShareButton)({ backgroundColor: colors.gray[900] });
 const CancelButton = styled(ShareButton)({ backgroundColor: colors.primary[50] });
 
-const KakaoMapImage = styled.Image({ width: 20, height: 20, borderRadius: 9999 });
-
-const TalkIcon = styled.View({
-  width: 19,
-  height: 16,
-  backgroundColor: '#FAE301',
-  borderRadius: 9999,
-});
-
-const TalkTail = styled.View({
-  position: 'absolute',
-  left: 3,
-  bottom: -3,
-  width: 5,
-  height: 5,
-  backgroundColor: '#FAE301',
-  transform: [{ rotate: '35deg' }],
-});
-
-const DarkLabel = styled.Text({ ...typography.body2.semibold, color: '#1E1E1E' });
 const LightLabel = styled.Text({ ...typography.body2.semibold, color: '#FFFFFF' });
 const CancelLabel = styled.Text({ ...typography.body2.semibold, color: colors.primary[800] });

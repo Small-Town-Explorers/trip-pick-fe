@@ -8,6 +8,7 @@ import { ApiError } from '../../../controllers';
 import { appRoutes, useAppNavigation } from '../../../navigation';
 import { usePastTripsQuery, useVisitedRegionsQuery } from '../../../queries';
 import { TripSummaryCard } from './TripSummaryCard';
+import { ContentScroll } from '@components/ContentScroll';
 
 const getRegionKey = (areaCode: string | null, sigunguCode: string | null) =>
   `${areaCode ?? ''}:${sigunguCode ?? ''}`;
@@ -39,7 +40,7 @@ export function MyPageVisitedRegionsScreen() {
   return (
     <Screen>
       <Header title="방문한 지역" sub={`(${regions.length})`} />
-      <Scroll contentContainerStyle={contentStyle}>
+      <ContentScroll contentContainerStyle={contentStyle} paddingBottom={20}>
         {isPending ? (
           <Status>
             <ActivityIndicator color={colors.primary[700]} />
@@ -110,14 +111,13 @@ export function MyPageVisitedRegionsScreen() {
             </TripsSection>
           </>
         ) : null}
-      </Scroll>
+      </ContentScroll>
     </Screen>
   );
 }
 
 const Screen = styled.View({ flex: 1, width: '100%', backgroundColor: '#FFFFFF' });
-const Scroll = styled.ScrollView({ flex: 1 });
-const contentStyle = { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 40, gap: 36 } as const;
+const contentStyle = { paddingHorizontal: 20, paddingTop: 24, gap: 36 } as const;
 const MapSection = styled.View({ width: '100%', gap: 10 });
 const TripsSection = styled.View({ width: '100%', gap: 20 });
 const SectionHeading = styled.View({ flexDirection: 'row', alignItems: 'center', gap: 8 });

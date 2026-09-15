@@ -33,3 +33,4 @@ export { default as CancelIcon_24 } from '@icons/cancel_24x24.svg';
 export { default as DeleteIcon_20 } from '@icons/delete_20x20.svg';
 export { default as DonutMenuIcon_20 } from '@icons/donut_menu_20x20.svg';
 export { default as LuggageIcon_28 } from '@icons/luggage_28x28.svg';
+export { default as KakaoIcon_24 } from '@icons/kakao_24x24.svg';

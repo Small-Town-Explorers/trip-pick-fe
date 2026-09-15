@@ -2,7 +2,7 @@ import { type CalendarRange } from '@components/Calendar';
 import { CourseLoadingOverlay } from '@components/CourseLoadingOverlay';
 import styled from '@emotion/native';
 import { useCallback, useRef, useState } from 'react';
-import { ActivityIndicator, Platform } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 import { useAppNavigation } from '../../navigation';
 import { setCourseSaveNotice } from '../../storage/courseSaveNotice';
 import { TripDetailActions } from '../TripDetailScreen/Bottom';
@@ -40,6 +40,7 @@ import {
   useUpdateMyCourseMutation,
 } from '../../queries';
 import { getPersistedGeneratedCourse } from '../../storage/generatedCourse';
+import { ContentScroll } from '@components/ContentScroll';
 
 interface CourseResultScreenProps {
   courseId: string;
@@ -464,7 +465,7 @@ function CourseResultContent({
 
   return (
     <Screen testID={`course-result-${courseId}-${resultVersion}`}>
-      <Scroll contentContainerStyle={scrollContentStyle}>
+      <ContentScroll paddingBottom={148}>
         <Header title={isEditing ? '코스 직접 편집' : headerTitle}>
           {!isEditing ? (
             <ShareButton
@@ -495,7 +496,7 @@ function CourseResultContent({
             onSchedulePress={() => setIsScheduleVisible(true)}
           />
         )}
-      </Scroll>
+      </ContentScroll>
       {isEditing ? (
         <CourseResultEditActions
           onDirectAdd={() => {
@@ -590,15 +591,6 @@ const Screen = styled.View({
   alignItems: 'center',
   backgroundColor: '#FFFFFF',
 });
-
-const Scroll = styled.ScrollView({
-  flex: 1,
-  width: '100%',
-});
-
-const scrollContentStyle = {
-  ...Platform.select({ web: { paddingBottom: 120 }, android: { paddingBottom: 172 } }),
-} as const;
 
 const ShareButton = styled.Pressable({
   display: 'flex',

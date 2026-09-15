@@ -12,6 +12,8 @@ import {
 } from '../../storage/courseSaveNotice';
 import { useEffect, useState } from 'react';
 import { HomeSaveCompleteModal } from './SaveCompleteModal';
+import { LinearGradient } from '@components/LinearGradient/LinearGradient';
+import { ContentScroll } from '@components/ContentScroll';
 
 export function HomeScreen() {
   const { navigate } = useAppNavigation();
@@ -33,12 +35,19 @@ export function HomeScreen() {
 
   return (
     <Screen>
-      <Scroll contentContainerStyle={scrollContentStyle}>
-        <HomeHeader />
+      <HomeHeader />
+      <ContentScroll paddingBottom={104}>
         <HomeRecommendations />
         <HomeUpcomingTrip />
-      </Scroll>
+      </ContentScroll>
       <Action>
+        <LinearGradient
+          colors={['rgba(255, 255, 255, 0)', 'rgba(255, 255, 255, 1)', 'rgba(255, 255, 255, 1)']}
+          locations={[0, 0.5, 1]}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={actionBackgroundStyle}
+        />
         <CourseCreateButton onPress={() => navigate(appRoutes.courseCreate)}>
           AI로 여행 코스 만들기
         </CourseCreateButton>
@@ -65,15 +74,6 @@ const Screen = styled.View({
   backgroundColor: '#FFFFFF',
 });
 
-const Scroll = styled.ScrollView({
-  flex: 1,
-  width: '100%',
-});
-
-const scrollContentStyle = {
-  paddingBottom: 112,
-} as const;
-
 const Action = styled.View({
   left: 0,
   right: 0,
@@ -81,7 +81,6 @@ const Action = styled.View({
   width: '100%',
   paddingHorizontal: 20,
   paddingVertical: 24,
-  backgroundColor: '#FFFFFF',
 
   ...Platform.select({
     web: {
@@ -98,3 +97,11 @@ const Action = styled.View({
     },
   }),
 });
+
+const actionBackgroundStyle = {
+  position: 'absolute',
+  top: 0,
+  right: 0,
+  bottom: 0,
+  left: 0,
+} as const;
