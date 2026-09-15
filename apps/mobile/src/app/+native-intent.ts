@@ -3,8 +3,8 @@ export function redirectSystemPath({ path }: { path: string; initial: boolean })
     const url = new URL(path);
 
     if (url.protocol.startsWith('kakao') && url.hostname === 'kakaolink') {
-      const data = url.searchParams.get('data');
-      return data ? `/shared-course?data=${encodeURIComponent(data)}` : '/';
+      const data = url.searchParams.get('d') ?? url.searchParams.get('data');
+      return data ? `/c?d=${encodeURIComponent(data)}` : '/';
     }
 
     return path;

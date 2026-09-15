@@ -5,13 +5,21 @@ import { Linking, type ImageSourcePropType } from 'react-native';
 
 interface TripSpotCardProps {
   image?: string | null;
+  showImage?: boolean;
   type: string;
   name: string;
   description: string;
   mapUrl?: string;
 }
 
-export function TripSpotCard({ image, type, name, description, mapUrl }: TripSpotCardProps) {
+export function TripSpotCard({
+  image,
+  showImage = true,
+  type,
+  name,
+  description,
+  mapUrl,
+}: TripSpotCardProps) {
   const openMap = async () => {
     if (!mapUrl) return;
 
@@ -26,11 +34,13 @@ export function TripSpotCard({ image, type, name, description, mapUrl }: TripSpo
 
   return (
     <Card>
-      <Thumbnail
-        source={image ? { uri: image } : undefined}
-        accessibilityLabel={name}
-        resizeMode="cover"
-      />
+      {showImage ? (
+        <Thumbnail
+          source={image ? { uri: image } : undefined}
+          accessibilityLabel={name}
+          resizeMode="cover"
+        />
+      ) : null}
       <Info>
         <Meta>
           <Type>{type ?? '자율'}</Type>

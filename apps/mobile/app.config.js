@@ -3,6 +3,7 @@ const shareWebBaseUrl =
   process.env.EXPO_PUBLIC_SHARE_WEB_BASE_URL ?? 'https://sodosiro.netlify.app';
 const shareWebUrl = new URL(shareWebBaseUrl);
 const sharedCoursePath = `${shareWebUrl.pathname.replace(/\/$/, '')}/shared-course`;
+const compactCoursePath = `${shareWebUrl.pathname.replace(/\/$/, '')}/c`;
 
 if (!kakaoNativeAppKey) {
   throw new Error(
@@ -28,6 +29,11 @@ module.exports = ({ config }) => ({
             scheme: shareWebUrl.protocol.replace(':', ''),
             host: shareWebUrl.hostname,
             pathPrefix: sharedCoursePath,
+          },
+          {
+            scheme: shareWebUrl.protocol.replace(':', ''),
+            host: shareWebUrl.hostname,
+            path: compactCoursePath,
           },
         ],
         category: ['BROWSABLE', 'DEFAULT'],
