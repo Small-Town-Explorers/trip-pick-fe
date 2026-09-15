@@ -64,13 +64,13 @@ EXPO_PUBLIC_SHARE_WEB_BASE_URL=https://sodosiro.netlify.app
 
 ## 카카오톡 공유
 
-코스 데이터는 압축해 `https://웹주소/shared-course?data=...` 링크에 담는다. 공유 페이지는 별도 로그인이나 코스 조회 API 없이 읽기 전용으로 표시하며, 웹과 앱이 같은 경로를 처리한다. 이전 `#data=...` 웹 링크도 계속 열 수 있다.
+코스 데이터는 최소 필드만 배열 형태로 만든 뒤 압축해 `https://웹주소/c?d=...` 링크에 담는다. 공유 링크에는 썸네일 URL을 넣지 않고 좌표 정밀도를 소수점 다섯 자리로 제한해 길이를 줄였다. 공유 페이지는 별도 로그인이나 코스 조회 API 없이 읽기 전용으로 표시하며, 웹과 앱이 같은 경로를 처리한다. 이전 `/shared-course?data=...`와 `#data=...` 웹 링크도 계속 열 수 있다.
 
 모바일에서는 `@react-native-kakao/share`가 카카오톡의 친구·채팅방 선택 화면을 연다. 카카오톡이 설치되지 않은 경우에는 웹 공유 화면을 사용한다. `EXPO_PUBLIC_SHARE_WEB_BASE_URL`은 카카오 개발자 콘솔의 **제품 링크 관리 → 웹 도메인**에 등록된 주소와 일치해야 한다.
 
 웹에서는 같은 링크를 화면에 표시하고 클립보드에 복사한다. 링크 데이터는 수정될 수 있으므로 공유 페이지에서 형식, 길이, 장소 수와 좌표를 검증하며 서버 데이터로 신뢰하지 않는다.
 
-Android App Links를 위해 앱에는 `/shared-course` HTTPS intent filter가 있고 웹에는 `/.well-known/assetlinks.json`이 있다. 현재 파일에는 연결된 Development Build 인증서 지문이 등록되어 있다. 배포용 APK/AAB의 서명 인증서가 다르면 해당 SHA-256 지문도 배열에 추가해야 한다.
+Android App Links를 위해 앱에는 `/c`와 기존 `/shared-course` HTTPS intent filter가 있고 웹에는 `/.well-known/assetlinks.json`이 있다. 현재 파일에는 연결된 Development Build 인증서 지문이 등록되어 있다. 배포용 APK/AAB의 서명 인증서가 다르면 해당 SHA-256 지문도 배열에 추가해야 한다.
 
 - https://developers.kakao.com/docs/ko/kakaotalk-share/android-link
 - https://developers.kakao.com/docs/ko/kakaotalk-share/ios-link

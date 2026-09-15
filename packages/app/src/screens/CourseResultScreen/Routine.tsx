@@ -240,6 +240,7 @@ export function CourseResultRoutine({
                   <CardSlot>
                     <TripSpotCard
                       image={place.image}
+                      showImage={!readOnly || Boolean(place.image)}
                       type={place.tag}
                       name={place.name}
                       description={place.summary}
