@@ -2,12 +2,13 @@ import styled from '@emotion/native';
 import { colors, typography } from '@styles';
 import type { PropsWithChildren } from 'react';
 import { Header } from '@components/Header';
+import { ContentScroll } from '@components/ContentScroll';
 
 export function MyPageSectionLayout({ title, children }: PropsWithChildren<{ title: string }>) {
   return (
     <Screen>
       <Header title={title} />
-      <Content>{children}</Content>
+      <ContentScroll>{children}</ContentScroll>
     </Screen>
   );
 }
@@ -15,10 +16,6 @@ export function MyPageSectionLayout({ title, children }: PropsWithChildren<{ tit
 const Screen = styled.View({
   flex: 1,
   backgroundColor: colors.gray[25],
-});
-
-const Content = styled.ScrollView({
-  flex: 1,
 });
 
 export const SectionCard = styled.View({

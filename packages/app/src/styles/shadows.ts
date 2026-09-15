@@ -81,6 +81,6 @@ export const createShadow = (x: number, y: number, blur: number, spread: number,
 
     android: {
       shadowColor: color,
-      elevation: Math.max(1, Math.round(blur / 4 + Math.max(y, 0) / 2)),
+      elevation: Math.max(1, Math.ceil(blur / 4 + Math.max(y, 0) / 2)),
     },
   }) ?? {};

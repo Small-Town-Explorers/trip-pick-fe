@@ -16,6 +16,8 @@ import {
   useFoldersQuery,
   useMyCoursesQuery,
 } from '../../queries';
+import { ContentScroll } from '@components/ContentScroll';
+import { LinearGradient } from '@components/LinearGradient';
 
 interface MyTripFolderScreenProps {
   folderId: string;
@@ -147,7 +149,7 @@ export function MyTripFolderScreen({ folderId }: MyTripFolderScreenProps) {
   return (
     <Screen testID={`my-trip-folder-${folderId}`}>
       <Header title={folder?.name ?? '보관함'} sub={`(${folder?.courseCount ?? 0})`} />
-      <Scroll contentContainerStyle={contentStyle}>
+      <ContentScroll contentContainerStyle={contentStyle} paddingBottom={104}>
         {isPending ? (
           <Status>
             <ActivityIndicator color={colors.primary[700]} />
@@ -182,8 +184,15 @@ export function MyTripFolderScreen({ folderId }: MyTripFolderScreenProps) {
             {pastCourses.map(renderCourse)}
           </Section>
         ) : null}
-      </Scroll>
+      </ContentScroll>
       <Action>
+        <LinearGradient
+          colors={['rgba(255, 255, 255, 0)', 'rgba(255, 255, 255, 1)', 'rgba(255, 255, 255, 1)']}
+          locations={[0, 0.5, 1]}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={actionBackgroundStyle}
+        />
         <CourseCreateButton icon="plus" onPress={() => navigate(appRoutes.courseCreate)}>
           AI로 새 여행 코스 만들기
         </CourseCreateButton>
@@ -209,9 +218,8 @@ export function MyTripFolderScreen({ folderId }: MyTripFolderScreenProps) {
 }
 
 const Screen = styled.View({ flex: 1, width: '100%', backgroundColor: '#FFFFFF' });
-const Scroll = styled.ScrollView({ flex: 1 });
-const contentStyle = { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 128 } as const;
-const Section = styled.View({ width: '100%', marginBottom: 40, gap: 24 });
+const contentStyle = { paddingHorizontal: 20, paddingTop: 24 } as const;
+const Section = styled.View({ width: '100%', gap: 24 });
 const SubTitle = styled.Text({ ...typography.heading3.semibold, color: colors.gray[1000] });
 const Course = styled.Pressable<{ active: boolean }>(({ active }) => ({
   width: '100%',
@@ -267,9 +275,17 @@ const Action = styled.View({
   left: 0,
   paddingHorizontal: 20,
   paddingVertical: 24,
-  backgroundColor: '#FFFFFF',
   zIndex: 40,
 });
+
+const actionBackgroundStyle = {
+  position: 'absolute',
+  top: 0,
+  right: 0,
+  bottom: 0,
+  left: 0,
+} as const;
+
 const Status = styled.View({
   width: '100%',
   minHeight: 160,

@@ -397,7 +397,7 @@ const Actions = styled.View({
   flexDirection: 'row',
   paddingHorizontal: 20,
   paddingTop: 18,
-  paddingBottom: Platform.OS === 'web' ? 24 : 72,
+  paddingBottom: 24,
   gap: 10,
   backgroundColor: withAlpha('#FFFFFF', 0.7),
   borderTopColor: '#FFFFFF',
@@ -465,7 +465,7 @@ const Count = styled.Text(({ disabled }) => ({
 const AddError = styled.Text({
   position: 'absolute',
   right: 20,
-  bottom: Platform.OS === 'web' ? 82 : 92,
+  bottom: 92,
   left: 20,
   zIndex: 101,
   padding: 10,

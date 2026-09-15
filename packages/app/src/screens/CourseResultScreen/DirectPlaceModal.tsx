@@ -360,7 +360,7 @@ const BottomAction = styled.View({
   left: 0,
   paddingHorizontal: 20,
   paddingTop: 18,
-  paddingBottom: Platform.OS === 'web' ? 24 : 72,
+  paddingBottom: 24,
   backgroundColor: withAlpha('#FFFFFF', 0.94),
 });
 const ConfirmButton = styled.Pressable<{ enabled: boolean }>(({ enabled }) => ({
@@ -377,7 +377,7 @@ const ConfirmLabel = styled.Text({ ...typography.body2.medium, color: '#FFFFFF' 
 const AddError = styled.Text({
   position: 'absolute',
   right: 20,
-  bottom: Platform.OS === 'web' ? 82 : 92,
+  bottom: 92,
   left: 20,
   zIndex: 1,
   padding: 10,

@@ -2,6 +2,7 @@ import { IconComponent } from '@components/Icons';
 import styled from '@emotion/native';
 import { colors, typography } from '@styles';
 import { useMemo, useState } from 'react';
+import { FlatList } from 'react-native';
 
 const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -122,8 +123,14 @@ export function Calendar({
         ))}
       </WeekdayRow>
 
-      <DateGrid>
-        {dates.map((date) => {
+      <FlatList
+        data={dates}
+        extraData={value}
+        keyExtractor={(date) => date.key}
+        numColumns={7}
+        scrollEnabled={false}
+        style={dateGridStyle}
+        renderItem={({ item: date }) => {
           const isStart = date.key === value.startDate;
           const isEnd = date.key === value.endDate || (isStart && !value.endDate);
           const isInRange = Boolean(
@@ -136,7 +143,6 @@ export function Calendar({
 
           return (
             <DateButton
-              key={date.key}
               accessibilityRole="button"
               accessibilityLabel={`${date.year}년 ${date.month + 1}월 ${date.day}일`}
               accessibilityState={{ selected: isSelected }}
@@ -149,8 +155,8 @@ export function Calendar({
               </DateLabelContainer>
             </DateButton>
           );
-        })}
-      </DateGrid>
+        }}
+      />
     </Container>
   );
 }
@@ -197,14 +203,10 @@ const Weekday = styled.Text({
   textAlign: 'center',
 });
 
-const DateGrid = styled.View({
-  width: '100%',
-  flexDirection: 'row',
-  flexWrap: 'wrap',
-});
+const dateGridStyle = { width: '100%' } as const;
 
 const DateButton = styled.Pressable({
-  width: `${100 / 7}%`,
+  flex: 1,
   height: 52,
   alignItems: 'center',
   justifyContent: 'center',

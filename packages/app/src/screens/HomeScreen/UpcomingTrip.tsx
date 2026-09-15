@@ -132,7 +132,7 @@ export const HomeUpcomingTrip = () => {
                           </Marker>
                           {placeIndex !== day.items.length - 1 ? <Line /> : null}
                         </Route>
-                        <Place numberOfLines={2}>{place.title}</Place>
+                        <Place>{place.title}</Place>
                       </Item>
                     ))
                   ) : (
@@ -198,7 +198,6 @@ const LoginAction = styled.View({
 const Section = styled.View({
   width: '100%',
   paddingTop: 24,
-  paddingBottom: 64,
   gap: 24,
 });
 
@@ -250,7 +249,7 @@ const carouselStyle = {
 
 const Day = styled.View({
   gap: 20,
-  width: 160,
+  width: 180,
 });
 
 const DayHeader = styled.View({

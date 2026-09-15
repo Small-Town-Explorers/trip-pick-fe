@@ -20,6 +20,13 @@ import {
 } from '../../queries';
 import type { GenerateCourseRequest, SmallCity } from '../../controllers';
 import { CourseCreateDensity } from './Density';
+import { ContentScroll } from '@components/ContentScroll';
+
+const densityToPace = {
+  알차게: 'PACKED',
+  보통: 'NORMAL',
+  여유롭게: 'RELAXED',
+} as const;
 
 export function CourseCreateScreen() {
   const { replace } = useAppNavigation();
@@ -73,6 +80,7 @@ export function CourseCreateScreen() {
     }
 
     const themes = styles.map((style) => (style === '문화 · 역사' ? '문화역사' : style));
+    const pace = densityToPace[density as keyof typeof densityToPace];
     const days = getTripDays(period);
     const request: GenerateCourseRequest = {
       ...(regionId ? { regionId } : {}),
@@ -80,7 +88,7 @@ export function CourseCreateScreen() {
       ...(terrains.length ? { terrains } : {}),
       ...(days ? { days } : {}),
       ...(period.startDate ? { startDate: period.startDate } : {}),
-      ...(density ? { pace: density } : {}),
+      ...(pace ? { pace } : {}),
     };
     const sequence = ++requestSequence.current;
     setIsGenerating(true);
@@ -110,37 +118,39 @@ export function CourseCreateScreen() {
   return (
     <Screen>
       <Header title="코스 생성" />
-      <Introduction>원하는 조건의 소도시를{`\n`}추천해드려요!</Introduction>
-      <CourseCreateRegion
-        value={region}
-        cities={smallCities}
-        isLoading={isLoadingRegions}
-        errorMessage={isRegionError ? '지역 목록을 불러오지 못했어요.' : ''}
-        onChange={(value) => {
-          setSelectedCity(undefined);
-          setRegion(value);
-        }}
-        onSelectCity={(city) => {
-          setSelectedCity(city);
-          setRegion(city.name);
-        }}
-      />
-      <CourseCreateDensity value={density} onChange={setDensity} />
-      <CourseCreateTravelStyle value={styles} onChange={setStyles} />
-      <CourseCreateCompanion
-        value={companion}
-        onChange={(value) => setCompanion((prev) => (prev === value ? '' : value))}
-      />
-      <CourseCreateTravelPeriod value={period} onChange={setPeriod} />
-      <Action>
-        <CourseCreateButton
-          disabled={!Boolean(selectedCity?.name ?? region)}
-          onPress={() => setIsConfirmModalVisible(true)}
-        >
-          위 조건으로 여행 코스 만들기
-        </CourseCreateButton>
-      </Action>
-      {generationError ? <GenerationError>{generationError}</GenerationError> : null}
+      <ContentScroll>
+        <Introduction>원하는 조건의 소도시를{`\n`}추천해드려요!</Introduction>
+        <CourseCreateRegion
+          value={region}
+          cities={smallCities}
+          isLoading={isLoadingRegions}
+          errorMessage={isRegionError ? '지역 목록을 불러오지 못했어요.' : ''}
+          onChange={(value) => {
+            setSelectedCity(undefined);
+            setRegion(value);
+          }}
+          onSelectCity={(city) => {
+            setSelectedCity(city);
+            setRegion(city.name);
+          }}
+        />
+        <CourseCreateDensity value={density} onChange={setDensity} />
+        <CourseCreateTravelStyle value={styles} onChange={setStyles} />
+        <CourseCreateCompanion
+          value={companion}
+          onChange={(value) => setCompanion((prev) => (prev === value ? '' : value))}
+        />
+        <CourseCreateTravelPeriod value={period} onChange={setPeriod} />
+        <Action>
+          <CourseCreateButton
+            disabled={!Boolean(selectedCity?.name ?? region)}
+            onPress={() => setIsConfirmModalVisible(true)}
+          >
+            위 조건으로 여행 코스 만들기
+          </CourseCreateButton>
+        </Action>
+        {generationError ? <GenerationError>{generationError}</GenerationError> : null}
+      </ContentScroll>
       <CourseCreateConfirm
         visible={isConfirmModalVisible}
         region={region}

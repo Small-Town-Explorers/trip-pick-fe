@@ -1,6 +1,7 @@
 import {
   ColorSystemScreen,
   ComponentSystemScreen,
+  configureCourseShareBaseUrl,
   configureApiAccessToken,
   configureApiBaseUrl,
   CourseCreateScreen,
@@ -14,6 +15,7 @@ import {
   MyTripsScreen,
   NavigationProvider,
   PlaceDetailScreen,
+  SharedCourseScreen,
   TripDetailScreen,
   TypographySystemScreen,
   type AppRoute,
@@ -25,6 +27,7 @@ import { ApiError, createKakaoAuthorizeUrl, getAccessToken, loginWithKakaoCode }
 
 configureApiBaseUrl(import.meta.env.VITE_API_BASE_URL ?? 'https://trippick.kro.kr');
 configureApiAccessToken(getAccessToken);
+configureCourseShareBaseUrl(window.location.origin);
 
 function LoginRoute() {
   const navigate = useNavigate();
@@ -81,40 +84,6 @@ function LoginRoute() {
   );
 }
 
-function MobileKakaoCallbackRoute() {
-  const [searchParams] = useSearchParams();
-  const mobileParams = new URLSearchParams();
-
-  for (const key of ['code', 'state', 'error', 'error_description']) {
-    const value = searchParams.get(key);
-    if (value) mobileParams.set(key, value);
-  }
-
-  const appUrl = `mobile://login?${mobileParams.toString()}`;
-
-  useEffect(() => {
-    window.location.replace(appUrl);
-  }, [appUrl]);
-
-  return (
-    <main
-      style={{
-        minHeight: '100vh',
-        display: 'grid',
-        placeItems: 'center',
-        padding: 24,
-        textAlign: 'center',
-        fontFamily: 'Pretendard, sans-serif',
-      }}
-    >
-      <div>
-        <p>카카오 로그인을 완료하고 앱으로 돌아가는 중이에요.</p>
-        <a href={appUrl}>앱이 열리지 않으면 여기를 눌러 주세요.</a>
-      </div>
-    </main>
-  );
-}
-
 function TripDetailRoute() {
   const { id } = useParams<{ id: string }>();
 
@@ -151,6 +120,13 @@ function CourseResultRoute() {
   return <CourseResultScreen courseId={id} />;
 }
 
+function SharedCourseRoute() {
+  const [searchParams] = useSearchParams();
+  const legacyHashParams = new URLSearchParams(window.location.hash.slice(1));
+  const encodedCourse = searchParams.get('data') ?? legacyHashParams.get('data');
+  return <SharedCourseScreen encodedCourse={encodedCourse} />;
+}
+
 function MyTripFolderRoute() {
   const { id } = useParams<{ id: string }>();
   return id ? <MyTripFolderScreen folderId={id} /> : <Navigate to="/my-trips" replace />;
@@ -184,7 +160,6 @@ function App() {
       <Routes>
         <Route path="/" element={<HomeScreen />} />
         <Route path="/login" element={<LoginRoute />} />
-        <Route path="/mobile-auth/kakao" element={<MobileKakaoCallbackRoute />} />
         <Route path="/design-system/colors" element={<ColorSystemScreen />} />
         <Route path="/design-system/typography" element={<TypographySystemScreen />} />
         <Route path="/design-system/components" element={<ComponentSystemScreen />} />
@@ -192,6 +167,7 @@ function App() {
         <Route path="/place-detail/:id" element={<PlaceDetailRoute />} />
         <Route path="/course-create" element={<CourseCreateScreen />} />
         <Route path="/course-result/:id" element={<CourseResultRoute />} />
+        <Route path="/shared-course" element={<SharedCourseRoute />} />
         <Route path="/my-trips" element={<MyTripsScreen />} />
         <Route path="/my-trips/:id" element={<MyTripFolderRoute />} />
         <Route path="/my-page" element={<MyPageScreen />} />

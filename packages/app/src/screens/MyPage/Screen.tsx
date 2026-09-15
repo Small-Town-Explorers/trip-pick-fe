@@ -8,6 +8,7 @@ import { appRoutes, useAppNavigation } from '../../navigation';
 import { hasApiAccessToken } from '../../controllers';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { ContentScroll } from '@components/ContentScroll';
 
 const ACCESS_TOKEN_KEY = 'trip-pick.access-token';
 const ACCESS_TOKEN_EXPIRES_AT_KEY = 'trip-pick.access-token-expires-at';
@@ -35,7 +36,7 @@ export function MyPageScreen() {
   return (
     <Screen>
       <Header title="마이페이지" />
-      <Content>
+      <ContentScroll>
         {isAuthenticated ? (
           <MyPageProfile />
         ) : (
@@ -52,7 +53,7 @@ export function MyPageScreen() {
             ) : null}
           </Logout>
         ) : null}
-      </Content>
+      </ContentScroll>
     </Screen>
   );
 }
@@ -60,10 +61,6 @@ export function MyPageScreen() {
 const Screen = styled.View({
   flex: 1,
   backgroundColor: colors.gray[25],
-});
-
-const Content = styled.ScrollView({
-  flex: 1,
 });
 
 const Logout = styled.View({

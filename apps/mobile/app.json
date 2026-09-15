@@ -1,21 +1,20 @@
 {
   "expo": {
-    "name": "mobile",
+    "name": "소도시로",
     "slug": "mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "../../packages/app/assets/images/logo_button.png",
     "scheme": "mobile",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "../../packages/app/assets/images/logo_button.png"
     },
     "android": {
+      "icon": "./assets/images/android-logo.png",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#2C7D4C",
+        "foregroundImage": "./assets/images/android-logo-foreground.png"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.jadest13.mobile"
@@ -73,8 +72,7 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
-      ],
-      "expo-web-browser"
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

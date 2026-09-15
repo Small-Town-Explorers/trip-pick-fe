@@ -14,6 +14,7 @@ import {
   useFoldersQuery,
   useRenameFolderMutation,
 } from '../../queries';
+import { ContentScroll } from '@components/ContentScroll';
 
 const getFolderErrorMessage = (error: unknown, fallback: string) => {
   if (error instanceof ApiError && error.code === 'FOLDER_DUPLICATE_NAME') {
@@ -121,7 +122,7 @@ export function MyTripsScreen({
   return (
     <Screen>
       <Header title={headerTitle} sub={showCourseCount ? `(${savedCourseCount})` : undefined} />
-      <Scroll contentContainerStyle={contentStyle}>
+      <ContentScroll contentContainerStyle={contentStyle} paddingBottom={20}>
         {showSectionTitle ? <SectionTitle>내 여행 보관함</SectionTitle> : null}
         {error ? (
           <Status>
@@ -212,7 +213,7 @@ export function MyTripsScreen({
             ))
           )}
         </Grid>
-      </Scroll>
+      </ContentScroll>
 
       <ConfirmModal
         visible={isCreateVisible}
@@ -310,7 +311,6 @@ const LoginPromptDescription = styled.Text({
   textAlign: 'center',
 });
 
-const Scroll = styled.ScrollView({ position: 'relative', flex: 1 });
 const contentStyle = { padding: 20, gap: 20 } as const;
 const SectionTitle = styled.Text({ ...typography.heading2.medium, color: colors.gray[1000] });
 const Grid = styled.View({ flexDirection: 'row', flexWrap: 'wrap', gap: 12 });
@@ -366,6 +366,7 @@ const FolderMenu = styled.View({
   borderRadius: 10,
   ...createShadow(0, 4, 20, 0, withAlpha(colors.gray[1000], 0.12)),
 });
+
 const MenuButton = styled.Pressable({
   height: 44,
   paddingHorizontal: 14,

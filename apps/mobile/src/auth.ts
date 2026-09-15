@@ -9,11 +9,11 @@ type KakaoLoginResponse = {
   expiresIn: number;
 };
 
-export async function loginWithKakaoCode(code: string, redirectUri: string) {
-  const token = await apiRequest<KakaoLoginResponse>('/api/v1/auth/kakao/login', {
+export async function loginWithKakaoAccessToken(accessToken: string) {
+  const token = await apiRequest<KakaoLoginResponse>('/api/v1/auth/kakao/mobile/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ code, redirectUri }),
+    body: JSON.stringify({ accessToken }),
   });
 
   if (!token.accessToken || typeof token.expiresIn !== 'number') {
