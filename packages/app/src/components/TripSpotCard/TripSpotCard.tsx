@@ -2,9 +2,12 @@ import KakaoMapIcon from '@assets/images/kakao_map.png';
 import styled from '@emotion/native';
 import { colors, shadows, typography } from '@styles';
 import { Linking, type ImageSourcePropType } from 'react-native';
+import type { CourseCategoryTag } from '../../controllers';
+import { getPlaceImageSource } from '../placeCategoryImage';
 
 interface TripSpotCardProps {
   image?: string | null;
+  categoryTag?: CourseCategoryTag | null;
   showImage?: boolean;
   type: string;
   name: string;
@@ -14,6 +17,7 @@ interface TripSpotCardProps {
 
 export function TripSpotCard({
   image,
+  categoryTag,
   showImage = true,
   type,
   name,
@@ -36,7 +40,7 @@ export function TripSpotCard({
     <Card>
       {showImage ? (
         <Thumbnail
-          source={image ? { uri: image } : undefined}
+          source={getPlaceImageSource(image, categoryTag)}
           accessibilityLabel={name}
           resizeMode="cover"
         />

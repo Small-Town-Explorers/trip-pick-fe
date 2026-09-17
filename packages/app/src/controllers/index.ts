@@ -24,6 +24,7 @@ export {
   type AddCourseItemRequest,
   type AddCourseItemResponse,
   type AddManualCourseItemRequest,
+  type CourseCategoryTag,
   type CourseChatPendingAction,
   type CourseShare,
   type EditCourseWithChatRequest,

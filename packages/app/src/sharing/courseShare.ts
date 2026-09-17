@@ -113,6 +113,7 @@ export function decodeSharedCourse(encoded: string | null | undefined): DecodedS
 
       return day.map((place, placeIndex): CoursePlace => ({
         ...place,
+        categoryTag: null,
         uid: `shared:${dayIndex}:${placeIndex}:${place.id}`,
         order: ++globalOrder,
         date,

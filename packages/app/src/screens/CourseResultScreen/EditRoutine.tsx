@@ -167,6 +167,7 @@ export function CourseResultEditRoutine({
               <CardSlot>
                 <EditTripSpotCard
                   image={row.place.image}
+                  categoryTag={row.place.categoryTag}
                   name={row.place.name}
                   description={row.place.summary}
                   dropOffsets={getTargets(index).map((target) => target.offset)}

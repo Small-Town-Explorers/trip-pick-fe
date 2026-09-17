@@ -51,6 +51,7 @@ export const createCoursePlacesFromResponse = (
         externalId,
         name: item.title,
         tag: item.categoryLabel,
+        categoryTag: item.categoryTag ?? null,
         summary: item.reason ?? item.address ?? item.title,
         image: item.imageUrl,
         lat: item.lat,
@@ -244,7 +245,7 @@ export function CourseResultRoutine({
                   <CardSlot>
                     <TripSpotCard
                       image={place.image}
-                      showImage={!readOnly || Boolean(place.image)}
+                      categoryTag={place.categoryTag}
                       type={place.tag}
                       name={place.name}
                       description={place.summary}

@@ -10,9 +10,12 @@ import {
   useState,
 } from 'react';
 import { Animated, PanResponder, Platform } from 'react-native';
+import type { CourseCategoryTag } from '../../controllers';
+import { getPlaceImageSource } from '../placeCategoryImage';
 
 interface EditTripSpotCardProps {
   image?: string | null;
+  categoryTag?: CourseCategoryTag | null;
   name: string;
   description: string;
   dropOffsets: number[];
@@ -202,6 +205,7 @@ const CourseResultDragHandle = ({
 
 export function EditTripSpotCard({
   image,
+  categoryTag,
   name,
   description,
   dropOffsets,
@@ -222,7 +226,7 @@ export function EditTripSpotCard({
       onDrop={onDrop}
     >
       <Thumbnail
-        source={image ? { uri: image } : undefined}
+        source={getPlaceImageSource(image, categoryTag)}
         accessibilityLabel={name}
         resizeMode="cover"
       />
