@@ -2,7 +2,8 @@ import { IconComponent } from '@components/Icons';
 import styled from '@emotion/native';
 import { shareFeedTemplate } from '@react-native-kakao/share';
 import { colors, createShadow, typography, withAlpha } from '@styles';
-import { useState } from 'react';
+import * as Clipboard from 'expo-clipboard';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Modal } from 'react-native';
 import { useEnableCourseShareMutation, useMyPageSummaryQuery } from '../../queries';
 import { createCourseShareUrl } from '../../sharing';
@@ -21,26 +22,47 @@ export function CourseResultShareModal({
   onClose,
 }: CourseResultShareModalProps) {
   const [isSharing, setIsSharing] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState('');
   const [shareError, setShareError] = useState('');
   const { data: myPageSummary } = useMyPageSummaryQuery(visible);
   const enableShareMutation = useEnableCourseShareMutation();
-  const displayedError = shareError || (!courseId ? '코스를 저장한 뒤 공유할 수 있어요.' : '');
+  const { data: share, error: issueError, isPending, mutate, reset } = enableShareMutation;
+  const shareUrl = share && share.courseId === courseId ? createCourseShareUrl(share.shareId) : '';
+  const displayedError =
+    shareError ||
+    (!courseId
+      ? '코스를 저장한 뒤 공유할 수 있어요.'
+      : issueError instanceof Error
+        ? issueError.message
+        : '');
+
+  useEffect(() => {
+    if (!visible) return;
+    reset();
+    if (courseId) mutate(courseId);
+  }, [courseId, mutate, reset, visible]);
+
   const closeModal = () => {
+    setCopiedUrl('');
     setShareError('');
     onClose();
   };
 
   const shareCourse = async () => {
-    if (!courseId || isSharing) return;
+    if (!share || !shareUrl || isSharing) return;
     setIsSharing(true);
     setShareError('');
 
     try {
-      const share = await enableShareMutation.mutateAsync(courseId);
-      const shareUrl = createCourseShareUrl(share.shareId);
       const courseTitle = (title.trim() || '여행 코스').slice(0, 100);
       const sharerName = (myPageSummary?.nickname.trim() || '사용자').slice(0, 30);
-      const link = { webUrl: shareUrl, mobileWebUrl: shareUrl };
+      const executionParams = { shareId: share.shareId };
+      const link = {
+        webUrl: shareUrl,
+        mobileWebUrl: shareUrl,
+        androidExecutionParams: executionParams,
+        iosExecutionParams: executionParams,
+      };
 
       await shareFeedTemplate({
         template: {
@@ -68,6 +90,17 @@ export function CourseResultShareModal({
     }
   };
 
+  const copyShareUrl = async () => {
+    if (!shareUrl) return;
+
+    try {
+      await Clipboard.setStringAsync(shareUrl);
+      setCopiedUrl(shareUrl);
+    } catch {
+      setShareError('링크를 복사하지 못했어요. 다시 시도해 주세요.');
+    }
+  };
+
   return (
     <Modal
       animationType="fade"
@@ -79,15 +112,32 @@ export function CourseResultShareModal({
       <Backdrop accessibilityRole="button" accessibilityLabel="공유 창 닫기" onPress={closeModal}>
         <Dialog accessibilityRole="alert" onPress={(event) => event.stopPropagation()}>
           <Title>여행 코스 내보내기</Title>
-          <KakaoTalkButton
-            accessibilityRole="button"
-            disabled={isSharing || !courseId}
-            onPress={() => void shareCourse()}
-          >
-            {isSharing ? <ActivityIndicator color="#FFFFFF" /> : <IconComponent name="kakao" />}
-            <LightLabel>{isSharing ? '카카오톡 여는 중' : '카카오톡 공유하기'}</LightLabel>
-          </KakaoTalkButton>
-          {displayedError ? <ErrorText>{displayedError}</ErrorText> : null}
+          {isPending ? (
+            <LoadingState>
+              <ActivityIndicator color={colors.primary[700]} />
+              <LoadingText>공유 링크를 만들고 있어요.</LoadingText>
+            </LoadingState>
+          ) : displayedError ? (
+            <ErrorText>{displayedError}</ErrorText>
+          ) : (
+            <>
+              <LinkField accessibilityLabel="공유 링크" editable={false} value={shareUrl} />
+              <CopyButton accessibilityRole="button" onPress={() => void copyShareUrl()}>
+                <IconComponent name="share" color="#FFFFFF" />
+                <LightLabel>
+                  {copiedUrl === shareUrl ? '링크를 복사했어요' : '링크 복사하기'}
+                </LightLabel>
+              </CopyButton>
+              <KakaoTalkButton
+                accessibilityRole="button"
+                disabled={isSharing || !shareUrl}
+                onPress={() => void shareCourse()}
+              >
+                {isSharing ? <ActivityIndicator color="#FFFFFF" /> : <IconComponent name="kakao" />}
+                <LightLabel>{isSharing ? '카카오톡 여는 중' : '카카오톡 공유하기'}</LightLabel>
+              </KakaoTalkButton>
+            </>
+          )}
           <CancelButton accessibilityRole="button" onPress={closeModal}>
             <CancelLabel>취소</CancelLabel>
           </CancelButton>
@@ -122,6 +172,16 @@ const Title = styled.Text({
   textAlign: 'center',
 });
 
+const LinkField = styled.TextInput({
+  width: '100%',
+  height: 44,
+  paddingHorizontal: 12,
+  ...typography.caption1.regular,
+  color: colors.gray[700],
+  backgroundColor: colors.gray[50],
+  borderRadius: 8,
+});
+
 const ShareButton = styled.Pressable({
   width: '100%',
   height: 44,
@@ -132,6 +192,7 @@ const ShareButton = styled.Pressable({
   borderRadius: 8,
 });
 
+const CopyButton = styled(ShareButton)({ backgroundColor: colors.gray[900] });
 const KakaoTalkButton = styled(ShareButton)({ backgroundColor: colors.gray[900] });
 const CancelButton = styled(ShareButton)({ backgroundColor: colors.primary[50] });
 const LightLabel = styled.Text({ ...typography.body2.semibold, color: '#FFFFFF' });
@@ -141,3 +202,10 @@ const ErrorText = styled.Text({
   color: colors.semantic.warning,
   textAlign: 'center',
 });
+const LoadingState = styled.View({
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingVertical: 12,
+  gap: 8,
+});
+const LoadingText = styled.Text({ ...typography.body2.regular, color: colors.gray[600] });

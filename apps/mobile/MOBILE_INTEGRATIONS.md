@@ -66,7 +66,7 @@ EXPO_PUBLIC_SHARE_WEB_BASE_URL=https://sodosiro.netlify.app
 
 저장된 코스에서 공유를 시작하면 `POST /api/v1/my/courses/{courseId}/share`로 공유 ID를 발급하고 `https://웹주소/c/{shareId}` 링크를 만든다. 공유 화면은 로그인 없이 `GET /api/v1/shared-courses/{shareId}`를 호출해 최신 저장본을 읽기 전용으로 표시하며, 웹과 앱이 같은 경로를 처리한다. 이전 압축형 `/c?d=...`, `/shared-course?data=...`, `#data=...` 링크도 계속 열 수 있다.
 
-모바일에서는 `@react-native-kakao/share`가 카카오톡의 친구·채팅방 선택 화면을 연다. 카카오톡이 설치되지 않은 경우에는 웹 공유 화면을 사용한다. `EXPO_PUBLIC_SHARE_WEB_BASE_URL`은 카카오 개발자 콘솔의 **제품 링크 관리 → 웹 도메인**에 등록된 주소와 일치해야 한다.
+모바일에서는 `@react-native-kakao/share`가 카카오톡의 친구·채팅방 선택 화면을 연다. 카카오 앱 링크에는 `shareId` 실행 파라미터를 함께 넣고 `+native-intent.ts`에서 `/c/{shareId}`로 변환한다. 카카오톡이 설치되지 않은 경우에는 웹 공유 화면을 사용한다. `EXPO_PUBLIC_SHARE_WEB_BASE_URL`은 카카오 개발자 콘솔의 **제품 링크 관리 → 웹 도메인**에 등록된 주소와 일치해야 한다.
 
 웹에서는 같은 링크를 화면에 표시하고 클립보드에 복사한다. 링크 데이터는 수정될 수 있으므로 공유 페이지에서 형식, 길이, 장소 수와 좌표를 검증하며 서버 데이터로 신뢰하지 않는다.
 
