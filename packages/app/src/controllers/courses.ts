@@ -30,11 +30,15 @@ export type GeneratedCourseRegion = {
   populationDeclineArea: boolean;
 };
 
+export type CourseCategoryTag =
+  '맛집' | '카페' | '관광 명소' | '역사 명소' | '액티비티' | '숙소' | '기타';
+
 export type GeneratedCourseItem = {
   order: number;
   seatId: string;
   slot: string;
   categoryLabel: string;
+  categoryTag: CourseCategoryTag;
   startTime: string;
   stayMinutes: number;
   travelMinutesFromPrevious: number | null;

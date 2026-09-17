@@ -2,7 +2,7 @@ import { ContentScroll } from '@components/ContentScroll';
 import { Header } from '@components/Header';
 import styled from '@emotion/native';
 import { colors, typography } from '@styles';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { ActivityIndicator, Linking, Platform } from 'react-native';
 import { ApiError } from '../../controllers';
 import { useSharedCourseQuery } from '../../queries';
@@ -18,7 +18,6 @@ type SharedCourseScreenProps = {
 const createAppCourseUrl = (shareId: string) => `mobile:///c/${encodeURIComponent(shareId)}`;
 
 export function SharedCourseScreen({ shareId, encodedCourse }: SharedCourseScreenProps) {
-  const [appOpenError, setAppOpenError] = useState('');
   const sharedCourseQuery = useSharedCourseQuery(shareId ?? undefined);
   const legacySharedCourse = shareId ? null : decodeSharedCourse(encodedCourse);
 
@@ -75,29 +74,10 @@ export function SharedCourseScreen({ shareId, encodedCourse }: SharedCourseScree
     );
   }
 
-  const openInApp = async () => {
-    if (!shareId) return;
-
-    setAppOpenError('');
-    try {
-      await Linking.openURL(createAppCourseUrl(shareId));
-    } catch {
-      setAppOpenError('앱을 열지 못했어요. 앱이 설치되어 있는지 확인해 주세요.');
-    }
-  };
-
   return (
     <Screen>
       <ContentScroll paddingBottom={40}>
         <Header title="공유 받은 코스" />
-        {Platform.OS === 'web' && shareId ? (
-          <OpenAppSection>
-            <OpenAppButton accessibilityRole="link" onPress={() => void openInApp()}>
-              <OpenAppLabel>앱에서 열기</OpenAppLabel>
-            </OpenAppButton>
-            {appOpenError ? <OpenAppError>{appOpenError}</OpenAppError> : null}
-          </OpenAppSection>
-        ) : null}
         <CourseResultMap places={sharedCourse.places} />
         <CourseResultRoutine
           readOnly
@@ -135,30 +115,5 @@ const ErrorTitle = styled.Text({
 const ErrorDescription = styled.Text({
   ...typography.body2.regular,
   color: colors.gray[600],
-  textAlign: 'center',
-});
-
-const OpenAppSection = styled.View({
-  paddingHorizontal: 20,
-  paddingTop: 12,
-  gap: 8,
-});
-
-const OpenAppButton = styled.Pressable({
-  height: 44,
-  alignItems: 'center',
-  justifyContent: 'center',
-  borderRadius: 8,
-  backgroundColor: colors.primary[800],
-});
-
-const OpenAppLabel = styled.Text({
-  ...typography.body2.semibold,
-  color: '#FFFFFF',
-});
-
-const OpenAppError = styled.Text({
-  ...typography.caption1.regular,
-  color: colors.semantic.warning,
   textAlign: 'center',
 });

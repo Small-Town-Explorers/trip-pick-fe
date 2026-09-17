@@ -44,6 +44,7 @@ export {
   type GenerateCourseRequest,
   type GenerateCourseByNameRequest,
   type GeneratedCourseItem,
+  type CourseCategoryTag,
   type GeneratedCourseRegion,
   type GeneratedCourseResponse,
   type PlaceSearchItem,
