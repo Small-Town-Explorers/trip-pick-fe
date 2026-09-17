@@ -121,11 +121,12 @@ function CourseResultRoute() {
 }
 
 function SharedCourseRoute() {
+  const { shareId } = useParams<{ shareId: string }>();
   const [searchParams] = useSearchParams();
   const legacyHashParams = new URLSearchParams(window.location.hash.slice(1));
   const encodedCourse =
     searchParams.get('d') ?? searchParams.get('data') ?? legacyHashParams.get('data');
-  return <SharedCourseScreen encodedCourse={encodedCourse} />;
+  return <SharedCourseScreen shareId={shareId} encodedCourse={encodedCourse} />;
 }
 
 function MyTripFolderRoute() {
@@ -169,6 +170,7 @@ function App() {
         <Route path="/course-create" element={<CourseCreateScreen />} />
         <Route path="/course-result/:id" element={<CourseResultRoute />} />
         <Route path="/c" element={<SharedCourseRoute />} />
+        <Route path="/c/:shareId" element={<SharedCourseRoute />} />
         <Route path="/shared-course" element={<SharedCourseRoute />} />
         <Route path="/my-trips" element={<MyTripsScreen />} />
         <Route path="/my-trips/:id" element={<MyTripFolderRoute />} />

@@ -475,7 +475,7 @@ function CourseResultContent({
     <Screen testID={`course-result-${courseId}-${resultVersion}`}>
       <ContentScroll paddingBottom={148}>
         <Header title={isEditing ? '코스 직접 편집' : headerTitle}>
-          {!isEditing ? (
+          {!isEditing && isExistingCourse ? (
             <ShareButton
               accessibilityRole="button"
               accessibilityLabel="공유하기"
@@ -563,8 +563,7 @@ function CourseResultContent({
       <CourseResultShareModal
         visible={isShareVisible}
         title={title}
-        period={period}
-        places={places}
+        courseId={isExistingCourse ? courseId : undefined}
         onClose={closeModals}
       />
       {regenerationError ? <RegenerationError>{regenerationError}</RegenerationError> : null}

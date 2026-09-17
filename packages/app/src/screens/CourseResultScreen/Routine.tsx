@@ -26,7 +26,9 @@ export type CoursePlace = CoursePlaceInput & {
 };
 export type CoursePlaces = CoursePlace[][];
 
-export const createCoursePlacesFromResponse = (course: GeneratedCourseResponse): CoursePlaces => {
+export const createCoursePlacesFromResponse = (
+  course: Pick<GeneratedCourseResponse, 'startDate' | 'plan'>,
+): CoursePlaces => {
   let globalOrder = 0;
   const startDate = course.startDate ?? new Date().toISOString().slice(0, 10);
 
@@ -162,6 +164,8 @@ export function CourseResultRoutine({
 }: CourseResultRoutineProps) {
   const [isTitleEditing, setIsTitleEditing] = useState(false);
   const scheduleDates = useMemo(() => getScheduleDates(period), [period]);
+  const dayCount = Math.max(scheduleDates.length, places.length);
+  const displayDates = Array.from({ length: dayCount }, (_, dayIndex) => scheduleDates[dayIndex]);
 
   return (
     <Section>
@@ -197,11 +201,11 @@ export function CourseResultRoutine({
         )}
       </Heading>
 
-      {scheduleDates.map((date, dayIndex) => (
-        <DaySection key={date}>
+      {displayDates.map((date, dayIndex) => (
+        <DaySection key={date ?? `day-${dayIndex + 1}`}>
           <DateRow>
             <DayLabel>Day {dayIndex + 1}</DayLabel>
-            <DateText>{formatDate(date)}</DateText>
+            <DateText>{date ? formatDate(date) : '날짜 미정'}</DateText>
             {dayIndex === 0 && !readOnly ? (
               <ScheduleButton accessibilityRole="button" onPress={onSchedulePress}>
                 <ScheduleLabel>일정 변경</ScheduleLabel>

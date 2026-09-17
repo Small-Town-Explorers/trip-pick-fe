@@ -31,6 +31,11 @@ export { useAddManualCourseItemMutation } from './useAddManualCourseItemMutation
 export { useEditCourseWithChatMutation } from './useEditCourseWithChatMutation';
 export { useRecalculateCourseMutation } from './useRecalculateCourseMutation';
 export {
+  sharedCourseQueryKey,
+  useEnableCourseShareMutation,
+  useSharedCourseQuery,
+} from './useCourseSharing';
+export {
   homeTripQueryKey,
   myCourseDetailQueryKey,
   myCourseListsQueryKey,

@@ -2,62 +2,51 @@ import { IconComponent } from '@components/Icons';
 import styled from '@emotion/native';
 import { shareFeedTemplate } from '@react-native-kakao/share';
 import { colors, createShadow, typography, withAlpha } from '@styles';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { ActivityIndicator, Modal } from 'react-native';
-import type { CalendarRange } from '../../components/Calendar';
-import { useMyPageSummaryQuery } from '../../queries';
+import { useEnableCourseShareMutation, useMyPageSummaryQuery } from '../../queries';
 import { createCourseShareUrl } from '../../sharing';
-import type { CoursePlaces } from './Routine';
 
 interface CourseResultShareModalProps {
   visible: boolean;
   title: string;
-  period: CalendarRange;
-  places: CoursePlaces;
+  courseId?: string;
   onClose: () => void;
 }
 
 export function CourseResultShareModal({
   visible,
   title,
-  period,
-  places,
+  courseId,
   onClose,
 }: CourseResultShareModalProps) {
   const [isSharing, setIsSharing] = useState(false);
   const [shareError, setShareError] = useState('');
   const { data: myPageSummary } = useMyPageSummaryQuery(visible);
-  const shareUrlResult = useMemo(() => {
-    try {
-      return { url: createCourseShareUrl(title, period, places), error: '' };
-    } catch (error) {
-      return {
-        url: '',
-        error: error instanceof Error ? error.message : '공유 링크를 만들지 못했어요.',
-      };
-    }
-  }, [period, places, title]);
-  const displayedError = shareError || shareUrlResult.error;
+  const enableShareMutation = useEnableCourseShareMutation();
+  const displayedError = shareError || (!courseId ? '코스를 저장한 뒤 공유할 수 있어요.' : '');
   const closeModal = () => {
     setShareError('');
     onClose();
   };
 
   const shareCourse = async () => {
-    if (!shareUrlResult.url || isSharing) return;
+    if (!courseId || isSharing) return;
     setIsSharing(true);
     setShareError('');
 
     try {
+      const share = await enableShareMutation.mutateAsync(courseId);
+      const shareUrl = createCourseShareUrl(share.shareId);
       const courseTitle = (title.trim() || '여행 코스').slice(0, 100);
       const sharerName = (myPageSummary?.nickname.trim() || '사용자').slice(0, 30);
-      const link = { webUrl: shareUrlResult.url, mobileWebUrl: shareUrlResult.url };
+      const link = { webUrl: shareUrl, mobileWebUrl: shareUrl };
 
       await shareFeedTemplate({
         template: {
           content: {
             title: `'${sharerName}'님이 생성한 '${courseTitle}' 여행 코스를 확인해보세요.`,
-            imageUrl: new URL('/logo_button.png', shareUrlResult.url).toString(),
+            imageUrl: new URL('/logo_button.png', shareUrl).toString(),
             imageWidth: 111,
             imageHeight: 111,
             link,
@@ -92,7 +81,7 @@ export function CourseResultShareModal({
           <Title>여행 코스 내보내기</Title>
           <KakaoTalkButton
             accessibilityRole="button"
-            disabled={isSharing || !shareUrlResult.url}
+            disabled={isSharing || !courseId}
             onPress={() => void shareCourse()}
           >
             {isSharing ? <ActivityIndicator color="#FFFFFF" /> : <IconComponent name="kakao" />}

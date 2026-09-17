@@ -35,6 +35,11 @@ module.exports = ({ config }) => ({
             host: shareWebUrl.hostname,
             path: compactCoursePath,
           },
+          {
+            scheme: shareWebUrl.protocol.replace(':', ''),
+            host: shareWebUrl.hostname,
+            pathPrefix: `${compactCoursePath}/`,
+          },
         ],
         category: ['BROWSABLE', 'DEFAULT'],
       },

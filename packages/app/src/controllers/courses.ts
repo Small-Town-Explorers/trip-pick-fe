@@ -98,6 +98,19 @@ export type MyCourseDetail = {
   course: GeneratedCourseResponse;
 };
 
+export type CourseShare = {
+  courseId: string;
+  shareId: string;
+};
+
+export type SharedCourse = {
+  shareId: string;
+  title: string;
+  course: Omit<GeneratedCourseResponse, 'region'> & {
+    region: GeneratedCourseRegion | null;
+  };
+};
+
 export type HomeTripStatus = 'UPCOMING' | 'ONGOING' | 'NONE';
 
 export type HomeTripItem = {
@@ -246,6 +259,16 @@ export function getMyCourses(folderId?: string) {
 
 export function getMyCourseDetail(courseId: string) {
   return apiRequest<MyCourseDetail>(`/api/v1/my/courses/${encodeURIComponent(courseId)}`);
+}
+
+export function enableCourseShare(courseId: string) {
+  return apiRequest<CourseShare>(`/api/v1/my/courses/${encodeURIComponent(courseId)}/share`, {
+    method: 'POST',
+  });
+}
+
+export function getSharedCourse(shareId: string) {
+  return apiRequest<SharedCourse>(`/api/v1/shared-courses/${encodeURIComponent(shareId)}`);
 }
 
 export function deleteMyCourse(courseId: string) {

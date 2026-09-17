@@ -1,5 +1,5 @@
 import { decompressFromEncodedURIComponent } from 'lz-string';
-import { deflateSync, inflateSync, strFromU8, strToU8 } from 'fflate';
+import { inflateSync, strFromU8 } from 'fflate';
 import type { CalendarRange } from '../components/Calendar';
 import {
   recalculateCoursePlaces,
@@ -90,36 +90,8 @@ export function configureCourseShareBaseUrl(baseUrl: string | undefined) {
   }
 }
 
-export function createCourseShareUrl(title: string, period: CalendarRange, places: CoursePlaces) {
-  const startDate = period.startDate ?? new Date().toISOString().slice(0, 10);
-  const endDate = period.endDate ?? startDate;
-  const payload: SharedCourseV3 = [
-    SHARED_COURSE_VERSION,
-    (title.trim() || '여행 코스').slice(0, 100),
-    startDate.replaceAll('-', ''),
-    daysBetween(startDate, endDate),
-    places.map((day) =>
-      day.map(({ id, externalId, name, tag, summary, lat, lng }) => [
-        id.startsWith('KAKAO:')
-          ? (externalId?.slice(0, 200) ?? '')
-          : id.startsWith('TOUR:')
-            ? 0
-            : null,
-        name.slice(0, 200),
-        tag.slice(0, 100),
-        summary.slice(0, 500),
-        encodeCoordinate(lat),
-        encodeCoordinate(lng),
-      ]),
-    ),
-  ];
-  const encoded = `~${toBase64Url(deflateSync(strToU8(JSON.stringify(payload)), { level: 9 }))}`;
-
-  if (encoded.length > MAX_ENCODED_COURSE_LENGTH) {
-    throw new Error('코스가 너무 길어 링크로 공유할 수 없어요. 장소 수를 줄여 다시 시도해 주세요.');
-  }
-
-  return `${shareBaseUrl}/c?d=${encoded}`;
+export function createCourseShareUrl(shareId: string) {
+  return `${shareBaseUrl}/c/${encodeURIComponent(shareId)}`;
 }
 
 export function decodeSharedCourse(encoded: string | null | undefined): DecodedSharedCourse | null {
@@ -312,22 +284,7 @@ function isSharedCoursePlaceV2(value: unknown): value is SharedCoursePlaceV2 {
   );
 }
 
-const encodeCoordinate = (value: number | null) =>
-  value === null ? null : Math.round(value * 100_000);
-
 const decodeCoordinate = (value: number | null) => (value === null ? null : value / 100_000);
-
-const daysBetween = (startDate: string, endDate: string) =>
-  Math.max(
-    0,
-    Math.min(
-      MAX_DAYS - 1,
-      Math.round(
-        (new Date(`${endDate}T00:00:00`).getTime() - new Date(`${startDate}T00:00:00`).getTime()) /
-          86_400_000,
-      ),
-    ),
-  );
 
 const addDateDays = (dateString: string, days: number) => {
   const date = new Date(`${dateString}T00:00:00`);
@@ -339,22 +296,6 @@ const expandDate = (value: string) =>
   `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}`;
 
 const BASE64_URL_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
-
-function toBase64Url(bytes: Uint8Array) {
-  let result = '';
-  let bitBuffer = 0;
-  let bitCount = 0;
-  for (const byte of bytes) {
-    bitBuffer = (bitBuffer << 8) | byte;
-    bitCount += 8;
-    while (bitCount >= 6) {
-      bitCount -= 6;
-      result += BASE64_URL_ALPHABET[(bitBuffer >>> bitCount) & 63];
-    }
-  }
-  if (bitCount > 0) result += BASE64_URL_ALPHABET[(bitBuffer << (6 - bitCount)) & 63];
-  return result;
-}
 
 function fromBase64Url(value: string) {
   if (!/^[A-Za-z0-9_-]+$/.test(value) || value.length % 4 === 1) {
