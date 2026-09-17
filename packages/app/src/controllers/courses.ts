@@ -130,6 +130,17 @@ export type AddCourseItemResponse = {
   warnings: string[];
 };
 
+export type RecalculateCourseRequest = {
+  course: GeneratedCourseResponse;
+  days?: number[];
+  dayStartTimes?: Record<string, string>;
+};
+
+export type RecalculateCourseResponse = {
+  course: GeneratedCourseResponse;
+  warnings: string[];
+};
+
 export type ManualCourseItem = {
   name: string;
   memo?: string;
@@ -190,6 +201,14 @@ export function addCourseItem(request: AddCourseItemRequest) {
 
 export function addManualCourseItem(request: AddManualCourseItemRequest) {
   return apiRequest<AddCourseItemResponse>('/api/v1/courses/items/manual', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+}
+
+export function recalculateCourse(request: RecalculateCourseRequest) {
+  return apiRequest<RecalculateCourseResponse>('/api/v1/courses/recalculate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(request),

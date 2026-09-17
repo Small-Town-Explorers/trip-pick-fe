@@ -16,6 +16,7 @@ export {
   getHomeTrip,
   getMyCourseDetail,
   getMyCourses,
+  recalculateCourse,
   saveMyCourse,
   updateMyCourse,
   type AddCourseItemRequest,
@@ -36,6 +37,8 @@ export {
   type MyCourseDetail,
   type MyCourseSummary,
   type ManualCourseItem,
+  type RecalculateCourseRequest,
+  type RecalculateCourseResponse,
   type SaveMyCourseRequest,
   type UpdateMyCourseRequest,
 } from './courses';

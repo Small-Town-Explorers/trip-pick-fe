@@ -36,6 +36,7 @@ import {
   useEditCourseWithChatMutation,
   useGenerateCourseByNameMutation,
   useMyCourseDetailQuery,
+  useRecalculateCourseMutation,
   useSaveMyCourseMutation,
   useUpdateMyCourseMutation,
 } from '../../queries';
@@ -218,6 +219,7 @@ function CourseResultContent({
   const addCourseItemMutation = useAddCourseItemMutation();
   const addManualCourseItemMutation = useAddManualCourseItemMutation();
   const editCourseWithChatMutation = useEditCourseWithChatMutation();
+  const recalculateCourseMutation = useRecalculateCourseMutation();
   const saveMyCourseMutation = useSaveMyCourseMutation();
   const updateMyCourseMutation = useUpdateMyCourseMutation();
   const regenerationSequence = useRef(0);
@@ -426,8 +428,8 @@ function CourseResultContent({
 
   const saveCourse = async (folderId: string) => {
     const isSaving = isExistingCourse
-      ? updateMyCourseMutation.isPending
-      : saveMyCourseMutation.isPending;
+      ? recalculateCourseMutation.isPending || updateMyCourseMutation.isPending
+      : recalculateCourseMutation.isPending || saveMyCourseMutation.isPending;
     if (!course || isSaving) return false;
 
     const trimmedTitle = title.trim();
@@ -438,11 +440,17 @@ function CourseResultContent({
 
     setCourseSaveError('');
     try {
+      const recalculated = await recalculateCourseMutation.mutateAsync({
+        course: applyEditedPlacesToCourse(course, places, period),
+      });
+      setCourse(recalculated.course);
+      setPlaces(createCoursePlacesFromResponse(recalculated.course));
+
       const request = {
         title: trimmedTitle,
         folderId,
         startDate: period.startDate,
-        course: applyEditedPlacesToCourse(course, places, period),
+        course: recalculated.course,
       };
       const saved = isExistingCourse
         ? await updateMyCourseMutation.mutateAsync({ id: courseId, ...request })
@@ -569,7 +577,8 @@ function CourseResultContent({
         visible={isSaveVisible}
         title={title}
         isSaving={
-          isExistingCourse ? updateMyCourseMutation.isPending : saveMyCourseMutation.isPending
+          recalculateCourseMutation.isPending ||
+          (isExistingCourse ? updateMyCourseMutation.isPending : saveMyCourseMutation.isPending)
         }
         saveError={courseSaveError}
         onClose={() => {
