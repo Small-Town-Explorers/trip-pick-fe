@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
-import { AppState, Linking, Pressable, Text, View } from 'react-native';
+import { AppState, Pressable, Text, View } from 'react-native';
 import {
   getNotificationPermission,
+  openNotificationSettings,
   requestNotificationPermission,
 } from '../../permissions/notifications';
+import { syncCourseReminders } from '../../notifications/courseReminders';
 import type { NotificationPermissionState } from '../../permissions/notifications.types';
 
 export function NotificationPermissionCard() {
@@ -12,8 +14,19 @@ export function NotificationPermissionCard() {
   const [busy, setBusy] = useState(false);
   const refresh = useCallback(() => {
     void getNotificationPermission()
-      .then(setPermission)
-      .catch(() => setError('알림 권한을 확인하지 못했어요.'));
+      .then((nextPermission) => {
+        setPermission(nextPermission);
+        setError('');
+        if (nextPermission.status === 'granted') void syncCourseReminders().catch(() => {});
+      })
+      .catch((permissionError) => {
+        setPermission({ status: 'denied', canAskAgain: false });
+        setError(
+          permissionError instanceof Error
+            ? `알림 권한을 확인하지 못했어요: ${permissionError.message}`
+            : '알림 권한을 확인하지 못했어요.',
+        );
+      });
   }, []);
   useEffect(() => {
     refresh();
@@ -29,9 +42,12 @@ export function NotificationPermissionCard() {
     setError('');
     try {
       if (permission?.status !== 'granted' && permission?.canAskAgain) {
-        setPermission(await requestNotificationPermission());
+        const nextPermission = await requestNotificationPermission();
+        setPermission(nextPermission);
+        if (nextPermission.status === 'granted') await syncCourseReminders();
+        else await openNotificationSettings();
       } else {
-        await Linking.openSettings();
+        await openNotificationSettings();
       }
     } catch {
       setError('알림 권한을 변경하지 못했어요. 휴대폰 설정에서 확인해 주세요.');

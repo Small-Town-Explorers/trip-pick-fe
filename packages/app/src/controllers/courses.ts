@@ -98,6 +98,19 @@ export type MyCourseDetail = {
   course: GeneratedCourseResponse;
 };
 
+export type CourseShare = {
+  courseId: string;
+  shareId: string;
+};
+
+export type SharedCourse = {
+  shareId: string;
+  title: string;
+  course: Omit<GeneratedCourseResponse, 'region'> & {
+    region: GeneratedCourseRegion | null;
+  };
+};
+
 export type HomeTripStatus = 'UPCOMING' | 'ONGOING' | 'NONE';
 
 export type HomeTripItem = {
@@ -126,6 +139,17 @@ export type AddCourseItemRequest = {
 };
 
 export type AddCourseItemResponse = {
+  course: GeneratedCourseResponse;
+  warnings: string[];
+};
+
+export type RecalculateCourseRequest = {
+  course: GeneratedCourseResponse;
+  days?: number[];
+  dayStartTimes?: Record<string, string>;
+};
+
+export type RecalculateCourseResponse = {
   course: GeneratedCourseResponse;
   warnings: string[];
 };
@@ -196,6 +220,14 @@ export function addManualCourseItem(request: AddManualCourseItemRequest) {
   });
 }
 
+export function recalculateCourse(request: RecalculateCourseRequest) {
+  return apiRequest<RecalculateCourseResponse>('/api/v1/courses/recalculate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+}
+
 export function editCourseWithChat(request: EditCourseWithChatRequest) {
   return apiRequest<EditCourseWithChatResponse>('/api/v1/courses/chat', {
     method: 'POST',
@@ -227,6 +259,16 @@ export function getMyCourses(folderId?: string) {
 
 export function getMyCourseDetail(courseId: string) {
   return apiRequest<MyCourseDetail>(`/api/v1/my/courses/${encodeURIComponent(courseId)}`);
+}
+
+export function enableCourseShare(courseId: string) {
+  return apiRequest<CourseShare>(`/api/v1/my/courses/${encodeURIComponent(courseId)}/share`, {
+    method: 'POST',
+  });
+}
+
+export function getSharedCourse(shareId: string) {
+  return apiRequest<SharedCourse>(`/api/v1/shared-courses/${encodeURIComponent(shareId)}`);
 }
 
 export function deleteMyCourse(courseId: string) {

@@ -5,4 +5,5 @@ export async function getNotificationPermission(): Promise<NotificationPermissio
 }
 export const requestNotificationPermission = getNotificationPermission;
 export async function ensureNotificationPermission(): Promise<void> {}
+export async function openNotificationSettings(): Promise<void> {}
 export async function initializeNotificationPermissions(): Promise<void> {}

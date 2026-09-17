@@ -14,6 +14,11 @@ import {
   pastTripsQueryKey,
   visitedRegionsQueryKey,
 } from './useMyPageQueries';
+import {
+  cacheMyCourseDetail,
+  cacheMyCourseSummaries,
+  removeCachedMyCourse,
+} from '../notifications/courseReminders';
 
 export const myCourseListsQueryKey = ['my-courses', 'list'] as const;
 export const homeTripQueryKey = ['my-courses', 'home'] as const;
@@ -27,14 +32,22 @@ export const myCourseDetailQueryKey = (courseId: string) =>
 export function useMyCoursesQuery(folderId?: string) {
   return useQuery({
     queryKey: myCoursesQueryKey(folderId),
-    queryFn: () => getMyCourses(folderId),
+    queryFn: async () => {
+      const courses = await getMyCourses(folderId);
+      void cacheMyCourseSummaries(courses, folderId === undefined).catch(() => {});
+      return courses;
+    },
   });
 }
 
 export function useMyCourseDetailQuery(courseId: string, enabled = true) {
   return useQuery({
     queryKey: myCourseDetailQueryKey(courseId),
-    queryFn: () => getMyCourseDetail(courseId),
+    queryFn: async () => {
+      const course = await getMyCourseDetail(courseId);
+      void cacheMyCourseDetail(course).catch(() => {});
+      return course;
+    },
     enabled: enabled && Boolean(courseId),
   });
 }
@@ -54,6 +67,7 @@ export function useSaveMyCourseMutation() {
   return useMutation({
     mutationFn: saveMyCourse,
     onSuccess: (savedCourse) => {
+      void cacheMyCourseDetail(savedCourse).catch(() => {});
       queryClient.setQueryData<MyCourseDetail>(myCourseDetailQueryKey(savedCourse.id), savedCourse);
       void queryClient.invalidateQueries({ queryKey: myCourseListsQueryKey });
       void queryClient.invalidateQueries({ queryKey: homeTripQueryKey });
@@ -70,6 +84,7 @@ export function useUpdateMyCourseMutation() {
   return useMutation({
     mutationFn: updateMyCourse,
     onSuccess: (updatedCourse) => {
+      void cacheMyCourseDetail(updatedCourse).catch(() => {});
       queryClient.setQueryData<MyCourseDetail>(
         myCourseDetailQueryKey(updatedCourse.id),
         updatedCourse,
@@ -89,6 +104,7 @@ export function useDeleteMyCourseMutation() {
   return useMutation({
     mutationFn: deleteMyCourse,
     onSuccess: (_response, courseId) => {
+      void removeCachedMyCourse(courseId).catch(() => {});
       queryClient.setQueriesData<MyCourseSummary[]>(
         { queryKey: myCourseListsQueryKey },
         (courses) => courses?.filter((course) => course.id !== courseId),

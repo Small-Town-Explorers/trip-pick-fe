@@ -1,7 +1,7 @@
 import { IconComponent } from '@components/Icons';
 import styled from '@emotion/native';
 import { colors, typography } from '@styles';
-import { useAppNavigation } from '../../navigation';
+import { appRoutes, useAppNavigation } from '../../navigation';
 import { type PropsWithChildren } from 'react';
 import { Platform } from 'react-native';
 
@@ -11,10 +11,13 @@ interface HeaderProps {
 }
 
 export const Header = ({ title, sub, children }: PropsWithChildren<HeaderProps>) => {
-  const { back } = useAppNavigation();
+  const { back, replace } = useAppNavigation();
   return (
     <Bar>
-      <BackButton accessibilityRole="button" onPress={back}>
+      <BackButton
+        accessibilityRole="button"
+        onPress={title === '공유 받은 코스' ? () => replace(appRoutes.home) : back}
+      >
         <IconComponent name="carousel_left" color={colors.gray[400]} />
       </BackButton>
       <Title>

@@ -1,31 +1,13 @@
-import Constants, { AppOwnership } from 'expo-constants';
-import { Platform } from 'react-native';
+import Constants from 'expo-constants';
+import * as Notifications from 'expo-notifications';
+import { Linking, Platform } from 'react-native';
 import type { NotificationPermissionState } from './notifications.types';
 
-type NotificationsModule = typeof import('expo-notifications');
-type NotificationPermissionsStatus = Awaited<
-  ReturnType<NotificationsModule['getPermissionsAsync']>
->;
+type NotificationPermissionsStatus = Awaited<ReturnType<typeof Notifications.getPermissionsAsync>>;
 
 let pendingRequest: Promise<NotificationPermissionState> | undefined;
-let notificationsModule: Promise<NotificationsModule | null> | undefined;
 
-const unsupportedPermission: NotificationPermissionState = {
-  status: 'denied',
-  canAskAgain: false,
-};
-
-/** Expo Go no longer includes Android remote notifications, so load them only when available. */
-function getNotificationsModule() {
-  if (Constants.appOwnership === AppOwnership.Expo) return Promise.resolve(null);
-  notificationsModule ??= import('expo-notifications').catch(() => null);
-  return notificationsModule;
-}
-
-function normalize(
-  permission: NotificationPermissionsStatus,
-  Notifications: NotificationsModule,
-): NotificationPermissionState {
+function normalize(permission: NotificationPermissionsStatus): NotificationPermissionState {
   const allowed =
     Platform.OS === 'ios'
       ? permission.ios?.status === Notifications.IosAuthorizationStatus.AUTHORIZED ||
@@ -39,17 +21,16 @@ function normalize(
 }
 
 export async function getNotificationPermission(): Promise<NotificationPermissionState> {
-  const Notifications = await getNotificationsModule();
-  if (!Notifications) return unsupportedPermission;
-  return normalize(await Notifications.getPermissionsAsync(), Notifications);
+  return normalize(await Notifications.getPermissionsAsync());
 }
 
 export async function requestNotificationPermission(): Promise<NotificationPermissionState> {
-  const Notifications = await getNotificationsModule();
-  if (!Notifications) return unsupportedPermission;
   pendingRequest ??= (async () => {
     // Android 13+ requires a channel before the runtime permission prompt.
-    if (Platform.OS === 'android') {
+    if (
+      Platform.OS === 'android' &&
+      typeof Notifications.setNotificationChannelAsync === 'function'
+    ) {
       await Notifications.setNotificationChannelAsync('travel', {
         name: '여행 알림',
         importance: Notifications.AndroidImportance.DEFAULT,
@@ -61,7 +42,6 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
       await Notifications.requestPermissionsAsync({
         ios: { allowAlert: true, allowBadge: true, allowSound: true },
       }),
-      Notifications,
     );
   })().finally(() => {
     pendingRequest = undefined;
@@ -72,15 +52,29 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
 export async function ensureNotificationPermission() {
   const permission = await requestNotificationPermission();
   if (permission.status !== 'granted') {
-    throw new Error(
-      '휴대폰의 알림 권한을 허용한 뒤 다시 켜 주세요. 알림 설정에서 권한을 변경할 수 있어요.',
-    );
+    await openNotificationSettings();
+    throw new Error('휴대폰 알림 설정에서 소도시로 알림을 허용한 뒤 다시 켜 주세요.');
   }
 }
 
+export async function openNotificationSettings() {
+  if (Platform.OS === 'android') {
+    const packageName = Constants.expoConfig?.android?.package;
+    if (packageName && typeof Linking.sendIntent === 'function') {
+      try {
+        await Linking.sendIntent('android.settings.APP_NOTIFICATION_SETTINGS', [
+          { key: 'android.provider.extra.APP_PACKAGE', value: packageName },
+        ]);
+        return;
+      } catch {
+        // Some Android vendors do not expose the dedicated notification screen.
+      }
+    }
+  }
+  await Linking.openSettings();
+}
+
 export async function initializeNotificationPermissions() {
-  const Notifications = await getNotificationsModule();
-  if (!Notifications) return;
   const current = await getNotificationPermission();
   // Do not repeat the startup prompt after the user has made a choice.
   if (current.status === 'undetermined') await requestNotificationPermission();
