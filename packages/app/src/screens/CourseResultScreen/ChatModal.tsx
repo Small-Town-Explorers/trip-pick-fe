@@ -2,8 +2,8 @@ import { IconComponent } from '@components/Icons';
 import { BottomSheetModal } from '@components/Modal';
 import styled from '@emotion/native';
 import { colors, shadows, typography, withAlpha } from '@styles';
-import { useRef, useState } from 'react';
-import { ActivityIndicator, Platform, ScrollView } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Keyboard, Platform, ScrollView, View } from 'react-native';
 import {
   getPersistedCourseChat,
   persistCourseChat,
@@ -46,6 +46,51 @@ export function CourseResultChatModal({
   const [storageError, setStorageError] = useState('');
   const messagesRef = useRef(messages);
   const chatScrollRef = useRef<ScrollView>(null);
+  const contentRef = useRef<View>(null);
+  const keyboardTopRef = useRef<number | undefined>(undefined);
+  const [composerOffset, setComposerOffset] = useState(0);
+
+  const updateComposerOffset = useCallback(() => {
+    if (keyboardTopRef.current === undefined) {
+      setComposerOffset(0);
+      return;
+    }
+
+    // Measure the stationary content, so repeated events never add the previous offset.
+    contentRef.current?.measureInWindow((_x, y, _width, height) => {
+      const keyboardTop = keyboardTopRef.current;
+      setComposerOffset(keyboardTop === undefined ? 0 : Math.max(0, y + height - keyboardTop));
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!visible || Platform.OS === 'web') return;
+
+    keyboardTopRef.current = Keyboard.metrics()?.screenY;
+    updateComposerOffset();
+
+    const showSubscription = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillChangeFrame' : 'keyboardDidShow',
+      (event) => {
+        keyboardTopRef.current = event.endCoordinates.screenY;
+        updateComposerOffset();
+      },
+    );
+    const hideSubscription = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        keyboardTopRef.current = undefined;
+        updateComposerOffset();
+      },
+    );
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+      keyboardTopRef.current = undefined;
+      setComposerOffset(0);
+    };
+  }, [visible, updateComposerOffset]);
 
   const appendMessage = (message: CourseChatMessage) => {
     const nextMessages = [...messagesRef.current, message];
@@ -90,12 +135,12 @@ export function CourseResultChatModal({
       title="코스 챗봇 편집"
       accessibilityLabel="챗봇 수정 닫기"
       baseHeight={720}
-      avoidKeyboard
+      preserveHeightOnKeyboard
       visible={visible}
       onClose={onClose}
     >
       {() => (
-        <Content>
+        <Content ref={contentRef} collapsable={false} onLayout={updateComposerOffset}>
           <ChatScroll
             ref={chatScrollRef}
             contentContainerStyle={chatContentStyle}
@@ -146,7 +191,7 @@ export function CourseResultChatModal({
             <ThinkingText accessibilityLiveRegion="polite">{storageError}</ThinkingText>
           ) : null}
 
-          <Action>
+          <Action style={Platform.OS === 'web' ? undefined : { bottom: composerOffset }}>
             <LinearGradient
               colors={[
                 'rgba(255, 255, 255, 0)',
