@@ -22,6 +22,7 @@ interface BottomSheetModalProps {
   children: (controls: { close: () => void }) => ReactNode;
   accessibilityLabel?: string;
   avoidKeyboard?: boolean;
+  preserveHeightOnKeyboard?: boolean;
   baseHeight?: number;
   isExpandable?: boolean;
   sheetStyle?: StyleProp<ViewStyle>;
@@ -40,6 +41,7 @@ export function BottomSheetModal({
   children,
   accessibilityLabel = '모달 닫기',
   avoidKeyboard = false,
+  preserveHeightOnKeyboard = false,
   baseHeight = DEFAULT_BASE_HEIGHT,
   isExpandable = true,
   sheetStyle,
@@ -55,6 +57,11 @@ export function BottomSheetModal({
   const [offset] = useState(() => new Animated.Value(minimumHeight));
   const [isClosing, setIsClosing] = useState(false);
   const [sheetExpanded, setSheetExpanded] = useState(false);
+  const [modalHeight, setModalHeight] = useState<number>();
+
+  if (!visible && modalHeight !== undefined) {
+    setModalHeight(undefined);
+  }
 
   const handleShow = useCallback(() => {
     currentHeight.setValue(minimumHeight);
@@ -202,7 +209,10 @@ export function BottomSheetModal({
     >
       <KeyboardAvoidingView
         behavior={avoidKeyboard && Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.container}
+        style={[
+          styles.container,
+          preserveHeightOnKeyboard && modalHeight !== undefined && { height: modalHeight, flex: 0 },
+        ]}
       >
         <Animated.View style={[styles.backdrop, { opacity }]}>
           <Pressable

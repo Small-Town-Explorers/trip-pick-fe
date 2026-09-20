@@ -24,6 +24,7 @@ interface BottomSheetModalProps {
   children: (controls: { close: () => void }) => ReactNode;
   accessibilityLabel?: string;
   avoidKeyboard?: boolean;
+  preserveHeightOnKeyboard?: boolean;
   baseHeight?: number;
   isExpandable?: boolean;
   sheetStyle?: StyleProp<ViewStyle>;

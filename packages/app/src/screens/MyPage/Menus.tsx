@@ -96,7 +96,7 @@ export const MyPageMenus = ({ isAuthenticated }: { isAuthenticated: boolean }) =
               {item.route && (isAuthenticated || item.route !== 'account') ? (
                 <IconComponent name="carousel_right" size={14} color={colors.gray[500]} />
               ) : item.label === '앱 버전' ? (
-                <MenuItemVersionSub>1.2.0</MenuItemVersionSub>
+                <MenuItemVersionSub>1.2.1</MenuItemVersionSub>
               ) : item.label === '위치 권한' ? (
                 <ToggleButton
                   value={locationPermissionStatus}
